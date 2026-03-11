@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Controle Uber PRO (app30 login)</title>
+<style>
+  :root {
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg,#0f172a 0%, #111827 100%);
+    font-family: system-ui, Arial, sans-serif;
+    color: #fff;
+    padding: 18px;
+  }
+  #badge {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(0,0,0,.45);
+    border: 1px solid rgba(255,255,255,.14);
+    font-size: 12px;
+  }
+  .card {
+    width: min(360px, 100%);
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  }
+  h1 {
+    margin: 0 0 8px 0;
+    font-size: 22px;
+  }
+  .muted {
+    opacity: .85;
+    font-size: 13px;
+    line-height: 1.35;
+    margin-bottom: 10px;
+  }
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .tab {
+    flex: 1;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.06);
+    color: #fff;
+    border-radius: 12px;
+    padding: 10px;
+    font: inherit;
+    font-weight: 700;
+  }
+  .tab.active {
+    background: rgba(59,130,246,.20);
+    border-color: rgba(59,130,246,.35);
+  }
+  input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(0,0,0,.22);
+    color: #fff;
+    outline: none;
+  }
+  .row {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .row > * {
+    flex: 1;
+  }
+  button.action {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font: inherit;
+    font-weight: 700;
+    background: rgba(34,197,94,.25);
+    color: #eafff3;
+    border: 1px solid rgba(34,197,94,.40);
+  }
+  button.secondary {
+    background: rgba(255,255,255,.06);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.14);
+  }
+  #msg {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    display: none;
+    background: rgba(0,0,0,.22);
+    border: 1px solid rgba(255,255,255,.10);
+    font-size: 13px;
+    line-height: 1.35;
+  }
+  .danger {
+    background: rgba(239,68,68,.10) !important;
+    border-color: rgba(239,68,68,.45) !important;
+  }
+  .ok {
+    background: rgba(34,197,94,.10) !important;
+    border-color: rgba(34,197,94,.45) !important;
+  }
+  .small {
+    font-size: 12px;
+    opacity: .9;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+<div id="badge">APP30 LOGIN</div>
+<div class="card">
+  <h1>Controle Uber PRO</h1>
+  <div class="muted" id="subtitle">Entre para acessar.</div>
+
+  <div class="tabs">
+    <button class="tab active" id="tabLogin" type="button">Entrar</button>
+    <button class="tab" id="tabSignup" type="button">Criar conta</button>
+  </div>
+
+  <input id="email" type="email" placeholder="email" autocomplete="email">
+  <input id="pass" type="password" placeholder="senha" autocomplete="current-password">
+
+  <div class="row">
+    <button class="action" id="primaryBtn" type="button">Entrar</button>
+    <button class="action secondary" id="forgotBtn" type="button">Esqueci</button>
+  </div>
+
+  <div id="msg"></div>
+  <div class="small">Status: <span id="status">pronto</span></div>
+</div>
+
+<script>
+(function(){
+  var SUPABASE_URL = 'https://xoqlgwjpmdkiazwpwhmn.supabase.co';
+  var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA';
+  var APP_PAGE = "app30_app.html";
+  var mode = "login";
+
+  function $(id) { return document.getElementById(id); }
+  function setStatus(t) { $("status").textContent = t; }
+  function showMsg(text, kind) {
+    var el = $("msg");
+    el.style.display = "block";
+    el.className = "";
+    if(kind) el.classList.add(kind);
+    el.textContent = text;
+  }
+  function hideMsg() {
+    var el = $("msg");
+    el.style.display = "none";
+    el.className = "";
+    el.textContent = "";
+  }
+  function setMode(next) {
+    mode = next === "signup" ? "signup" : "login";
+    $("tabLogin").classList.toggle("active", mode === "login");
+    $("tabSignup").classList.toggle("active", mode === "signup");
+    $("primaryBtn").textContent = mode === "login" ? "Entrar" : "Criar conta";
+    $("subtitle").textContent = mode === "login" ? "Entre para acessar." : "Crie sua conta.";
+    hideMsg();
+    setStatus("modo: " + mode);
+  }
+  function saveSession(data) {
+    try {
+      localStorage.setItem("sb_token", data.access_token || "");
+      localStorage.setItem("sb_refresh_token", data.refresh_token || "");
+      localStorage.setItem("sb_expires_at", String(data.expires_at || 0));
+    } catch(e) {}
+  }
+  function hasToken() {
+    try {
+      return !!(localStorage.getItem("sb_token") || "");
+    } catch(e) {
+      return false;
+    }
+  }
+  async function login() {
+    hideMsg();
+    var email = $("email").value.trim();
+    var pass = $("pass").value.trim();
+    if(!email || !pass) {
+      showMsg("Preencha email e senha.", "danger");
+      setStatus("faltam dados");
+      return;
+    }
+
+    if(mode === "signup") {
+      setStatus("criando conta");
+      try {
+        const r = await fetch(SUPABASE_URL + "/auth/v1/signup", {
+          method: "POST",
+          headers: {
+            "apikey": SUPABASE_KEY,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ email: email, password: pass })
+        });
+        const data = await r.json();
+        if(data.user) {
+          showMsg("Conta criada. Confirme o email e depois faça login.", "ok");
+          setStatus("conta criada");
+        } else {
+          showMsg(data.error_description || data.msg || "Erro no cadastro.", "danger");
+          setStatus("erro");
+        }
+      } catch(e) {
+        showMsg("Erro de conexão.", "danger");
+        setStatus("erro");
+      }
+      return;
+    }
+
+    setStatus("entrando");
+    try {
+      const r = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password", {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email: email, password: pass })
+      });
+      const data = await r.json();
+      if(data.access_token) {
+        saveSession(data);
+        setStatus("OK");
+        location.href = APP_PAGE;
+      } else {
+        showMsg(data.error_description || data.msg || "Erro no login.", "danger");
+        setStatus("erro");
+      }
+    } catch(e) {
+      showMsg("Erro de conexão.", "danger");
+      setStatus("erro");
+    }
+  }
+
+  async function forgot() {
+    hideMsg();
+    var email = $("email").value.trim();
+    if(!email) {
+      showMsg("Digite seu email.", "danger");
+      setStatus("faltam dados");
+      return;
+    }
+    setStatus("enviando");
+    try {
+      const r = await fetch(SUPABASE_URL + "/auth/v1/recover", {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email: email })
+      });
+      const data = await r.json();
+      if(r.ok) {
+        showMsg("Email enviado.", "ok");
+        setStatus("OK");
+      } else {
+        showMsg(data.error_description || data.msg || "Erro ao enviar email.", "danger");
+        setStatus("erro");
+      }
+    } catch(e) {
+      showMsg("Erro de conexão.", "danger");
+      setStatus("erro");
+    }
+  }
+
+  $("tabLogin").addEventListener("click", function(){ setMode("login"); }, true);
+  $("tabSignup").addEventListener("click", function(){ setMode("signup"); }, true);
+  $("primaryBtn").addEventListener("click", login, true);
+  $("forgotBtn").addEventListener("click", forgot, true);
+
+  setMode("login");
+  if(hasToken()) {
+    location.href = APP_PAGE;
+  }
+})();
+</script>
+</body>
+</html>
