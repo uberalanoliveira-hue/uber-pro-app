@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Controle Uber PRO</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+body { font-family: Arial, Helvetica, sans-serif; background:#0f172a; color:#fff; margin:0; padding:16px; }
+.wrap { max-width:1100px; margin:0 auto; }
+.card { background:#111827; border:1px solid #374151; border-radius:12px; padding:16px; margin-bottom:16px; }
+h1 { margin:0 0 16px 0; }
+input { width:100%; padding:10px; margin-top:8px; border-radius:8px; border:1px solid #374151; background:#020617; color:#fff; }
+.row { display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
+.row>* { flex:1; min-width:0; }
+button { padding:10px 14px; cursor:pointer; border-radius:8px; border:none; color:#fff; font-weight:bold; }
+.primary { background:#2563eb; }
+.success { background:#16a34a; }
+.danger { background:#dc2626; }
+.secondary { background:#334155; }
+#msg { margin-top:10px; padding:10px; border-radius:8px; display:none; background:rgba(255,255,255,.06); border:1px solid #374151; }
+table { width:100%; border-collapse:collapse; background:#111827; }
+th,td { padding:10px; border:1px solid #374151; text-align:left; vertical-align:top; }
+small { opacity:.8; }
+.hidden { display:none; }
+.grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.stat { background:#0b1220; border:1px solid #374151; border-radius:12px; padding:14px; }
+.stat .label { font-size:12px; opacity:.8; }
+.stat .value { font-size:24px; font-weight:700; margin-top:6px; }
+.badge { display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700; border:1px solid #374151; background:#0b1220; }
+.badge.trial { color:#fde68a; }
+.badge.active { color:#86efac; }
+.badge.blocked { color:#fca5a5; }
+.toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+.search { flex:1; min-width:220px; }
+.note { font-size:12px; opacity:.8; margin-top:8px; line-height:1.35; }
+@media (max-width:800px) {
+  .grid { grid-template-columns:repeat(2,1fr); }
+  table, thead, tbody, th, td, tr { font-size:13px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Admin - Controle Uber PRO</h1>
+    <div>Entre com seu email administrador.</div>
+    <input id="email" type="email" placeholder="email admin">
+    <input id="pass" type="password" placeholder="senha">
+    <div class="row">
+      <button class="primary" id="loginBtn" type="button">Entrar</button>
+      <button class="secondary" id="logoutBtn1" type="button">Sair</button>
+    </div>
+    <div id="msg"></div>
+  </div>
+
+  <div class="card hidden" id="adminCard">
+    <div class="toolbar">
+      <div>
+        <h1 style="margin:0;">Painel Admin</h1>
+        <small id="whoami">-</small>
+      </div>
+      <div class="row" style="margin-top:0;">
+        <button class="secondary" id="reloadBtn" type="button">Atualizar</button>
+        <button class="danger" id="logoutBtn2" type="button">Sair</button>
+      </div>
+    </div>
+    <div class="note">Mostra email se a coluna <b>email</b> existir em <b>user_access</b>. Se não existir, mostra o user_id.</div>
+  </div>
+
+  <div class="card hidden" id="statsCard">
+    <div class="grid">
+      <div class="stat"><div class="label">Total</div><div class="value" id="statTotal">0</div></div>
+      <div class="stat"><div class="label">Em teste</div><div class="value" id="statTrial">0</div></div>
+      <div class="stat"><div class="label">Ativos</div><div class="value" id="statActive">0</div></div>
+      <div class="stat"><div class="label">Bloqueados</div><div class="value" id="statBlocked">0</div></div>
+    </div>
+  </div>
+
+  <div class="card hidden" id="tableCard">
+    <div class="toolbar" style="margin-bottom:12px;">
+      <input id="search" class="search" type="text" placeholder="Buscar por email ou user_id">
+    </div>
+    <table id="tabela">
+      <thead>
+        <tr>
+          <th>Email / User ID</th>
+          <th>Status</th>
+          <th>Fim do teste</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://xoqlgwjpmdkiazwpwhmn.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA";
+let allUsers = [];
+
+function $(id){ return document.getElementById(id); }
+function showMsg(text){
+  const el = $("msg");
+  el.style.display = "block";
+  el.textContent = text;
+}
+function hideMsg(){
+  const el = $("msg");
+  el.style.display = "none";
+  el.textContent = "";
+}
+function saveSession(data){
+  localStorage.setItem("admin_sb_token", data.access_token || "");
+  localStorage.setItem("admin_sb_refresh_token", data.refresh_token || "");
+  localStorage.setItem("admin_sb_expires_at", String(data.expires_at || 0));
+}
+function clearSession(){
+  localStorage.removeItem("admin_sb_token");
+  localStorage.removeItem("admin_sb_refresh_token");
+  localStorage.removeItem("admin_sb_expires_at");
+}
+function getToken(){ return localStorage.getItem("admin_sb_token") || ""; }
+function setLoggedIn(logged){
+  $("adminCard").classList.toggle("hidden", !logged);
+  $("statsCard").classList.toggle("hidden", !logged);
+  $("tableCard").classList.toggle("hidden", !logged);
+}
+async function api(path, method, body, token, extraHeaders){
+  const headers = Object.assign({
+    "apikey": SUPABASE_KEY,
+    "Content-Type": "application/json",
+    "Authorization": "Bearer " + (token || SUPABASE_KEY)
+  }, extraHeaders || {});
+  const res = await fetch(SUPABASE_URL + path, {
+    method: method || "GET",
+    headers,
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch(e) { data = { raw:text }; }
+  if(!res.ok){
+    throw new Error((data && (data.message || data.error || data.msg || data.error_description)) || ("HTTP " + res.status));
+  }
+  return data;
+}
+async function login(){
+  hideMsg();
+  const email = $("email").value.trim();
+  const pass = $("pass").value.trim();
+  if(!email || !pass){ showMsg("Preencha email e senha."); return; }
+  try{
+    const data = await api("/auth/v1/token?grant_type=password", "POST", { email, password: pass });
+    if(!data.access_token) throw new Error("Login falhou.");
+    saveSession(data);
+    await initAdmin();
+  }catch(e){
+    showMsg(e.message || "Erro no login.");
+  }
+}
+async function fetchUsers(){
+  const token = getToken();
+  const data = await api("/rest/v1/user_access?select=*", "GET", null, token, { "Accept":"application/json" });
+  return Array.isArray(data) ? data : [];
+}
+async function getMe(){
+  const token = getToken();
+  return await api("/auth/v1/user", "GET", null, token);
+}
+async function liberar(id){
+  const token = getToken();
+  await api("/rest/v1/user_access?user_id=eq." + encodeURIComponent(id), "PATCH", { status:"active" }, token, { "Prefer":"return=minimal" });
+  await loadTable();
+}
+async function bloquear(id){
+  const token = getToken();
+  await api("/rest/v1/user_access?user_id=eq." + encodeURIComponent(id), "PATCH", { status:"blocked" }, token, { "Prefer":"return=minimal" });
+  await loadTable();
+}
+async function resetTrial(id){
+  const token = getToken();
+  const now = new Date();
+  const end = new Date(now.getTime() + 7*24*60*60*1000).toISOString();
+  await api("/rest/v1/user_access?user_id=eq." + encodeURIComponent(id), "PATCH", {
+    status:"trial",
+    trial_start: now.toISOString(),
+    trial_end: end
+  }, token, { "Prefer":"return=minimal" });
+  await loadTable();
+}
+function updateStats(users){
+  $("statTotal").textContent = users.length;
+  $("statTrial").textContent = users.filter(u => (u.status || "") === "trial").length;
+  $("statActive").textContent = users.filter(u => (u.status || "") === "active").length;
+  $("statBlocked").textContent = users.filter(u => (u.status || "") === "blocked").length;
+}
+function renderTable(users){
+  const tbody = document.querySelector("#tabela tbody");
+  tbody.innerHTML = "";
+  users.forEach(function(u){
+    const tr = document.createElement("tr");
+    const label = u.email || u.user_id || "-";
+    const status = (u.status || "-").toLowerCase();
+    tr.innerHTML = `
+      <td><small>${label}</small></td>
+      <td><span class="badge ${status}">${u.status || "-"}</span></td>
+      <td>${u.trial_end ? new Date(u.trial_end).toLocaleString("pt-BR") : "-"}</td>
+      <td>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="success" type="button" data-action="liberar" data-id="${u.user_id}">Liberar</button>
+          <button class="danger" type="button" data-action="bloquear" data-id="${u.user_id}">Bloquear</button>
+          <button class="secondary" type="button" data-action="trial" data-id="${u.user_id}">Resetar trial</button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+function applyFilter(){
+  const q = ($("search").value || "").trim().toLowerCase();
+  if(!q){ renderTable(allUsers); return; }
+  const filtered = allUsers.filter(function(u){
+    const label = ((u.email || "") + " " + (u.user_id || "")).toLowerCase();
+    return label.includes(q);
+  });
+  renderTable(filtered);
+}
+async function loadTable(){
+  try{
+    allUsers = await fetchUsers();
+    updateStats(allUsers);
+    applyFilter();
+  }catch(e){
+    showMsg("Admin sem acesso: " + (e.message || "erro"));
+  }
+}
+async function initAdmin(){
+  const token = getToken();
+  if(!token){ setLoggedIn(false); return; }
+  try{
+    const me = await getMe();
+    $("whoami").textContent = me.email || "";
+    setLoggedIn(true);
+    await loadTable();
+  }catch(e){
+    clearSession();
+    setLoggedIn(false);
+    showMsg("Sessão inválida.");
+  }
+}
+document.addEventListener("click", async function(e){
+  const btn = e.target.closest("button[data-action]");
+  if(!btn) return;
+  const id = btn.getAttribute("data-id");
+  const action = btn.getAttribute("data-action");
+  try{
+    if(action === "liberar") await liberar(id);
+    if(action === "bloquear") await bloquear(id);
+    if(action === "trial") await resetTrial(id);
+  }catch(err){
+    showMsg(err.message || "Erro ao atualizar usuário.");
+  }
+});
+$("loginBtn").addEventListener("click", login, true);
+$("reloadBtn").addEventListener("click", loadTable, true);
+$("search").addEventListener("input", applyFilter, true);
+$("logoutBtn1").addEventListener("click", function(){ clearSession(); location.reload(); }, true);
+$("logoutBtn2").addEventListener("click", function(){ clearSession(); location.reload(); }, true);
+initAdmin();
+</script>
+</body>
+</html>
