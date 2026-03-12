@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Controle Uber PRO - Reset / Confirmação</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg,#0f172a 0%, #111827 100%);
+  font-family: system-ui, Arial, sans-serif;
+  color: #fff;
+  padding: 18px;
+}
+#badge {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.45);
+  border: 1px solid rgba(255,255,255,.14);
+  font-size: 12px;
+}
+.card {
+  width: min(390px, 100%);
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.35);
+}
+h1 { margin: 0 0 8px 0; font-size: 22px; }
+.muted { opacity: .85; font-size: 13px; line-height: 1.35; margin-bottom: 10px; }
+input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.22);
+  color: #fff;
+  outline: none;
+}
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 10px;
+  border: none;
+  font: inherit;
+  font-weight: 700;
+  background: rgba(34,197,94,.25);
+  color: #eafff3;
+  border: 1px solid rgba(34,197,94,.40);
+}
+.secondary {
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.14);
+}
+#msg {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  display: none;
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.10);
+  font-size: 13px;
+  line-height: 1.35;
+}
+.ok {
+  background: rgba(34,197,94,.10) !important;
+  border-color: rgba(34,197,94,.45) !important;
+}
+.danger {
+  background: rgba(239,68,68,.10) !important;
+  border-color: rgba(239,68,68,.45) !important;
+}
+.hidden { display: none; }
+.small { font-size: 12px; opacity: .9; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div id="badge">RESET 45</div>
+
+<div class="card">
+  <h1>Controle Uber PRO</h1>
+  <div class="muted" id="subtitle">Processando link...</div>
+
+  <div id="resetBox" class="hidden">
+    <input id="newPass" type="password" placeholder="Nova senha">
+    <input id="confirmPass" type="password" placeholder="Confirme a nova senha">
+    <button id="saveBtn" type="button">Salvar nova senha</button>
+  </div>
+
+  <div id="confirmBox" class="hidden">
+    <button id="goLoginBtn" type="button">Ir para login</button>
+  </div>
+
+  <div id="msg"></div>
+  <div class="small">Status: <span id="status">iniciando</span></div>
+</div>
+
+<script>
+(function(){
+  var SUPABASE_URL = "https://xoqlgwjpmdkiazwpwhmn.supabase.co";
+  var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA";
+  var LOGIN_PAGE = "index.html";
+
+  function $(id) { return document.getElementById(id); }
+  function setStatus(t) { $("status").textContent = t; }
+  function showMsg(text, kind) {
+    var el = $("msg");
+    el.style.display = "block";
+    el.className = "";
+    if(kind) el.classList.add(kind);
+    el.textContent = text;
+  }
+  function hideMsg() {
+    var el = $("msg");
+    el.style.display = "none";
+    el.className = "";
+    el.textContent = "";
+  }
+  function saveSession(data) {
+    try {
+      if(data.access_token) localStorage.setItem("sb_token", data.access_token || "");
+      if(data.refresh_token) localStorage.setItem("sb_refresh_token", data.refresh_token || "");
+      if(data.expires_at) localStorage.setItem("sb_expires_at", String(data.expires_at || 0));
+    } catch(e) {}
+  }
+  function parseHash() {
+    var hash = window.location.hash || "";
+    if(hash.startsWith("#")) hash = hash.slice(1);
+    var params = new URLSearchParams(hash);
+    return {
+      access_token: params.get("access_token") || "",
+      refresh_token: params.get("refresh_token") || "",
+      expires_in: params.get("expires_in") || "",
+      expires_at: params.get("expires_at") || "",
+      token_type: params.get("token_type") || "",
+      type: params.get("type") || "",
+      error: params.get("error") || "",
+      error_description: params.get("error_description") || ""
+    };
+  }
+  async function api(path, method, body, token, extraHeaders) {
+    var headers = {
+      "apikey": SUPABASE_KEY,
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + (token || SUPABASE_KEY)
+    };
+    if(extraHeaders) {
+      for (var k in extraHeaders) headers[k] = extraHeaders[k];
+    }
+    var res = await fetch(SUPABASE_URL + path, {
+      method: method,
+      headers: headers,
+      body: body ? JSON.stringify(body) : undefined
+    });
+    var text = await res.text();
+    var data = null;
+    try { data = text ? JSON.parse(text) : null; } catch(e) { data = { raw:text }; }
+    if(!res.ok) {
+      throw new Error((data && (data.message || data.error || data.msg || data.error_description)) || ("HTTP " + res.status));
+    }
+    return data;
+  }
+
+  async function saveNewPassword() {
+    hideMsg();
+    var p1 = $("newPass").value.trim();
+    var p2 = $("confirmPass").value.trim();
+    var token = (localStorage.getItem("sb_token") || "");
+    if(!p1 || !p2) {
+      showMsg("Preencha os dois campos.", "danger");
+      setStatus("faltam dados");
+      return;
+    }
+    if(p1.length < 6) {
+      showMsg("A senha precisa ter pelo menos 6 caracteres.", "danger");
+      setStatus("senha fraca");
+      return;
+    }
+    if(p1 !== p2) {
+      showMsg("As senhas não coincidem.", "danger");
+      setStatus("senha diferente");
+      return;
+    }
+    try {
+      setStatus("salvando");
+      await api("/auth/v1/user", "PUT", { password: p1 }, token);
+      showMsg("Senha atualizada com sucesso. Agora você pode entrar.", "ok");
+      setStatus("OK");
+      setTimeout(function() { location.href = LOGIN_PAGE; }, 1200);
+    } catch(e) {
+      showMsg(e.message || "Erro ao salvar nova senha.", "danger");
+      setStatus("erro");
+    }
+  }
+
+  function showResetFlow() {
+    $("subtitle").textContent = "Digite sua nova senha.";
+    $("resetBox").classList.remove("hidden");
+    $("confirmBox").classList.add("hidden");
+    $("saveBtn").addEventListener("click", saveNewPassword, true);
+    setStatus("reset");
+  }
+
+  function showConfirmFlow() {
+    $("subtitle").textContent = "Sua conta foi confirmada. Agora é só entrar.";
+    $("confirmBox").classList.remove("hidden");
+    $("resetBox").classList.add("hidden");
+    $("goLoginBtn").addEventListener("click", function() {
+      location.href = LOGIN_PAGE;
+    }, true);
+    showMsg("Email confirmado com sucesso.", "ok");
+    setStatus("confirmado");
+  }
+
+  function showDefaultFlow() {
+    $("subtitle").textContent = "Link processado. Você pode voltar ao login.";
+    $("confirmBox").classList.remove("hidden");
+    $("goLoginBtn").addEventListener("click", function() {
+      location.href = LOGIN_PAGE;
+    }, true);
+    setStatus("pronto");
+  }
+
+  function boot() {
+    hideMsg();
+    var h = parseHash();
+
+    if(h.error || h.error_description) {
+      showMsg(h.error_description || h.error || "Erro no link.", "danger");
+      $("subtitle").textContent = "O link está inválido ou expirou.";
+      $("confirmBox").classList.remove("hidden");
+      $("goLoginBtn").addEventListener("click", function() {
+        location.href = LOGIN_PAGE;
+      }, true);
+      setStatus("erro");
+      return;
+    }
+
+    if(h.access_token) {
+      saveSession(h);
+    }
+
+    if(h.type === "recovery") {
+      showResetFlow();
+      return;
+    }
+
+    if(h.type === "signup" || h.type === "invite" || h.type === "magiclink" || h.type === "email_change") {
+      showConfirmFlow();
+      return;
+    }
+
+    showDefaultFlow();
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
