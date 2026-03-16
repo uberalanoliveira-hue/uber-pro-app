@@ -2162,30 +2162,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    
-<script id="app30-auth-guard">
-(function(){
-  var LOGIN_PAGE = "index.html";
-  function getToken(){
-    try { return localStorage.getItem("sb_token") || ""; } catch(e) { return ""; }
-  }
-  if(!getToken()){
-    location.replace(LOGIN_PAGE);
-    return;
-  }
-  window.logoutApp = function(){
-    try{
-      localStorage.removeItem("sb_token");
-      localStorage.removeItem("sb_refresh_token");
-      localStorage.removeItem("sb_expires_at");
-      sessionStorage.clear();
-    }catch(e){}
-    location.replace(LOGIN_PAGE);
-  };
-})();
-</script>
-
-</body>
+    </body>
     </html>
   `);
   w.document.close();

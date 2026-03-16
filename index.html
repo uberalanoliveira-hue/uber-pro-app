@@ -129,7 +129,6 @@ button.action {
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
 <link rel="apple-touch-icon" href="icon-192.png">
-
 </head>
 <body>
 <div class="badge">LOGIN 51</div>
@@ -385,10 +384,9 @@ button.action {
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
-    navigator.serviceWorker.register("./sw.js");
+    navigator.serviceWorker.register("./sw.js").catch(console.error);
   });
 }
 </script>
-
 </body>
 </html>
