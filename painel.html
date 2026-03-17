@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Controle Uber PRO (painel)</title>
+<title>MetaDriver (painel)</title>
 <style>
 :root { color-scheme: dark; }
 * { box-sizing: border-box; }
@@ -25,7 +25,7 @@ button.secondary { background:rgba(255,255,255,.06); color:#fff; border:1px soli
 </head>
 <body>
 <div class="card">
-  <h1>Controle Uber PRO</h1>
+  <h1>MetaDriver</h1>
   <div class="muted">Seu acesso e teste aparecem aqui. O app fica separado e intacto.</div>
   <div class="info"><div class="label">Status da conta</div><div class="value" id="statusValue">Carregando...</div></div>
   <div class="info"><div class="label">Plano atual</div><div class="value" id="planValue">-</div></div>
@@ -114,6 +114,9 @@ button.secondary { background:rgba(255,255,255,.06); color:#fff; border:1px soli
   }
   $("openAppBtn").addEventListener("click", function(){ location.href = APP_PAGE; }, true);
   $("logoutBtn").addEventListener("click", logout, true);
+  var s=$("subscribeBtn"), w=$("whatsBtn");
+  if(s) s.addEventListener("click", function(){ window.open("https://wa.me/5521920075291", "_blank"); }, true);
+  if(w) w.addEventListener("click", function(){ window.open("https://wa.me/5521920075291", "_blank"); }, true);
   var s=$("subscribeBtn"), w=$("whatsBtn");
   if(s) s.addEventListener("click", function(){ window.open("https://wa.me/5521920075291", "_blank"); }, true);
   if(w) w.addEventListener("click", function(){ window.open("https://wa.me/5521920075291", "_blank"); }, true);

@@ -10,12 +10,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Controle Uber">
+<meta name="apple-mobile-web-app-title" content="MetaDriver">
 
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>Controle Uber PRO v7.0.6</title>
+<title>MetaDriver v7.0.6</title>
 
 <style>
 :root{
@@ -1046,31 +1046,6 @@ button[onclick="salvarMeta()"]{
   margin-top: 16px !important;
 }
 
-
-/* ===== Padronização de formulários para evitar ultrapassar os cards ===== */
-.card input,
-.card select,
-.card textarea,
-.card button{
-  width:100%;
-  box-sizing:border-box;
-}
-
-.card input,
-.card select,
-.card textarea{
-  margin-bottom:12px;
-}
-
-.card button{
-  height:44px;
-  margin-bottom:12px;
-}
-
-.card{
-  overflow:hidden;
-}
-
 </style>
 
 <style id="app30-auth-guard-style">
@@ -1081,13 +1056,26 @@ button[onclick="salvarMeta()"]{
 }
 </style>
 
+
+<script id="auth-guard">
+(function(){
+  var LOGIN_PAGE = "login.html";
+  var token = "";
+  try { token = localStorage.getItem("sb_token") || ""; } catch(e) {}
+  if(!token){
+    location.replace(LOGIN_PAGE);
+    return;
+  }
+})();
+</script>
+
 </head>
 <body>
 
 <div id="uberClock" class="uber-clock">--/--/---- --:--:--</div>
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="app-title">🚗 Controle Uber PRO</div>
+    <div class="app-title">🚗 MetaDriver</div>
     <button class="menu-btn" onclick="toggleMenu()" aria-label="Menu">☰</button>
   </div>
 </div>
@@ -1095,7 +1083,7 @@ button[onclick="salvarMeta()"]{
 
 <div class="tabs-wrap">
   <div class="tabs-bar" role="tablist" aria-label="Abas">
-    <button class="tab-btn active" id="tabBtnUber" type="button" role="tab" aria-selected="true">Controle Uber PRO</button>
+    <button class="tab-btn active" id="tabBtnUber" type="button" role="tab" aria-selected="true">MetaDriver</button>
     <button class="tab-btn" id="tabBtnCarro" type="button" role="tab" aria-selected="false">Manutenção do carro</button>
   </div>
 </div>
@@ -1128,7 +1116,7 @@ button[onclick="salvarMeta()"]{
       Escolha o que você quer zerar.
     </div>
     <div class="editvalor-actions" style="flex-direction:column">
-      <button type="button" class="secondary" onclick="confirmZerar('uber')">Zerar Controle Uber</button>
+      <button type="button" class="secondary" onclick="confirmZerar('uber')">Zerar MetaDriver</button>
       <button type="button" class="danger" onclick="confirmZerar('carro')">Zerar Manutenção</button>
       <button type="button" class="danger" onclick="confirmZerar('tudo')">Zerar Tudo</button>
       <button type="button" class="cancel" onclick="closeZerar()">Cancelar</button>
@@ -1137,26 +1125,6 @@ button[onclick="salvarMeta()"]{
 </div>
 
 
-
-<div class="card">
-  <div class="card-header collapsible-header" onclick="toggleSection(this)">
-        <h3>Ganho / hora atual</h3>
-        <span class="collapse-arrow">▼</span>
-      </div>
-  <div class="card-body">
-<label>Saldo anterior (R$)</label>
-<input type="number" id="saldoAnteriorFora" inputmode="decimal" placeholder="Se não preencher, fica zero" step="0.01">
-
-<label>Saldo atual (R$)</label>
-<input type="number" id="saldoAtualFora" inputmode="decimal" placeholder="Ex: 120" step="0.01">
-
-<label>Horário de início</label>
-<input type="time" id="horarioInicioFora">
-
-<button onclick="salvarGanhosForaTempoReal()">Salvar / Atualizar</button>
-<div id="ganhosForaResumo" class="muted" style="margin-top:10px;"></div>
-</div>
-</div>
 
 <div class="card">
   <div class="card-header collapsible-header" onclick="toggleSection(this)">
@@ -1378,8 +1346,8 @@ button[onclick="salvarMeta()"]{
 (function(){
   try{
     const manifest = {
-      name: "Controle Uber PRO",
-      short_name: "Controle Uber",
+      name: "MetaDriver",
+      short_name: "MetaDriver",
       start_url: "./",
       display: "standalone",
       background_color: "#0f172a",
@@ -1396,7 +1364,7 @@ button[onclick="salvarMeta()"]{
 
 const STORAGE_KEY = "controleUberProDados";
 
-// ===== Forçar aba inicial: sempre Controle Uber =====
+// ===== Forçar aba inicial: sempre MetaDriver =====
 try{
   localStorage.setItem("controleUberPro_activeTab_v7_2_6", "uber");
   localStorage.setItem("controleUberPro_activeTab_v7_2_0", "uber");
@@ -1486,12 +1454,7 @@ let dados = loadDados() || {
   metaTotal: 0,
   dataLimite: "",
   metaDiariaManual: 0,
-  ganhoDiarioAtual: 0,
-  saldoAtualFora: 0,
-  horarioInicioFora: "",
-  horasDecorridasFora: 0,
-  ganhoHoraAtualFora: 0,
-  saldoAnteriorFora: 0
+  ganhoDiarioAtual: 0
 };
 // Migração desativada (substituída por loadDados com legacyKeys)
 function salvar(){
@@ -1947,7 +1910,7 @@ function excluirItem(tipo, index){
 function exportarBackup(){
   try{
     const payload = {
-      app: "Controle Uber PRO",
+      app: "MetaDriver",
       version: "6.3",
       exported_at: new Date().toISOString(),
       storage_key: STORAGE_KEY,
@@ -2075,44 +2038,6 @@ function zerarTudo(){
 }
 
 /* PDF Report: ONLY Ganhos, Gastos, Abastecimentos + valores disponíveis */
-function salvarGanhosForaTempoReal(){
-  const saldoAnterior = parseFloat(document.getElementById("saldoAnteriorFora").value) || 0;
-  const saldoAtual = parseFloat(document.getElementById("saldoAtualFora").value) || 0;
-  const horario = document.getElementById("horarioInicioFora").value || "";
-
-  dados.saldoAnteriorFora = saldoAnterior;
-  dados.saldoAtualFora = saldoAtual;
-  dados.horarioInicioFora = horario;
-
-  const saldoBase = saldoAnterior > 0 ? (saldoAtual - saldoAnterior) : saldoAtual;
-
-  if(horario){
-    const now = new Date();
-    const partes = horario.split(":");
-    const hIni = Number(partes[0] || 0);
-    const mIni = Number(partes[1] || 0);
-
-    let inicio = new Date();
-    inicio.setHours(hIni, mIni, 0, 0);
-
-    let diffMs = now.getTime() - inicio.getTime();
-    if(diffMs < 0){
-      inicio.setDate(inicio.getDate() - 1);
-      diffMs = now.getTime() - inicio.getTime();
-    }
-
-    const horas = diffMs / 3600000;
-    dados.horasDecorridasFora = horas > 0 ? horas : 0;
-    dados.ganhoHoraAtualFora = horas > 0 ? (saldoBase / horas) : 0;
-  }else{
-    dados.horasDecorridasFora = 0;
-    dados.ganhoHoraAtualFora = 0;
-  }
-
-  salvar();
-  atualizar();
-}
-
 function exportarRelatorioPDF(){
   const stamp = new Date();
   const y = stamp.getFullYear();
@@ -2179,7 +2104,7 @@ function exportarRelatorioPDF(){
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>Relatório - Controle Uber PRO</title>
+      <title>Relatório - MetaDriver</title>
       <style>
         *{box-sizing:border-box}
         body{font-family:Arial,Helvetica,sans-serif;margin:24px;color:#111;background:#fff}
@@ -2202,7 +2127,7 @@ function exportarRelatorioPDF(){
       </style>
     </head>
     <body>
-      <h1>Relatório - Controle Uber PRO</h1>
+      <h1>Relatório - MetaDriver</h1>
       <p class="sub">Gerado em ${d}/${m}/${y}</p>
 
       <div class="sec">
@@ -2258,43 +2183,6 @@ function exportarRelatorioPDF(){
 }
 
 function atualizar(){
-  // ===== Ganho / hora atual =====
-  try{
-    const saldoInput = document.getElementById("saldoAtualFora");
-    const horaInput = document.getElementById("horarioInicioFora");
-    const resumoEl = document.getElementById("ganhosForaResumo");
-
-    const saldoAnterior = Number(dados.saldoAnteriorFora || 0);
-    const saldoAtual = Number(dados.saldoAtualFora || 0);
-    const horario = dados.horarioInicioFora || "";
-    const horas = Number(dados.horasDecorridasFora || 0);
-    const ganhoHora = Number(dados.ganhoHoraAtualFora || 0);
-    const saldoBase = saldoAnterior > 0 ? (saldoAtual - saldoAnterior) : saldoAtual;
-
-    const saldoAnteriorInput = document.getElementById("saldoAnteriorFora");
-    if(saldoAnteriorInput && document.activeElement !== saldoAnteriorInput){
-      saldoAnteriorInput.value = saldoAnterior ? String(dados.saldoAnteriorFora) : "";
-    }
-    if(saldoInput && document.activeElement !== saldoInput){
-      saldoInput.value = saldoAtual ? String(dados.saldoAtualFora) : "";
-    }
-    if(horaInput && document.activeElement !== horaInput){
-      horaInput.value = horario;
-    }
-
-    if(resumoEl){
-      if(!horario){
-        resumoEl.innerHTML = "Preencha saldo atual e horário de início.";
-      }else{
-        resumoEl.innerHTML =
-          "Base usada no cálculo: <span class='warning'>R$ " + saldoBase.toFixed(2) + "</span><br>" +
-          "Tempo decorrido: <span class='warning'>" + horas.toFixed(2) + "h</span><br>" +
-          "Ganho / hora: <span class='warning'>R$ " + ganhoHora.toFixed(2) + "</span>";
-      }
-    }
-  }catch(e){}
-
-
   if(!Array.isArray(dados.naoTrabalhados)) dados.naoTrabalhados = [];
 
   document.getElementById("metaTotal").value = dados.metaTotal || "";
@@ -3407,7 +3295,7 @@ function confirmZerar(tipo){
   if(tipo === "uber"){
     zerarControleUber();
     salvar(); atualizar();
-    toast("✅ Controle Uber zerado.");
+    toast("✅ MetaDriver zerado.");
   }else if(tipo === "carro"){
     zerarManutencaoCarro();
     salvar();
@@ -3488,7 +3376,7 @@ function logoutApp(){
     localStorage.removeItem("sb_expires_at");
     sessionStorage.clear();
   }catch(e){}
-  location.replace("index.html");
+  location.replace("login.html");
 }
 
 </script>

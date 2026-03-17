@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Controle Uber PRO</title>
+<title>MetaDriver</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -21,76 +21,37 @@ body{
   color:#fff;
   padding:20px;
 }
-.wrap{
-  width:min(420px,100%);
-  text-align:center;
-}
+.wrap{width:min(420px,100%);text-align:center}
 .logo-img{
-  width:120px;
-  height:120px;
-  object-fit:contain;
-  border-radius:28px;
-  margin:0 auto 18px;
-  display:block;
-  box-shadow:0 10px 28px rgba(0,0,0,.30);
+  width:120px;height:120px;object-fit:contain;border-radius:28px;
+  margin:0 auto 18px;display:block;box-shadow:0 10px 28px rgba(0,0,0,.30);
 }
-.title{
-  font-size:28px;
-  font-weight:800;
-  margin-bottom:10px;
-}
-.sub{
-  opacity:.86;
-  line-height:1.45;
-  margin-bottom:18px;
-  font-size:14px;
-}
+.title{font-size:30px;font-weight:800;margin-bottom:10px}
+.sub{opacity:.86;line-height:1.45;margin-bottom:18px;font-size:14px}
 button{
-  width:100%;
-  padding:14px 16px;
-  border:none;
-  border-radius:14px;
-  font:inherit;
-  font-weight:700;
+  width:100%;padding:14px 16px;border:none;border-radius:14px;font:inherit;font-weight:700
 }
-#installBtn{
-  background:#22c55e;
-  color:#0b1220;
-}
+#installBtn{background:#22c55e;color:#0b1220}
 #fallbackBtn{
-  background:rgba(255,255,255,.08);
-  color:#fff;
-  border:1px solid rgba(255,255,255,.14);
-  margin-top:10px;
-  display:none;
+  background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.14);
+  margin-top:10px;display:none
 }
-.note{
-  margin-top:12px;
-  font-size:12px;
-  opacity:.8;
-  line-height:1.4;
-}
+.note{margin-top:12px;font-size:12px;opacity:.8;line-height:1.4}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <img class="logo-img" src="icon-512.png" alt="Logo Controle Uber PRO">
-  <div class="title">Controle Uber PRO</div>
+  <img class="logo-img" src="icon-512.png" alt="Logo MetaDriver">
+  <div class="title">MetaDriver</div>
   <div class="sub" id="subText">Instale o aplicativo para usar da forma correta.</div>
   <button id="installBtn" type="button">Instalar aplicativo</button>
   <button id="fallbackBtn" type="button">Entrar</button>
   <div class="note" id="noteText">Use o Chrome para instalar o aplicativo.</div>
 </div>
-
 <script>
 let deferredPrompt = null;
-
-function isIOS() {
-  return /iphone|ipad|ipod/i.test(navigator.userAgent);
-}
-function isSafari() {
-  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-}
+function isIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); }
+function isSafari(){ return /^((?!chrome|android).)*safari/i.test(navigator.userAgent); }
 
 window.addEventListener('beforeinstallprompt', function(e){
   e.preventDefault();
@@ -108,14 +69,12 @@ document.getElementById('installBtn').addEventListener('click', async function()
     try { await deferredPrompt.userChoice; } catch(e){}
     return;
   }
-
   if (isIOS() && isSafari()) {
     document.getElementById('subText').textContent = 'No iPhone, instale pelo menu Compartilhar do Safari e depois “Adicionar à Tela de Início”.';
-    document.getElementById('noteText').textContent = 'No Safari o botão de instalar não abre o prompt automático. Por isso a opção Entrar fica liberada apenas no iPhone/Safari.';
+    document.getElementById('noteText').textContent = 'No Safari do iPhone o prompt automático não abre. Por isso a opção Entrar fica liberada apenas nesse caso.';
     document.getElementById('fallbackBtn').style.display = 'block';
     return;
   }
-
   alert('Abra no Chrome e aguarde a opção de instalar.');
 }, true);
 
@@ -123,7 +82,6 @@ document.getElementById('fallbackBtn').addEventListener('click', function(){
   location.href = 'login.html';
 }, true);
 
-// Se já estiver instalado, segue o fluxo normal do app
 if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
   location.href = 'app30_app.html';
 }
