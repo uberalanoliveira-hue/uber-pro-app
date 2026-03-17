@@ -1046,6 +1046,31 @@ button[onclick="salvarMeta()"]{
   margin-top: 16px !important;
 }
 
+
+/* ===== Padronização de formulários para evitar ultrapassar os cards ===== */
+.card input,
+.card select,
+.card textarea,
+.card button{
+  width:100%;
+  box-sizing:border-box;
+}
+
+.card input,
+.card select,
+.card textarea{
+  margin-bottom:12px;
+}
+
+.card button{
+  height:44px;
+  margin-bottom:12px;
+}
+
+.card{
+  overflow:hidden;
+}
+
 </style>
 
 <style id="app30-auth-guard-style">
@@ -1086,7 +1111,7 @@ button[onclick="salvarMeta()"]{
   <div class="menu-item"><button class="secondary" onclick="exportarRelatorioPDF(); closeMenu();">Exportar relatório (PDF)</button></div>
   <div class="menu-item"><button class="danger" onclick="openZerar(); closeMenu();">Zerar dados (cuidado)</button></div>
   <div class="menu-item"><button class="secondary" onclick="location.href='painel.html'; closeMenu();">Minha Conta</button></div>
-    <div class="menu-item"><button class="danger" onclick="logoutApp(); closeMenu();">Sair</button></div>
+  <div class="menu-item"><button class="danger" onclick="logoutApp(); closeMenu();">Sair</button></div>
   <div class="menu-note">
     • Backup exporta um .json com tudo.<br>
     • Importar substitui os dados atuais (com confirmação).<br>
@@ -1112,6 +1137,26 @@ button[onclick="salvarMeta()"]{
 </div>
 
 
+
+<div class="card">
+  <div class="card-header collapsible-header" onclick="toggleSection(this)">
+        <h3>Ganho / hora atual</h3>
+        <span class="collapse-arrow">▼</span>
+      </div>
+  <div class="card-body">
+<label>Saldo anterior (R$)</label>
+<input type="number" id="saldoAnteriorFora" inputmode="decimal" placeholder="Se não preencher, fica zero" step="0.01">
+
+<label>Saldo atual (R$)</label>
+<input type="number" id="saldoAtualFora" inputmode="decimal" placeholder="Ex: 120" step="0.01">
+
+<label>Horário de início</label>
+<input type="time" id="horarioInicioFora">
+
+<button onclick="salvarGanhosForaTempoReal()">Salvar / Atualizar</button>
+<div id="ganhosForaResumo" class="muted" style="margin-top:10px;"></div>
+</div>
+</div>
 
 <div class="card">
   <div class="card-header collapsible-header" onclick="toggleSection(this)">
@@ -1441,7 +1486,12 @@ let dados = loadDados() || {
   metaTotal: 0,
   dataLimite: "",
   metaDiariaManual: 0,
-  ganhoDiarioAtual: 0
+  ganhoDiarioAtual: 0,
+  saldoAtualFora: 0,
+  horarioInicioFora: "",
+  horasDecorridasFora: 0,
+  ganhoHoraAtualFora: 0,
+  saldoAnteriorFora: 0
 };
 // Migração desativada (substituída por loadDados com legacyKeys)
 function salvar(){
@@ -2025,14 +2075,42 @@ function zerarTudo(){
 }
 
 /* PDF Report: ONLY Ganhos, Gastos, Abastecimentos + valores disponíveis */
-function logoutApp(){
-  try{
-    localStorage.removeItem("sb_token");
-    localStorage.removeItem("sb_refresh_token");
-    localStorage.removeItem("sb_expires_at");
-    sessionStorage.clear();
-  }catch(e){}
-  location.replace("index.html");
+function salvarGanhosForaTempoReal(){
+  const saldoAnterior = parseFloat(document.getElementById("saldoAnteriorFora").value) || 0;
+  const saldoAtual = parseFloat(document.getElementById("saldoAtualFora").value) || 0;
+  const horario = document.getElementById("horarioInicioFora").value || "";
+
+  dados.saldoAnteriorFora = saldoAnterior;
+  dados.saldoAtualFora = saldoAtual;
+  dados.horarioInicioFora = horario;
+
+  const saldoBase = saldoAnterior > 0 ? (saldoAtual - saldoAnterior) : saldoAtual;
+
+  if(horario){
+    const now = new Date();
+    const partes = horario.split(":");
+    const hIni = Number(partes[0] || 0);
+    const mIni = Number(partes[1] || 0);
+
+    let inicio = new Date();
+    inicio.setHours(hIni, mIni, 0, 0);
+
+    let diffMs = now.getTime() - inicio.getTime();
+    if(diffMs < 0){
+      inicio.setDate(inicio.getDate() - 1);
+      diffMs = now.getTime() - inicio.getTime();
+    }
+
+    const horas = diffMs / 3600000;
+    dados.horasDecorridasFora = horas > 0 ? horas : 0;
+    dados.ganhoHoraAtualFora = horas > 0 ? (saldoBase / horas) : 0;
+  }else{
+    dados.horasDecorridasFora = 0;
+    dados.ganhoHoraAtualFora = 0;
+  }
+
+  salvar();
+  atualizar();
 }
 
 function exportarRelatorioPDF(){
@@ -2042,30 +2120,57 @@ function exportarRelatorioPDF(){
   const d = String(stamp.getDate()).padStart(2,"0");
 
   const bruto = dados.ganhos.reduce((s,g)=>s+g.valor,0);
+  const gastosExtras = dados.gastos.reduce((s,g)=>s+g.valor,0);
   const combustivelDisponivel = bruto * 0.30;
   const totalAbastecido = dados.abastecimentos.reduce((s,a)=>s+a.valor,0);
   const saldoCombustivel = combustivelDisponivel - totalAbastecido;
+  const liquido = bruto - combustivelDisponivel - gastosExtras;
+  const saldoTotal = liquido + saldoCombustivel;
 
   const ganhosOrdenados = dados.ganhos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
   const gastosOrdenados = dados.gastos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
   const abastecOrdenados = dados.abastecimentos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
+
+  const hoje = uberHojeMidnight();
+  let diasCalendario = 0;
+  let diasNaoTrabalhadosNoPeriodo = 0;
+  if(dados.dataLimite){
+    const limite = new Date(dados.dataLimite + "T00:00:00");
+    const diffMs = limite.getTime() - hoje.getTime();
+    if(diffMs >= 0){
+      diasCalendario = Math.floor(diffMs / (24*60*60*1000)) + 1;
+    }
+    diasNaoTrabalhadosNoPeriodo = (dados.naoTrabalhados || []).filter(n => {
+      if(!n || !n.data) return false;
+      const dt = new Date(n.data + "T00:00:00");
+      return dt.getTime() >= hoje.getTime() && dt.getTime() <= limite.getTime();
+    }).length;
+  }
+  const diasRestantes = Math.max(0, diasCalendario - diasNaoTrabalhadosNoPeriodo);
+  const faltanteLiquido = Math.max(0, (dados.metaTotal || 0) - liquido);
+  const metaRestante = (faltanteLiquido > 0) ? (faltanteLiquido / 0.70) : 0;
+  const metaDiariaAuto = (diasRestantes > 0) ? (metaRestante / diasRestantes) : 0;
+
+  const esc = (s) => String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+  const money = (n) => "R$ " + Number(n || 0).toFixed(2);
+
+  const rowsGanhos = ganhosOrdenados.map(g=>`
+    <tr><td>${esc(g.data)}</td><td>${esc(g.app)}</td><td class="right">${money(g.valor)}</td></tr>
+  `).join("");
+
+  const rowsGastos = gastosOrdenados.map(g=>`
+    <tr><td>${esc(g.data)}</td><td>${esc(g.desc)}</td><td class="right">${money(g.valor)}</td></tr>
+  `).join("");
+
+  const rowsAbast = abastecOrdenados.map(a=>`
+    <tr><td>${esc(a.data)}</td><td class="right">${money(a.valor)}</td></tr>
+  `).join("");
 
   const w = window.open("", "_blank");
   if(!w){
     toast("⚠️ Seu navegador bloqueou a janela do relatório. Permita pop-ups para exportar PDF.");
     return;
   }
-
-  const esc = (s) => String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
-  const rowsGanhos = ganhosOrdenados.map(g=>`
-    <tr><td>${esc(g.data)}</td><td>${esc(g.app)}</td><td style="text-align:right">R$ ${Number(g.valor).toFixed(2)}</td></tr>
-  `).join("");
-  const rowsGastos = gastosOrdenados.map(g=>`
-    <tr><td>${esc(g.data)}</td><td>${esc(g.desc)}</td><td style="text-align:right">R$ ${Number(g.valor).toFixed(2)}</td></tr>
-  `).join("");
-  const rowsAbast = abastecOrdenados.map(a=>`
-    <tr><td>${esc(a.data)}</td><td style="text-align:right">R$ ${Number(a.valor).toFixed(2)}</td></tr>
-  `).join("");
 
   w.document.open();
   w.document.write(`
@@ -2076,220 +2181,120 @@ function exportarRelatorioPDF(){
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <title>Relatório - Controle Uber PRO</title>
       <style>
-        body{font-family:Arial;margin:24px;color:#111}
-        h1{margin:0 0 6px}
-        .sub{color:#444;margin:0 0 14px}
-        .box{border:1px solid #ddd;border-radius:12px;padding:12px;margin:12px 0 18px}
-        .k{color:#555;font-size:12px;margin:0}
-        .v{font-size:18px;font-weight:bold;margin:4px 0 0}
+        *{box-sizing:border-box}
+        body{font-family:Arial,Helvetica,sans-serif;margin:24px;color:#111;background:#fff}
+        h1{margin:0 0 6px;font-size:26px}
+        h2{margin:0 0 10px;font-size:18px}
+        .sub{color:#555;margin:0 0 18px;font-size:13px}
+        .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0 22px}
+        .box{border:1px solid #dcdcdc;border-radius:12px;padding:12px}
+        .k{color:#666;font-size:12px;margin:0 0 6px}
+        .v{font-size:18px;font-weight:700;margin:0}
+        .sec{margin-top:20px}
         table{width:100%;border-collapse:collapse;margin-top:8px}
-        th,td{border-bottom:1px solid #eee;padding:8px;font-size:12px}
-        th{text-align:left;background:#fafafa}
-        .sec{margin-top:18px}
+        th,td{border-bottom:1px solid #ececec;padding:8px;font-size:12px;vertical-align:top}
+        th{text-align:left;background:#f8f8f8}
+        .right{text-align:right}
+        .muted{color:#666}
         @media print{
           body{margin:0.8cm}
         }
-      
-/* ===== Alerta visual aba Manutenção ===== */
-.tab-btn.alerta-manutencao{
-  background: rgba(239,68,68,0.85) !important;
-  border-color: rgba(239,68,68,1) !important;
-  color: #fff !important;
-}
-
-
-/* ===== Tela cheia (sem instalar) ===== */
-.fullscreen-bar{
-  position:fixed;
-  left:12px; right:12px;
-  bottom:12px;
-  z-index:200;
-  background:rgba(30,41,59,0.98);
-  border:1px solid rgba(255,255,255,0.14);
-  border-radius:16px;
-  padding:10px 12px;
-  box-shadow:0 16px 40px rgba(0,0,0,0.45);
-  display:none;
-}
-.fullscreen-bar.show{ display:flex; align-items:center; gap:10px; }
-.fullscreen-bar .txt{ flex:1; font-size:12.5px; opacity:0.92; line-height:1.25; }
-.fullscreen-bar button{
-  width:auto;
-  padding:10px 12px;
-  margin:0;
-  border-radius:14px;
-  border:none;
-  background:var(--accent2);
-  color:#0b1220;
-  font-weight:900;
-  font-size:13px;
-  white-space:nowrap;
-}
-
-
-/* ===== Modal editar valor (teclado numérico) ===== */
-.editvalor-overlay{
-  position:fixed; inset:0; z-index:300;
-  background:rgba(0,0,0,0.55);
-  display:none;
-}
-.editvalor-overlay.show{ display:flex; align-items:center; justify-content:center; padding:16px; }
-.editvalor-modal{
-  width:min(420px, 100%);
-  background:rgba(30,41,59,0.98);
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:18px;
-  box-shadow:0 18px 40px rgba(0,0,0,0.45);
-  padding:14px;
-}
-.editvalor-title{ font-weight:900; margin:0 0 10px; font-size:15px; }
-.editvalor-modal input{
-  width:100%;
-  margin-top:0;
-  background:var(--input);
-  color:var(--text);
-}
-.editvalor-actions{
-  display:flex; gap:10px; margin-top:10px;
-}
-.editvalor-actions button{
-  flex:1;
-  height:44px;
-}
-.editvalor-actions button.cancel{
-  background:rgba(255,255,255,0.10);
-  color:var(--text);
-  border:1px solid rgba(255,255,255,0.10);
-}
-
-
-/* ===== Ganhos: quebra no meio (entre data e valor) ===== */
-#listaGanhos .list-item{ align-items:flex-start; }
-#listaGanhos .list-left{
-  display:flex;
-  align-items:flex-start;
-  gap:8px;
-  flex:1 1 auto;
-  min-width:0;
-  flex-wrap:nowrap;
-}
-#listaGanhos .li-date{ white-space:nowrap !important; flex:0 0 auto; }
-#listaGanhos .li-app{
-  white-space:normal !important;
-  overflow-wrap:break-word !important;
-  word-break:break-word !important;
-  flex:1 1 auto;
-  min-width:0;
-}
-#listaGanhos .li-value{ white-space:nowrap !important; flex:0 0 auto; margin-left:auto; }
-
-
-/* ===== Mini-abas (Ganhos / Gastos) dentro de Lançamentos ===== */
-.subtabs{
-  display:flex;
-  gap:10px;
-  margin:10px 0 10px 0;
-}
-.subtab-btn{
-  flex:1;
-  height:54px;              /* altura igual ao botão Adicionar (aprox) */
-  border-radius:18px;
-  border:1px solid rgba(255,255,255,0.10);
-  background:rgba(255,255,255,0.06);
-  color:var(--text);
-  font-weight:900;
-  font-size:15px;
-  letter-spacing:0.2px;
-}
-.subtab-btn.active{
-  background:linear-gradient(180deg, rgba(47,240,142,0.92), rgba(36,206,120,0.92));
-  color:#0b1220;
-  border-color:rgba(0,0,0,0.12);
-}
-/* esconde os títulos antigos (mantém estrutura) */
-.section-title.ganhos-title,
-.section-title.gastos-title{ display:none !important; }
-
-/* recolher só a LISTA, mantendo o botão Adicionar visível */
-.subwrap-collapsed{ display:none !important; }
-
-</style>
-</head>
+      </style>
+    </head>
     <body>
       <h1>Relatório - Controle Uber PRO</h1>
-      <p class="sub">Gerado em ${y}-${m}-${d}</p>
+      <p class="sub">Gerado em ${d}/${m}/${y}</p>
 
-      <div class="box">
-        <p class="k">Combustível (30% do bruto)</p>
-        <p class="v">Total abastecido: R$ ${totalAbastecido.toFixed(2)}</p>
-        <p class="v">Saldo disponível p/ abastecer: R$ ${saldoCombustivel.toFixed(2)}</p>
+      <div class="sec">
+        
+<h2>Resumo geral</h2>
+        <div class="grid">
+          <div class="box"><p class="k">Bruto total</p><p class="v">${money(bruto)}</p></div>
+          <div class="box"><p class="k">Gastos extras</p><p class="v">${money(gastosExtras)}</p></div>
+          <div class="box"><p class="k">Lucro líquido</p><p class="v">${money(liquido)}</p></div>
+          <div class="box"><p class="k">Saldo total 💰+⛽</p><p class="v">${money(saldoTotal)}</p></div>
+        </div>
+      </div>
+
       </div>
 
       <div class="sec">
-        <h3>Ganhos</h3>
+        <h2>Controle de combustível</h2>
+        <div class="grid">
+          <div class="box"><p class="k">Combustível disponível (30% do bruto)</p><p class="v">${money(combustivelDisponivel)}</p></div>
+          <div class="box"><p class="k">Total abastecido</p><p class="v">${money(totalAbastecido)}</p></div>
+          <div class="box"><p class="k">Saldo disponível para abastecer</p><p class="v">${money(saldoCombustivel)}</p></div>
+        </div>
+
         <table>
-          <thead><tr><th>Data</th><th>App</th><th style="text-align:right">Valor</th></tr></thead>
-          <tbody>${rowsGanhos || '<tr><td colspan="3">Sem lançamentos</td></tr>'}</tbody>
+          <thead><tr><th>Data</th><th class="right">Valor</th></tr></thead>
+          <tbody>${rowsAbast || '<tr><td colspan="2" class="muted">Sem lançamentos</td></tr>'}</tbody>
         </table>
       </div>
 
       <div class="sec">
-        <h3>Gastos</h3>
+        <h2>Lançamentos - Ganhos</h2>
         <table>
-          <thead><tr><th>Data</th><th>Descrição</th><th style="text-align:right">Valor</th></tr></thead>
-          <tbody>${rowsGastos || '<tr><td colspan="3">Sem lançamentos</td></tr>'}</tbody>
+          <thead><tr><th>Data</th><th>App</th><th class="right">Valor</th></tr></thead>
+          <tbody>${rowsGanhos || '<tr><td colspan="3" class="muted">Sem lançamentos</td></tr>'}</tbody>
         </table>
       </div>
 
       <div class="sec">
-        <h3>Abastecimentos</h3>
+        <h2>Lançamentos - Gastos</h2>
         <table>
-          <thead><tr><th>Data</th><th style="text-align:right">Valor</th></tr></thead>
-          <tbody>${rowsAbast || '<tr><td colspan="2">Sem lançamentos</td></tr>'}</tbody>
+          <thead><tr><th>Data</th><th>Descrição</th><th class="right">Valor</th></tr></thead>
+          <tbody>${rowsGastos || '<tr><td colspan="3" class="muted">Sem lançamentos</td></tr>'}</tbody>
         </table>
       </div>
 
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    
-<script id="app30-auth-guard-script">
-(function(){
-  var LOGIN_PAGE = "app30_login.html";
-  var token = "";
-  try { token = localStorage.getItem("sb_token") || ""; } catch(e) {}
-  if(!token){
-    location.replace(LOGIN_PAGE);
-    return;
-  }
-
-  function logout(){
-    try{
-      localStorage.removeItem("sb_token");
-      localStorage.removeItem("sb_refresh_token");
-      localStorage.removeItem("sb_expires_at");
-    }catch(e){}
-    location.replace(LOGIN_PAGE);
-  }
-
-  document.addEventListener("DOMContentLoaded", function(){
-    var btn = document.createElement("button");
-    btn.id = "app30LogoutBtn";
-    btn.type = "button";
-    btn.textContent = "Sair";
-    btn.addEventListener("click", logout, true);
-    document.body.appendChild(btn);
-  });
-})();
-</script>
-
-</body>
+    </body>
     </html>
   `);
   w.document.close();
 }
 
 function atualizar(){
+  // ===== Ganho / hora atual =====
+  try{
+    const saldoInput = document.getElementById("saldoAtualFora");
+    const horaInput = document.getElementById("horarioInicioFora");
+    const resumoEl = document.getElementById("ganhosForaResumo");
+
+    const saldoAnterior = Number(dados.saldoAnteriorFora || 0);
+    const saldoAtual = Number(dados.saldoAtualFora || 0);
+    const horario = dados.horarioInicioFora || "";
+    const horas = Number(dados.horasDecorridasFora || 0);
+    const ganhoHora = Number(dados.ganhoHoraAtualFora || 0);
+    const saldoBase = saldoAnterior > 0 ? (saldoAtual - saldoAnterior) : saldoAtual;
+
+    const saldoAnteriorInput = document.getElementById("saldoAnteriorFora");
+    if(saldoAnteriorInput && document.activeElement !== saldoAnteriorInput){
+      saldoAnteriorInput.value = saldoAnterior ? String(dados.saldoAnteriorFora) : "";
+    }
+    if(saldoInput && document.activeElement !== saldoInput){
+      saldoInput.value = saldoAtual ? String(dados.saldoAtualFora) : "";
+    }
+    if(horaInput && document.activeElement !== horaInput){
+      horaInput.value = horario;
+    }
+
+    if(resumoEl){
+      if(!horario){
+        resumoEl.innerHTML = "Preencha saldo atual e horário de início.";
+      }else{
+        resumoEl.innerHTML =
+          "Base usada no cálculo: <span class='warning'>R$ " + saldoBase.toFixed(2) + "</span><br>" +
+          "Tempo decorrido: <span class='warning'>" + horas.toFixed(2) + "h</span><br>" +
+          "Ganho / hora: <span class='warning'>R$ " + ganhoHora.toFixed(2) + "</span>";
+      }
+    }
+  }catch(e){}
+
+
   if(!Array.isArray(dados.naoTrabalhados)) dados.naoTrabalhados = [];
 
   document.getElementById("metaTotal").value = dados.metaTotal || "";
@@ -3473,5 +3478,17 @@ window.addEventListener("load", () => {
     }
   }catch(e){}
 });
+
+
+/* ===== Logout do app ===== */
+function logoutApp(){
+  try{
+    localStorage.removeItem("sb_token");
+    localStorage.removeItem("sb_refresh_token");
+    localStorage.removeItem("sb_expires_at");
+    sessionStorage.clear();
+  }catch(e){}
+  location.replace("index.html");
+}
 
 </script>
