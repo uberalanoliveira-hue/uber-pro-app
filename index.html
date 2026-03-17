@@ -11,44 +11,90 @@
 :root{color-scheme:dark}
 *{box-sizing:border-box}
 body{
-  margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   background:linear-gradient(180deg,#0f172a 0%, #111827 100%);
-  font-family:Arial,Helvetica,sans-serif; color:#fff; padding:20px;
+  font-family:Arial,Helvetica,sans-serif;
+  color:#fff;
+  padding:20px;
 }
 .wrap{
   width:min(420px,100%);
   text-align:center;
 }
-.logo{
-  font-size:30px; font-weight:800; margin-bottom:14px;
+.logo-img{
+  width:120px;
+  height:120px;
+  object-fit:contain;
+  border-radius:28px;
+  margin:0 auto 18px;
+  display:block;
+  box-shadow:0 10px 28px rgba(0,0,0,.30);
+}
+.title{
+  font-size:28px;
+  font-weight:800;
+  margin-bottom:10px;
 }
 .sub{
-  opacity:.86; line-height:1.4; margin-bottom:18px; font-size:14px;
+  opacity:.86;
+  line-height:1.45;
+  margin-bottom:18px;
+  font-size:14px;
 }
 button{
-  width:100%; padding:14px 16px; border:none; border-radius:14px; font:inherit; font-weight:700;
+  width:100%;
+  padding:14px 16px;
+  border:none;
+  border-radius:14px;
+  font:inherit;
+  font-weight:700;
 }
-#installBtn{ background:#22c55e; color:#0b1220; }
-#openLoginBtn{ background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.14); margin-top:10px; display:none; }
-.note{ margin-top:12px; font-size:12px; opacity:.8; }
+#installBtn{
+  background:#22c55e;
+  color:#0b1220;
+}
+#fallbackBtn{
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.14);
+  margin-top:10px;
+  display:none;
+}
+.note{
+  margin-top:12px;
+  font-size:12px;
+  opacity:.8;
+  line-height:1.4;
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="logo">🚗 Controle Uber PRO</div>
-  <div class="sub">Instale o aplicativo para usar da forma correta.</div>
+  <img class="logo-img" src="icon-512.png" alt="Logo Controle Uber PRO">
+  <div class="title">Controle Uber PRO</div>
+  <div class="sub" id="subText">Instale o aplicativo para usar da forma correta.</div>
   <button id="installBtn" type="button">Instalar aplicativo</button>
-  <button id="openLoginBtn" type="button">Entrar</button>
-  <div class="note">Se o botão de instalar não aparecer, use o Chrome e abra o menu para instalar.</div>
+  <button id="fallbackBtn" type="button">Entrar</button>
+  <div class="note" id="noteText">Use o Chrome para instalar o aplicativo.</div>
 </div>
 
 <script>
 let deferredPrompt = null;
 
+function isIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+function isSafari() {
+  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+}
+
 window.addEventListener('beforeinstallprompt', function(e){
   e.preventDefault();
   deferredPrompt = e;
-  document.getElementById('openLoginBtn').style.display = 'block';
 });
 
 window.addEventListener('appinstalled', function(){
@@ -57,19 +103,27 @@ window.addEventListener('appinstalled', function(){
 });
 
 document.getElementById('installBtn').addEventListener('click', async function(){
-  if(!deferredPrompt){
-    alert('Abra no Chrome e aguarde a opção de instalar.');
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    try { await deferredPrompt.userChoice; } catch(e){}
     return;
   }
-  deferredPrompt.prompt();
-  try{ await deferredPrompt.userChoice; }catch(e){}
+
+  if (isIOS() && isSafari()) {
+    document.getElementById('subText').textContent = 'No iPhone, instale pelo menu Compartilhar do Safari e depois “Adicionar à Tela de Início”.';
+    document.getElementById('noteText').textContent = 'No Safari o botão de instalar não abre o prompt automático. Por isso a opção Entrar fica liberada apenas no iPhone/Safari.';
+    document.getElementById('fallbackBtn').style.display = 'block';
+    return;
+  }
+
+  alert('Abra no Chrome e aguarde a opção de instalar.');
 }, true);
 
-document.getElementById('openLoginBtn').addEventListener('click', function(){
+document.getElementById('fallbackBtn').addEventListener('click', function(){
   location.href = 'login.html';
 }, true);
 
-// If opened as installed app, go through normal auth flow
+// Se já estiver instalado, segue o fluxo normal do app
 if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
   location.href = 'app30_app.html';
 }
