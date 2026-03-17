@@ -148,10 +148,6 @@ button.action {
   </div>
 
   <div id="msg"></div>
-  <div class="row hidden" id="renewRow">
-    <button class="action primary" id="renewBtn" type="button">Renovar</button>
-    <button class="action secondary" id="whatsBtn" type="button">WhatsApp</button>
-  </div>
   <div class="small">Status: <span id="status">pronto</span></div>
 </div>
 
@@ -177,9 +173,7 @@ button.action {
     el.style.display = "none";
     el.className = "";
     el.textContent = "";
-    $("renewRow").classList.add("hidden");
   }
-  function showRenewOptions(){ $("renewRow").classList.remove("hidden"); }
   function setMode(next) {
     mode = next === "signup" ? "signup" : "login";
     $("tabLogin").classList.toggle("active", mode === "login");
@@ -274,16 +268,12 @@ button.action {
       access = await createAccess(user.id, session.access_token, user.user_metadata && user.user_metadata.nome, user.email);
     }
     if (access.status === "blocked") {
-      showMsg("Seu acesso expirou. Renove para voltar a usar o aplicativo.", "danger");
-      showRenewOptions();
-      setStatus("bloqueado");
+      location.href = "painel.html?expired=1";
       return;
     }
     if (access.status === "trial" && access.trial_end && isExpired(access.trial_end)) {
       await updateAccess(user.id, session.access_token, { status: "blocked" });
-      showMsg("Seu teste de 7 dias expirou. Renove para continuar usando o aplicativo.", "danger");
-      showRenewOptions();
-      setStatus("bloqueado");
+      location.href = "painel.html?expired=1";
       return;
     }
     location.href = PANEL_PAGE;
@@ -373,8 +363,6 @@ button.action {
   $("tabSignup").addEventListener("click", function() { setMode("signup"); }, true);
   $("primaryBtn").addEventListener("click", primaryAction, true);
   $("forgotBtn").addEventListener("click", forgot, true);
-  $("renewBtn").addEventListener("click", function(){ location.href = "painel.html"; }, true);
-  $("whatsBtn").addEventListener("click", function(){ window.open("https://wa.me/5521920075291", "_blank"); }, true);
 
   setMode("login");
   if (hasToken()) {
