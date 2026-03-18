@@ -1,6 +1,6 @@
 {
-  "name": "MetaDriver",
-  "short_name": "MetaDriver",
+  "name": "Controle Uber PRO",
+  "short_name": "Uber PRO",
   "start_url": "./app30_app.html",
   "scope": "./",
   "display": "standalone",
