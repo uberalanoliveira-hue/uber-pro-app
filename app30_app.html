@@ -1094,6 +1094,14 @@ button[onclick="salvarMeta()"]{
     location.replace("login.html");
   }
 })();
+
+window.addEventListener("pagehide", function(){ try{ cloudPushNow(); }catch(e){} });
+document.addEventListener("visibilitychange", function(){
+  try{
+    if(document.visibilityState === "hidden") cloudPushNow();
+  }catch(e){}
+});
+
 </script>
 
 </head>
@@ -1228,10 +1236,6 @@ button[onclick="salvarMeta()"]{
       <div>
         <label>Ganho diário atual (R$)</label>
         <input type="text" id="ganhoDiarioAtual" inputmode="text" placeholder="Ex: 200 ou 10+10" autocomplete="off" autocapitalize="off" spellcheck="false">
-      </div>
-      <div>
-        <label>Ganho por hora (R$)</label>
-        <input type="number" id="ganhoHoraManual" inputmode="decimal" placeholder="Ex: 40">
       </div>
     </div>
     <button onclick="salvarHoras()">Salvar / Atualizar</button>
@@ -1414,6 +1418,12 @@ button[onclick="salvarMeta()"]{
 })();
 
 const STORAGE_KEY = "controleUberProDados";
+const CLOUD_TABLE = "app_cloud_data";
+const CLOUD_SUPABASE_URL = "https://xoqlgwjpmdkiazwpwhmn.supabase.co";
+const CLOUD_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA";
+const FIRST_INSTALL_COLLAPSED_KEY = "metadriver_first_install_collapsed_v1";
+let __cloudSaveTimer = null;
+let __cloudBootStarted = false;
 
 // ===== Forçar aba inicial: sempre MetaDriver =====
 try{
@@ -1506,7 +1516,6 @@ let dados = loadDados() || {
   dataLimite: "",
   metaDiariaManual: 0,
   ganhoDiarioAtual: 0,
-  ganhoHoraManual: 40,
   saldoAtualFora: 0,
   horarioInicioFora: "",
   horasDecorridasFora: 0,
@@ -1527,6 +1536,138 @@ function salvar(){
       toast("⚠️ Falha ao salvar localmente. Abra no Chrome normal (não anônimo).");
     }catch(_){}
   }
+}
+window.__salvarLocalOriginal = salvar;
+salvar = function(){
+  try{
+    if(typeof dados === "object" && dados){
+      dados.__cloud_updated_at = new Date().toISOString();
+    }
+  }catch(e){}
+  const r = window.__salvarLocalOriginal.apply(this, arguments);
+  try{ cloudScheduleSave(); }catch(e){}
+  return r;
+}
+
+async function cloudGetToken(){
+  try{ return localStorage.getItem("sb_token") || ""; }catch(e){ return ""; }
+}
+
+async function cloudGetUser(token){
+  const res = await fetch(CLOUD_SUPABASE_URL + "/auth/v1/user", {
+    headers: {
+      "apikey": CLOUD_SUPABASE_KEY,
+      "Authorization": "Bearer " + token
+    }
+  });
+  if(!res.ok) throw new Error("Falha ao obter usuário");
+  return await res.json();
+}
+
+function cloudHasUsefulData(obj){
+  try{
+    if(!obj) return false;
+    return !!(
+      (obj.ganhos && obj.ganhos.length) ||
+      (obj.gastos && obj.gastos.length) ||
+      (obj.abastecimentos && obj.abastecimentos.length) ||
+      (obj.naoTrabalhados && obj.naoTrabalhados.length) ||
+      Number(obj.metaTotal || 0) > 0 ||
+      Number(obj.metaDiariaManual || 0) > 0 ||
+      Number(obj.ganhoDiarioAtual || 0) > 0 ||
+      Number(obj.saldoAtualFora || 0) > 0 ||
+      Number(obj.saldoAnteriorFora || 0) > 0 ||
+      (obj.horarioInicioFora && String(obj.horarioInicioFora).trim() !== "")
+    );
+  }catch(e){ return false; }
+}
+
+async function cloudFetchRow(token, userId){
+  const res = await fetch(
+    CLOUD_SUPABASE_URL + "/rest/v1/" + CLOUD_TABLE + "?select=payload,updated_at&user_id=eq." + encodeURIComponent(userId),
+    {
+      headers: {
+        "apikey": CLOUD_SUPABASE_KEY,
+        "Authorization": "Bearer " + token,
+        "Accept": "application/json"
+      }
+    }
+  );
+  if(!res.ok) throw new Error("Falha ao ler nuvem");
+  const rows = await res.json();
+  return (Array.isArray(rows) && rows.length) ? rows[0] : null;
+}
+
+function cloudApplyRemoteData(remoteData){
+  try{
+    if(!remoteData || typeof remoteData !== "object") return;
+    dados = Object.assign({}, dados || {}, remoteData || {});
+    if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
+    try{ atualizar();
+setTimeout(function(){ try{ cloudBoot(); }catch(e){} }, 500); }catch(e){}
+    try{ initTabs(); }catch(e){}
+  }catch(e){}
+}
+
+async function cloudPushNow(){
+  try{
+    const token = await cloudGetToken();
+    if(!token) return false;
+    const user = await cloudGetUser(token);
+    if(!user || !user.id || !cloudHasUsefulData(dados)) return false;
+
+    const body = [{
+      user_id: user.id,
+      payload: dados,
+      updated_at: new Date().toISOString()
+    }];
+
+    const res = await fetch(
+      CLOUD_SUPABASE_URL + "/rest/v1/" + CLOUD_TABLE + "?on_conflict=user_id",
+      {
+        method: "POST",
+        headers: {
+          "apikey": CLOUD_SUPABASE_KEY,
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json",
+          "Prefer": "resolution=merge-duplicates,return=minimal"
+        },
+        body: JSON.stringify(body)
+      }
+    );
+    return res.ok;
+  }catch(e){ return false; }
+}
+
+function cloudScheduleSave(){
+  clearTimeout(__cloudSaveTimer);
+  __cloudSaveTimer = setTimeout(function(){ cloudPushNow(); }, 1200);
+}
+
+async function cloudBoot(){
+  if(__cloudBootStarted) return;
+  __cloudBootStarted = true;
+  try{
+    const token = await cloudGetToken();
+    if(!token) return;
+    const user = await cloudGetUser(token);
+    if(!user || !user.id) return;
+
+    const remoteRow = await cloudFetchRow(token, user.id);
+    const remoteData = remoteRow && remoteRow.payload ? remoteRow.payload : null;
+    const remoteTs = remoteRow && remoteRow.updated_at ? new Date(remoteRow.updated_at).getTime() : 0;
+    const localTs = dados && dados.__cloud_updated_at ? new Date(dados.__cloud_updated_at).getTime() : 0;
+
+    if(remoteData && (remoteTs > localTs || !cloudHasUsefulData(dados))){
+      cloudApplyRemoteData(remoteData);
+      toast("☁️ Dados restaurados da nuvem.");
+      return;
+    }
+
+    if(cloudHasUsefulData(dados)){
+      cloudPushNow();
+    }
+  }catch(e){}
 }
 
 function toast(msg){
@@ -1749,6 +1890,24 @@ function saveCollapsedSet(setObj){
     localStorage.setItem(SECTION_STATE_KEY, JSON.stringify(Array.from(setObj||[])));
   }catch(e){}
 }
+function ensureFirstInstallCollapsed(){
+  try{
+    const already = localStorage.getItem(FIRST_INSTALL_COLLAPSED_KEY);
+    const existing = localStorage.getItem(SECTION_STATE_KEY);
+    if(already || existing) return;
+
+    const cards = Array.from(document.querySelectorAll(".card"));
+    const collapsed = new Set();
+    cards.forEach((card,i)=>{
+      if(!card.dataset.sectionId) card.dataset.sectionId = sectionIdFor(card,i);
+      collapsed.add(card.dataset.sectionId);
+      card.classList.add("collapsed");
+    });
+    saveCollapsedSet(collapsed);
+    localStorage.setItem(FIRST_INSTALL_COLLAPSED_KEY, "1");
+  }catch(e){}
+}
+
 function initSectionCollapse(){
   const collapsed = loadCollapsedSet();
   const cards = Array.from(document.querySelectorAll(".card"));
@@ -1817,7 +1976,6 @@ function salvarHoras(){
   dados.metaDiariaManual = isNaN(vExpr) ? (parseFloat(document.getElementById("metaDiariaManual").value)||0) : vExpr;
   const ganhoExpr = parseValorOuExpressao(document.getElementById("ganhoDiarioAtual").value);
   dados.ganhoDiarioAtual = isNaN(ganhoExpr) ? (parseFloat(document.getElementById("ganhoDiarioAtual").value)||0) : ganhoExpr;
-  dados.ganhoHoraManual = parseFloat(document.getElementById("ganhoHoraManual").value) || 40;
   salvar();
   atualizar();
 }
@@ -2279,14 +2437,6 @@ function exportarRelatorioPDF(){
 }
 
 function atualizar(){
-  try{
-    const metaDiaInput = document.getElementById("metaDiariaManual");
-    const ganhoDiaInput = document.getElementById("ganhoDiarioAtual");
-    const ganhoHoraInput = document.getElementById("ganhoHoraManual");
-    if(metaDiaInput && document.activeElement !== metaDiaInput) metaDiaInput.value = dados.metaDiariaManual || 0;
-    if(ganhoDiaInput && document.activeElement !== ganhoDiaInput) ganhoDiaInput.value = dados.ganhoDiarioAtual || 0;
-    if(ganhoHoraInput && document.activeElement !== ganhoHoraInput) ganhoHoraInput.value = dados.ganhoHoraManual || 40;
-  }catch(e){}
   // ===== Ganho / hora atual =====
   try{
     const saldoInput = document.getElementById("saldoAtualFora");
@@ -2378,9 +2528,8 @@ const combustivelDisponivel = bruto * 0.30; // cálculo interno
 
   const metaDia = Math.max(0, dados.metaDiariaManual || 0);
   const ganhoDia = Math.max(0, dados.ganhoDiarioAtual || 0);
-  const ganhoHoraRef = Math.max(0, Number(dados.ganhoHoraManual || 40));
-  const horasNecessarias = (ganhoHoraRef > 0) ? (metaDia / ganhoHoraRef) : 0;
-  const horasRestantes = (ganhoHoraRef > 0) ? (Math.max(0, metaDia - ganhoDia) / ganhoHoraRef) : 0;
+  const horasNecessarias = (GANHO_HORA > 0) ? (metaDia / GANHO_HORA) : 0;
+  const horasRestantes = (GANHO_HORA > 0) ? (Math.max(0, metaDia - ganhoDia) / GANHO_HORA) : 0;
 
   const horasNecessariasCeil = Math.ceil(horasNecessarias);
   const horasRestantesCeil = horasRestantes.toFixed(1);
@@ -2391,7 +2540,9 @@ const combustivelDisponivel = bruto * 0.30; // cálculo interno
     "Meta bruta restante: <span class='warning'>R$ " + metaRestante.toFixed(2) + "</span><br>" +
     "Meta diária (automática): <span class='warning'>R$ " + metaDiariaAuto.toFixed(2) + "</span>";
   document.getElementById("horasResumo").innerHTML =
-    "Horas necessárias: <span class='warning'>" + horasNecessariasCeil + "h</span><br>" +
+    "Meta diária: <span class='warning'>R$ " + metaDia.toFixed(2) + "</span><br>" +
+    "Horas necessárias (meta ÷ 40): <span class='warning'>" + horasNecessariasCeil + "h</span><br>" +
+    "Ganho diário atual: R$ " + ganhoDia.toFixed(2) + "<br>" +
     "<span class='highlight'>Valor restante: R$ " + (metaDia - ganhoDia).toFixed(2) + "</span><br>" +
     "<span class='highlight'>Horas restantes: " + horasRestantesCeil + "h</span>";
 
@@ -2498,6 +2649,7 @@ document.getElementById("listaGastos").innerHTML =
 
 
 function bootApp(){
+  try{ ensureFirstInstallCollapsed(); }catch(e){}
   try{ initSectionCollapse(); }catch(e){}
   try{ updateUberClock(); setInterval(updateUberClock, 1000); }catch(e){}
 }
