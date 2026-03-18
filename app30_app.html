@@ -2348,18 +2348,17 @@ const combustivelDisponivel = bruto * 0.30; // cálculo interno
 
   const liquido = bruto - combustivelDisponivel - gastosExtras;
 
-  // Meta bruta base = Meta líquida + 30% da Meta líquida
-  const metaBrutaBase = dados.metaTotal > 0 ? (dados.metaTotal + (dados.metaTotal * 0.30)) : 0;
+  // Regra correta:
+  // líquido = bruto * 0,70 - gastosExtras
+  // então o bruto necessário para atingir a meta e repor gastos é:
+  // (meta líquida desejada + gastos extras) / 0,70
+  const metaBrutaComGastos = ((dados.metaTotal || 0) + gastosExtras) > 0
+    ? (((dados.metaTotal || 0) + gastosExtras) / 0.70)
+    : 0;
 
-  // Gastos ajustados = Gastos + 30% dos Gastos (para cobrir combustível nesses gastos)
-  const gastosComAcrescimo = gastosExtras + (gastosExtras * 0.30);
-
-  // Meta bruta necessária total = (Meta líquida + 30%) + (Gastos + 30% dos gastos)
-  const metaBrutaComGastos = metaBrutaBase + gastosComAcrescimo;
-
-  // Meta bruta restante coerente com a regra: 70% do bruto restante = (Meta líquida - Lucro líquido)
-  const faltanteLiquido = Math.max(0, (dados.metaTotal || 0) - liquido);
-  const metaRestante = (faltanteLiquido > 0) ? (faltanteLiquido / 0.70) : 0;
+  // Meta bruta restante:
+  // quanto ainda falta em bruto para completar a meta total necessária
+  const metaRestante = Math.max(0, metaBrutaComGastos - bruto);
 
   const metaDiariaAuto = (diasRestantes > 0) ? (metaRestante / diasRestantes) : 0;
 
@@ -2373,7 +2372,7 @@ const combustivelDisponivel = bruto * 0.30; // cálculo interno
   
   document.getElementById("statusMeta").innerHTML =
     "Dias restantes: <span class='warning'>" + diasRestantes + "</span><br>" +
-    "Meta bruta necessária total (inclui gastos): <span class='warning'>R$ " + metaBrutaComGastos.toFixed(2) + "</span><br>" +
+    "Meta bruta necessária total (meta + gastos + combustível): <span class='warning'>R$ " + metaBrutaComGastos.toFixed(2) + "</span><br>" +
     "Meta bruta restante: <span class='warning'>R$ " + metaRestante.toFixed(2) + "</span><br>" +
     "Meta diária (automática): <span class='warning'>R$ " + metaDiariaAuto.toFixed(2) + "</span>";
   document.getElementById("horasResumo").innerHTML =
