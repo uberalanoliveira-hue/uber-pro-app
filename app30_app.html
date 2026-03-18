@@ -1227,7 +1227,10 @@ button[onclick="salvarMeta()"]{
       </div>
       <div>
         <label>Ganho diário atual (R$)</label>
-        <input type="text" id="ganhoDiarioAtual" inputmode="text" placeholder="Ex: 200 ou 10+10" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <input type="text" id="ganhoDiarioAtual"
+
+  <label>Ganho por hora (R$)</label>
+  <input type="number" id="ganhoHoraManual" placeholder="Ex: 40"> inputmode="text" placeholder="Ex: 200 ou 10+10" autocomplete="off" autocapitalize="off" spellcheck="false">
       </div>
     </div>
     <button onclick="salvarHoras()">Salvar / Atualizar</button>
@@ -1417,7 +1420,7 @@ try{
   localStorage.setItem("controleUberPro_activeTab_v7_2_0", "uber");
 }catch(e){}
 
-const GANHO_HORA = 40;
+const GANHO_HORA = (dados && dados.ganhoHoraManual) ? Number(dados.ganhoHoraManual) : 40;
 /* ===== Persistência reforçada: IndexedDB (fallback) ===== */
 const IDB_DB = "controleUberProDB";
 const IDB_STORE = "kv";
@@ -1502,6 +1505,7 @@ let dados = loadDados() || {
   dataLimite: "",
   metaDiariaManual: 0,
   ganhoDiarioAtual: 0,
+  ganhoHoraManual: 40,
   saldoAtualFora: 0,
   horarioInicioFora: "",
   horasDecorridasFora: 0,
@@ -1812,6 +1816,7 @@ function salvarHoras(){
   dados.metaDiariaManual = isNaN(vExpr) ? (parseFloat(document.getElementById("metaDiariaManual").value)||0) : vExpr;
   const ganhoExpr = parseValorOuExpressao(document.getElementById("ganhoDiarioAtual").value);
   dados.ganhoDiarioAtual = isNaN(ganhoExpr) ? (parseFloat(document.getElementById("ganhoDiarioAtual").value)||0) : ganhoExpr;
+  dados.ganhoHoraManual = parseFloat(document.getElementById("ganhoHoraManual").value) || 40;
   salvar();
   atualizar();
 }
@@ -2376,7 +2381,7 @@ const combustivelDisponivel = bruto * 0.30; // cálculo interno
     "Meta bruta restante: <span class='warning'>R$ " + metaRestante.toFixed(2) + "</span><br>" +
     "Meta diária (automática): <span class='warning'>R$ " + metaDiariaAuto.toFixed(2) + "</span>";
   document.getElementById("horasResumo").innerHTML =
-    "Horas necessárias (meta ÷ 40): <span class='warning'>" + horasNecessariasCeil + "h</span><br>" +
+    "Horas necessárias: <span class='warning'>" + horasNecessariasCeil + "h</span><br>" +
     "<span class='highlight'>Valor restante: R$ " + (metaDia - ganhoDia).toFixed(2) + "</span><br>" +
     "<span class='highlight'>Horas restantes: " + horasRestantesCeil + "h</span>";
 
