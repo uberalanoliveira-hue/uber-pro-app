@@ -99,7 +99,9 @@ window.addEventListener('beforeinstallprompt', function(e){
 
 window.addEventListener('appinstalled', function(){
   deferredPrompt = null;
-  location.href = 'login.html';
+  document.getElementById('subText').textContent = 'Aplicativo instalado com sucesso. Abra o app instalado para entrar.';
+  document.getElementById('noteText').textContent = 'Depois de instalar, use o ícone do MetaDriver na tela inicial.';
+  try { document.getElementById('installBtn').style.display = 'none'; } catch(e){}
 });
 
 document.getElementById('installBtn').addEventListener('click', async function(){
@@ -116,7 +118,7 @@ document.getElementById('installBtn').addEventListener('click', async function()
     return;
   }
 
-  alert('Abra no Chrome e aguarde a opção de instalar.');
+  alert('Abra no Chrome e use o botão instalar. Depois, abra pelo app instalado.');
 }, true);
 
 document.getElementById('fallbackBtn').addEventListener('click', function(){
