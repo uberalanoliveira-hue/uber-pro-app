@@ -1485,7 +1485,7 @@ button[onclick="salvarMeta()"]{
 
 <div class="card">
   <div class="card-header collapsible-header" onclick="toggleSection(this)">
-        <h3>Ganho / hora atual</h3>
+        <h3>Ganho por hora</h3>
         <span class="collapse-arrow">▼</span>
       </div>
   <div class="card-body">
@@ -2891,8 +2891,8 @@ const combustivelDisponivel = bruto * 0.30; // cálculo interno
     "Meta diária (automática): <span class='warning'>R$ " + metaDiariaAuto.toFixed(2) + "</span>";
   document.getElementById("horasResumo").innerHTML =
     "Horas necessárias: <span class='warning'>" + horasNecessariasCeil + "h</span><br>" +
-    "<span class='highlight'>Valor restante: R$ " + (metaDia - ganhoDia).toFixed(2) + "</span><br>" +
-    "<span class='highlight'>Horas restantes: " + horasRestantesCeil + "h</span>";
+    "Valor restante: <span class='warning'>R$ " + (metaDia - ganhoDia).toFixed(2) + "</span><br>" +
+    "Horas restantes: <span class='warning'>" + horasRestantesCeil + "h</span>";
 
   document.getElementById("fuelResumo").innerHTML =
     "Total abastecido: R$ " + totalAbastecido.toFixed(2) + "<br>" +
