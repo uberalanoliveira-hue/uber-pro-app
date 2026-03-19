@@ -1901,7 +1901,8 @@ function ensureFirstInstallCollapsed(){
     const existing = localStorage.getItem(SECTION_STATE_KEY);
     if(already || existing) return;
 
-    const cards = Array.from(document.querySelectorAll(".card"));
+    const allCards = Array.from(document.querySelectorAll(".card"));
+    const cards = allCards.filter(card => !card.closest("#tabCarro"));
     const collapsed = new Set();
     cards.forEach((card,i)=>{
       if(!card.dataset.sectionId) card.dataset.sectionId = sectionIdFor(card,i);
@@ -1917,6 +1918,10 @@ function initSectionCollapse(){
   const collapsed = loadCollapsedSet();
   const cards = Array.from(document.querySelectorAll(".card"));
   cards.forEach((card,i)=>{
+    if(card.closest("#tabCarro")){
+      card.classList.remove("collapsed");
+      return;
+    }
     if(!card.dataset.sectionId) card.dataset.sectionId = sectionIdFor(card,i);
     const id = card.dataset.sectionId;
     if(collapsed.has(id)) card.classList.add("collapsed");
@@ -3294,9 +3299,11 @@ function bindCarCollapsibles(){
       const isHidden = body.classList.contains("hidden");
       if(isHidden){
         body.classList.remove("hidden");
+        if(card) card.classList.remove("collapsed");
         if(arrow) arrow.textContent = "▼";
       }else{
         body.classList.add("hidden");
+        if(card) card.classList.add("collapsed");
         if(arrow) arrow.textContent = "▶";
       }
     });
