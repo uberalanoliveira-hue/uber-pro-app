@@ -1267,6 +1267,70 @@ button[onclick="salvarMeta()"]{
   top:28px !important;
 }
 
+
+/* ===== V26 override: checkbox à esquerda, menu à direita, sem mexer na posição ===== */
+#tabCarro #listaManut .table-row{
+  position:relative !important;
+  padding-right:116px !important;
+}
+#tabCarro #listaManut .action-menu.manut-actions{
+  position:absolute !important;
+  top:12px !important;
+  right:12px !important;
+  width:92px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  margin:0 !important;
+  padding:0 !important;
+  white-space:nowrap !important;
+}
+#tabCarro #listaManut .action-menu.manut-actions .manut-top-controls{
+  width:92px !important;
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:18px !important; /* espaço extra entre checkbox e menu */
+  margin:0 !important;
+  padding:0 !important;
+}
+#tabCarro #listaManut .action-menu.manut-actions .manut-check-top{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  margin:0 !important;
+  width:18px !important;
+  height:18px !important;
+  flex:0 0 18px !important;
+}
+#tabCarro #listaManut .action-menu.manut-actions .manut-check-top input[type="checkbox"]{
+  width:18px !important;
+  height:18px !important;
+  margin:0 !important;
+}
+#tabCarro #listaManut .action-menu.manut-actions .kebab-btn{
+  margin:0 !important;
+  padding:4px 6px !important;
+  line-height:1 !important;
+  flex:0 0 auto !important;
+}
+#tabCarro #listaManut .action-menu.manut-actions .manut-tag-top{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  margin-top:10px !important;
+}
+#tabCarro #listaManut .concluido-toggle input[type="checkbox"]{
+  width:18px !important;
+  height:18px !important;
+}
+#tabCarro #listaManut .action-menu.manut-actions .menu-pop{
+  right:0 !important;
+  top:28px !important;
+}
+
 </style>
 
 <style id="app30-auth-guard-style">
@@ -3236,10 +3300,12 @@ function atualizarCarro(){
           <div>${m.data||""}</div>
           <div>${m.valor?fmtMoney(m.valor):""}</div>
           <div class="action-menu manut-actions" style="justify-self:end;">
-            <button class="kebab-btn" type="button" onclick="event.stopPropagation(); toggleItemMenu('menu_manut_${m.id}', this)">≡</button>
-            <label class="concluido-toggle manut-check-top" onclick="event.stopPropagation();">
-              <input type="checkbox" ${m.concluida ? "checked" : ""} onchange="toggleManutConcluida('${m.id}', this.checked)" />
-            </label>
+            <div class="manut-top-controls">
+              <label class="concluido-toggle manut-check-top" onclick="event.stopPropagation();">
+                <input type="checkbox" ${m.concluida ? "checked" : ""} onchange="toggleManutConcluida('${m.id}', this.checked)" />
+              </label>
+              <button class="kebab-btn" type="button" onclick="event.stopPropagation(); toggleItemMenu('menu_manut_${m.id}', this)">≡</button>
+            </div>
             ${m.concluida ? `<span class="concluido-tag manut-tag-top">Concluído</span>` : ``}
             <div class="menu-pop" id="menu_manut_${m.id}">
               ${planned ? `<button type="button" onclick="markDone('${m.id}')">Concluir</button>` : ``}
