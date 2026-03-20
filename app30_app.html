@@ -534,27 +534,40 @@ input.negative-value, input.negative-value::placeholder{
   margin-top:10px;
 }
 
+
 /* Botão flutuante - atualização rápida do saldo atual */
 .quick-balance-fab{
   position:fixed;
-  right:16px;
-  bottom:88px;
+  left:50%;
+  top:70%;
+  transform:translate(-50%, -50%);
   z-index:1200;
-  width:58px;
-  height:58px;
+  width:56px;
+  height:56px;
   border-radius:50%;
   border:none;
   box-shadow:0 12px 28px rgba(0,0,0,.35);
-  background:linear-gradient(135deg, rgba(34,197,94,1), rgba(96,165,250,1));
-  color:#0b1220;
-  font-size:24px;
+  background:#b8860b;
+  color:#111827;
+  font-size:26px;
   font-weight:900;
   display:flex;
   align-items:center;
   justify-content:center;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  transition:opacity .22s ease, box-shadow .22s ease, transform .12s ease;
 }
-.quick-balance-fab:active{transform:scale(.98);}
-
+.quick-balance-fab:active{
+  transform:translate(-50%, -50%) scale(.98);
+}
+.quick-balance-fab.hidden{
+  display:none !important;
+}
+.quick-balance-fab.idle-faded{
+  opacity:.6;
+}
 .quick-balance-overlay{
   position:fixed;
   inset:0;
@@ -563,12 +576,11 @@ input.negative-value, input.negative-value::placeholder{
   display:none;
 }
 .quick-balance-overlay.show{display:block;}
-
 .quick-balance-panel{
   position:fixed;
   right:16px;
   left:16px;
-  bottom:156px;
+  bottom:92px;
   z-index:1201;
   background:rgba(30,41,59,.98);
   border:1px solid rgba(255,255,255,.10);
@@ -597,11 +609,15 @@ input.negative-value, input.negative-value::placeholder{
 }
 @media (max-width:420px){
   .quick-balance-fab{
-    right:14px;
-    bottom:84px;
     width:56px;
     height:56px;
   }
+  .quick-balance-panel{
+    right:12px;
+    left:12px;
+    bottom:88px;
+  }
+}
   .quick-balance-panel{
     right:12px;
     left:12px;
@@ -1610,6 +1626,7 @@ input.negative-value, input.negative-value::placeholder{
   <div class="menu-item"><button class="secondary" onclick="exportarRelatorioPDF(); closeMenu();">Exportar relatório (PDF)</button></div>
   <div class="menu-item"><button class="danger" onclick="openZerar(); closeMenu();">Zerar dados (cuidado)</button></div>
   <div class="menu-item"><button class="secondary" onclick="location.href='painel.html'; closeMenu();">Gerenciar APP</button></div>
+  <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
   <div class="menu-note">
     • Backup exporta um .json com tudo.<br>
@@ -2056,6 +2073,11 @@ let dados = loadDados() || {
     precoLitro: 0
   }
 };
+
+dados.saldoAtualButtonAtivo = (dados.saldoAtualButtonAtivo !== false);
+if(!dados.saldoAtualButtonPos || typeof dados.saldoAtualButtonPos !== "object"){
+  dados.saldoAtualButtonPos = null;
+}
 // Migração desativada (substituída por loadDados com legacyKeys)
 function salvar(){
   try{
@@ -3100,7 +3122,7 @@ function exportarRelatorioPDF(){
         setTimeout(()=>window.print(), 250);
       <\/script>
     
-<button type="button" id="quickBalanceFab" class="quick-balance-fab" onclick="toggleQuickBalancePanel(true)" aria-label="Atualizar saldo atual rápido">R$</button>
+<button type="button" id="quickBalanceFab" class="quick-balance-fab" onclick="toggleQuickBalancePanel(true)" aria-label="Atualizar saldo atual rápido">$</button>
 
 <div id="quickBalanceOverlay" class="quick-balance-overlay" onclick="toggleQuickBalancePanel(false)"></div>
 
@@ -3112,6 +3134,21 @@ function exportarRelatorioPDF(){
   <div class="quick-balance-actions">
     <button type="button" onclick="salvarSaldoAtualRapido()">Salvar</button>
     <button type="button" class="secondary" onclick="toggleQuickBalancePanel(false)">Fechar</button>
+  </div>
+</div>
+
+
+<div id="saldoAtualButtonMenuOverlay" class="quick-balance-overlay" onclick="fecharSaldoAtualButtonMenu()"></div>
+<div id="saldoAtualButtonMenuPanel" class="quick-balance-panel" role="dialog" aria-modal="true" aria-labelledby="saldoAtualButtonMenuTitle">
+  <div id="saldoAtualButtonMenuTitle" class="quick-balance-title">Botão de saldo atual</div>
+  <div class="quick-balance-sub">Ative ou desative o botão flutuante. Mesmo desligado, a atualização continua normal pela seção <b>Ganho por hora</b>.</div>
+  <label class="fuel-radio" style="display:flex;align-items:center;gap:10px;">
+    <input type="checkbox" id="toggleSaldoAtualButtonCheckbox">
+    <span>Ativar botão flutuante</span>
+  </label>
+  <div class="quick-balance-actions" style="margin-top:12px;">
+    <button type="button" onclick="salvarPreferenciaSaldoAtualButton()">Salvar</button>
+    <button type="button" class="secondary" onclick="fecharSaldoAtualButtonMenu()">Fechar</button>
   </div>
 </div>
 
@@ -3449,6 +3486,165 @@ window.addEventListener("keydown", function(e){
     salvarSaldoAtualRapido();
   }
 });
+
+
+function abrirSaldoAtualButtonMenu(){
+  const overlay = document.getElementById("saldoAtualButtonMenuOverlay");
+  const panel = document.getElementById("saldoAtualButtonMenuPanel");
+  const checkbox = document.getElementById("toggleSaldoAtualButtonCheckbox");
+  if(checkbox) checkbox.checked = (dados.saldoAtualButtonAtivo !== false);
+  if(overlay) overlay.classList.add("show");
+  if(panel) panel.classList.add("show");
+}
+function fecharSaldoAtualButtonMenu(){
+  const overlay = document.getElementById("saldoAtualButtonMenuOverlay");
+  const panel = document.getElementById("saldoAtualButtonMenuPanel");
+  if(overlay) overlay.classList.remove("show");
+  if(panel) panel.classList.remove("show");
+}
+function salvarPreferenciaSaldoAtualButton(){
+  const checkbox = document.getElementById("toggleSaldoAtualButtonCheckbox");
+  dados.saldoAtualButtonAtivo = !!(checkbox && checkbox.checked);
+  salvar();
+  if(typeof window.updateQuickBalanceFabUI === "function") window.updateQuickBalanceFabUI();
+  fecharSaldoAtualButtonMenu();
+  toast(dados.saldoAtualButtonAtivo ? "💰 Botão de saldo atual ativado." : "💰 Botão de saldo atual desativado.");
+}
+
+(function(){
+  const fab = document.getElementById("quickBalanceFab");
+  if(!fab) return;
+
+  let startX = 0, startY = 0, offsetX = 0, offsetY = 0, dragging = false, moved = false, idleTimer = null;
+
+  function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+  function clearIdle(){ if(idleTimer){ clearTimeout(idleTimer); idleTimer = null; } }
+  function scheduleIdle(){
+    clearIdle();
+    if(dados.saldoAtualButtonAtivo === false) return;
+    idleTimer = setTimeout(function(){ fab.classList.add("idle-faded"); }, 1800);
+  }
+  function wakeFab(){
+    clearIdle();
+    fab.classList.remove("idle-faded");
+  }
+  function applyVisibility(){
+    fab.classList.toggle("hidden", dados.saldoAtualButtonAtivo === false);
+    if(dados.saldoAtualButtonAtivo === false){
+      wakeFab();
+    }else{
+      scheduleIdle();
+    }
+  }
+  function applyPosition(){
+    if(dados.saldoAtualButtonPos && typeof dados.saldoAtualButtonPos.x === "number" && typeof dados.saldoAtualButtonPos.y === "number"){
+      fab.style.left = dados.saldoAtualButtonPos.x + "px";
+      fab.style.top = dados.saldoAtualButtonPos.y + "px";
+      fab.style.transform = "none";
+    }else{
+      fab.style.left = "50%";
+      fab.style.top = "70%";
+      fab.style.transform = "translate(-50%, -50%)";
+    }
+  }
+  function savePosition(x, y){
+    dados.saldoAtualButtonPos = { x, y };
+    salvar();
+  }
+  function snapToEdge(x, y){
+    const maxX = window.innerWidth - fab.offsetWidth;
+    const maxY = window.innerHeight - fab.offsetHeight;
+    const snappedX = (x + fab.offsetWidth / 2 < window.innerWidth / 2) ? 12 : Math.max(12, maxX - 12);
+    const snappedY = clamp(y, 12, Math.max(12, maxY - 12));
+    fab.style.left = snappedX + "px";
+    fab.style.top = snappedY + "px";
+    fab.style.transform = "none";
+    savePosition(snappedX, snappedY);
+  }
+  function getPoint(e){
+    return e.touches ? { x:e.touches[0].clientX, y:e.touches[0].clientY } : { x:e.clientX, y:e.clientY };
+  }
+  function onStart(e){
+    if(dados.saldoAtualButtonAtivo === false) return;
+    wakeFab();
+    const rect = fab.getBoundingClientRect();
+    const p = getPoint(e);
+    startX = p.x;
+    startY = p.y;
+    offsetX = p.x - rect.left;
+    offsetY = p.y - rect.top;
+    dragging = true;
+    moved = false;
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onEnd);
+    document.addEventListener("touchmove", onMove, { passive:false });
+    document.addEventListener("touchend", onEnd);
+  }
+  function onMove(e){
+    if(!dragging) return;
+    e.preventDefault();
+    const p = getPoint(e);
+    if(Math.abs(p.x - startX) > 4 || Math.abs(p.y - startY) > 4) moved = true;
+    const maxX = window.innerWidth - fab.offsetWidth;
+    const maxY = window.innerHeight - fab.offsetHeight;
+    const x = clamp(p.x - offsetX, 0, maxX);
+    const y = clamp(p.y - offsetY, 0, maxY);
+    fab.style.left = x + "px";
+    fab.style.top = y + "px";
+    fab.style.transform = "none";
+  }
+  function onEnd(){
+    if(!dragging) return;
+    dragging = false;
+    document.removeEventListener("mousemove", onMove);
+    document.removeEventListener("mouseup", onEnd);
+    document.removeEventListener("touchmove", onMove);
+    document.removeEventListener("touchend", onEnd);
+    const rect = fab.getBoundingClientRect();
+    if(moved){
+      snapToEdge(rect.left, rect.top);
+      setTimeout(function(){ moved = false; }, 60);
+    }
+    scheduleIdle();
+  }
+
+  fab.addEventListener("mousedown", onStart);
+  fab.addEventListener("touchstart", onStart, { passive:false });
+  fab.addEventListener("click", function(e){
+    if(moved){
+      e.preventDefault();
+      e.stopPropagation();
+      moved = false;
+      return;
+    }
+    wakeFab();
+    scheduleIdle();
+  }, true);
+  fab.addEventListener("mouseenter", wakeFab);
+  fab.addEventListener("mouseleave", scheduleIdle);
+  window.addEventListener("resize", function(){
+    if(fab.style.transform === "none"){
+      const rect = fab.getBoundingClientRect();
+      const maxX = window.innerWidth - fab.offsetWidth;
+      const maxY = window.innerHeight - fab.offsetHeight;
+      const x = clamp(rect.left, 0, maxX);
+      const y = clamp(rect.top, 0, maxY);
+      fab.style.left = x + "px";
+      fab.style.top = y + "px";
+      savePosition(x, y);
+    }
+  });
+
+  window.updateQuickBalanceFabUI = function(){
+    applyVisibility();
+    applyPosition();
+  };
+
+  setTimeout(function(){
+    applyVisibility();
+    applyPosition();
+  }, 60);
+})();
 
 function bootApp(){
   try{ ensureFirstInstallCollapsed(); }catch(e){}
