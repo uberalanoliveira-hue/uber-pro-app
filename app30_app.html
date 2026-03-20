@@ -1552,8 +1552,8 @@ button[onclick="salvarMeta()"]{
   <div class="card-body">
     <div class="grid2">
       <div>
-        <label>Meta diária (R$)</label>
-        <input type="number" id="metaDiariaManual" inputmode="decimal" placeholder="Meta diária" />
+        <label>Meta diária (R$) — automática</label>
+        <input type="number" id="metaDiariaManual" inputmode="decimal" placeholder="Meta diária automática" readonly />
       </div>
       <div>
         <label>Ganho diário atual (R$)</label>
@@ -2312,8 +2312,6 @@ function salvarMeta(){
 }
 
 function salvarHoras(){
-  const vExpr = parseValorOuExpressao(document.getElementById("metaDiariaManual").value);
-  dados.metaDiariaManual = isNaN(vExpr) ? (parseFloat(document.getElementById("metaDiariaManual").value)||0) : vExpr;
   const ganhoExpr = parseValorOuExpressao(document.getElementById("ganhoDiarioAtual").value);
   dados.ganhoDiarioAtual = isNaN(ganhoExpr) ? (parseFloat(document.getElementById("ganhoDiarioAtual").value)||0) : ganhoExpr;
   dados.ganhoHoraManual = parseFloat(document.getElementById("ganhoHoraManual").value) || 40;
@@ -2671,6 +2669,14 @@ function exportarRelatorioPDF(){
   const metaRestante = (faltanteLiquido > 0) ? (faltanteLiquido / 0.70) : 0;
   const metaDiariaAuto = (diasRestantes > 0) ? (metaRestante / diasRestantes) : 0;
 
+  try{
+    const metaDiaInput = document.getElementById("metaDiariaManual");
+    if(metaDiaInput){
+      metaDiaInput.value = metaDiariaAuto.toFixed(2);
+      metaDiaInput.readOnly = true;
+    }
+  }catch(e){}
+
   const esc = (s) => String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
   const money = (n) => "R$ " + Number(n || 0).toFixed(2);
 
@@ -2782,7 +2788,6 @@ function atualizar(){
     const metaDiaInput = document.getElementById("metaDiariaManual");
     const ganhoDiaInput = document.getElementById("ganhoDiarioAtual");
     const ganhoHoraInput = document.getElementById("ganhoHoraManual");
-    if(metaDiaInput && document.activeElement !== metaDiaInput) metaDiaInput.value = dados.metaDiariaManual || 0;
     if(ganhoDiaInput && document.activeElement !== ganhoDiaInput) ganhoDiaInput.value = dados.ganhoDiarioAtual || 0;
     if(ganhoHoraInput && document.activeElement !== ganhoHoraInput) ganhoHoraInput.value = dados.ganhoHoraManual || 40;
   }catch(e){}
@@ -2875,7 +2880,12 @@ const combustivelDisponivel = bruto * 0.30; // cálculo interno
 
   const metaDiariaAuto = (diasRestantes > 0) ? (metaRestante / diasRestantes) : 0;
 
-  const metaDia = Math.max(0, dados.metaDiariaManual || 0);
+  try{
+    const metaDiaInput = document.getElementById("metaDiariaManual");
+    if(metaDiaInput) metaDiaInput.value = metaDiariaAuto.toFixed(2);
+  }catch(e){}
+
+  const metaDia = Math.max(0, metaDiariaAuto || 0);
   const ganhoDia = Math.max(0, dados.ganhoDiarioAtual || 0);
   const ganhoHoraRef = Math.max(0, Number(dados.ganhoHoraManual || 40));
   const horasNecessarias = (ganhoHoraRef > 0) ? (metaDia / ganhoHoraRef) : 0;
@@ -2885,14 +2895,15 @@ const combustivelDisponivel = bruto * 0.30; // cálculo interno
   const horasRestantesCeil = horasRestantes.toFixed(1);
   
   document.getElementById("statusMeta").innerHTML =
-    "Dias restantes: <span class='warning'>" + diasRestantes + "</span><br>" +
-    "Meta bruta necessária total (meta + gastos + combustível): <span class='warning'>R$ " + metaBrutaComGastos.toFixed(2) + "</span><br>" +
-    "Meta bruta restante: <span class='warning'>R$ " + metaRestante.toFixed(2) + "</span><br>" +
-    "Meta diária (automática): <span class='warning'>R$ " + metaDiariaAuto.toFixed(2) + "</span>";
+    "Dias restantes: <span class='" + (diasRestantes < 0 ? "dangerText" : "warning") + "'>" + diasRestantes + "</span><br>" +
+    "Meta bruta necessária total (meta + gastos + combustível): <span class='" + (metaBrutaComGastos < 0 ? "dangerText" : "warning") + "'>R$ " + metaBrutaComGastos.toFixed(2) + "</span><br>" +
+    "Meta bruta restante: <span class='" + (metaRestante < 0 ? "dangerText" : "warning") + "'>R$ " + metaRestante.toFixed(2) + "</span><br>" +
+    "Meta diária (automática): <span class='" + (metaDiariaAuto < 0 ? "dangerText" : "warning") + "'>R$ " + metaDiariaAuto.toFixed(2) + "</span>";
+  const valorRestanteHoras = (metaDia - ganhoDia);
   document.getElementById("horasResumo").innerHTML =
-    "Horas necessárias: <span class='warning'>" + horasNecessariasCeil + "h</span><br>" +
-    "Valor restante: <span class='warning'>R$ " + (metaDia - ganhoDia).toFixed(2) + "</span><br>" +
-    "Horas restantes: <span class='warning'>" + horasRestantesCeil + "h</span>";
+    "Horas necessárias: <span class='" + (horasNecessarias < 0 ? "dangerText" : "warning") + "'>" + horasNecessariasCeil + "h</span><br>" +
+    "Valor restante: <span class='" + (valorRestanteHoras < 0 ? "dangerText" : "warning") + "'>R$ " + valorRestanteHoras.toFixed(2) + "</span><br>" +
+    "Horas restantes: <span class='" + (horasRestantes < 0 ? "dangerText" : "warning") + "'>" + horasRestantesCeil + "h</span>";
 
   document.getElementById("fuelResumo").innerHTML =
     "Total abastecido: R$ " + totalAbastecido.toFixed(2) + "<br>" +
