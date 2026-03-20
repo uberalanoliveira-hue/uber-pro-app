@@ -2607,6 +2607,7 @@ function salvarGanhosForaTempoReal(){
 
   dados.saldoAnteriorFora = saldoAnterior;
   dados.saldoAtualFora = saldoAtual;
+  dados.ganhoDiarioAtual = saldoAtual;
   dados.horarioInicioFora = horario;
 
   const saldoBase = saldoAnterior > 0 ? (saldoAtual - saldoAnterior) : saldoAtual;
@@ -2795,7 +2796,12 @@ function atualizar(){
     const metaDiaInput = document.getElementById("metaDiariaManual");
     const ganhoDiaInput = document.getElementById("ganhoDiarioAtual");
     const ganhoHoraInput = document.getElementById("ganhoHoraManual");
-    if(ganhoDiaInput && document.activeElement !== ganhoDiaInput) ganhoDiaInput.value = dados.ganhoDiarioAtual || 0;
+    const saldoAtualAuto = Number(dados.saldoAtualFora || 0);
+    dados.ganhoDiarioAtual = saldoAtualAuto;
+    if(ganhoDiaInput){
+      ganhoDiaInput.value = saldoAtualAuto || 0;
+      ganhoDiaInput.readOnly = true;
+    }
     if(ganhoHoraInput && document.activeElement !== ganhoHoraInput) ganhoHoraInput.value = dados.ganhoHoraManual || 40;
   }catch(e){}
   // ===== Ganho / hora atual =====
