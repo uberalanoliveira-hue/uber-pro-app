@@ -466,6 +466,45 @@ input.negative-value, input.negative-value::placeholder{
 .tab-btn.active{ background:rgba(59,130,246,0.24); border-color:rgba(59,130,246,0.45); }
 .tab-page.hidden{ display:none !important; }
 
+
+/* ===== Combustível real opcional ===== */
+.fuel-mode-box{
+  margin:10px 0 12px;
+  padding:12px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+  background:rgba(255,255,255,.03);
+}
+.fuel-mode-row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:center;
+  margin-bottom:10px;
+}
+.fuel-radio{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:14px;
+  cursor:pointer;
+}
+.fuel-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.fuel-grid input{margin:0;}
+.fuel-help{
+  font-size:12px;
+  opacity:.85;
+  margin-top:8px;
+  line-height:1.35;
+}
+@media (max-width:680px){
+  .fuel-grid{grid-template-columns:1fr;}
+}
+
 /* ===== Manutenção ===== */
 .table-head, .table-row{ display:grid; grid-template-columns:72px 1fr 74px 92px 44px; gap:10px; align-items:center; }
 .table-head{ font-size:12px; opacity:0.78; padding:8px 10px; border:1px solid rgba(255,255,255,0.10); border-radius:12px; margin-bottom:8px; }
@@ -1498,6 +1537,14 @@ input.negative-value, input.negative-value::placeholder{
       </div>
   <div class="card-body">
     <label>Meta líquida desejada (R$)</label>
+<select id="percentualCombustivel">
+  <option value="0.30">30%</option>
+  <option value="0.35">35%</option>
+  <option value="0.40">40%</option>
+  <option value="0.45">45%</option>
+  <option value="0.50">50%</option>
+</select>
+
     <input type="number" id="metaTotal" inputmode="decimal">
     <label>Data limite para atingir a Meta</label>
     <input type="date" id="dataLimite">
@@ -1622,6 +1669,33 @@ input.negative-value, input.negative-value::placeholder{
       </div>
   <div class="card-body">
     <div id="fuelResumo" class="muted"></div>
+
+    <div class="fuel-mode-box">
+      <div class="fuel-mode-row">
+        <label class="fuel-radio">
+          <input type="radio" name="combustivelModo" id="combustivelModoFixo" value="fixo" onchange="salvarConfigCombustivel()">
+          <span>30% do bruto</span>
+        </label>
+        <label class="fuel-radio">
+          <input type="radio" name="combustivelModo" id="combustivelModoReal" value="real" onchange="salvarConfigCombustivel()">
+          <span>Combustível real</span>
+        </label>
+      </div>
+
+      <div id="fuelRealFields" class="fuel-grid">
+        <input type="number" id="fuelKmRodados" inputmode="decimal" step="0.01" placeholder="KM rodados">
+        <input type="number" id="fuelConsumoMedio" inputmode="decimal" step="0.01" placeholder="Consumo médio (km/l)">
+        <input type="number" id="fuelPrecoLitro" inputmode="decimal" step="0.01" placeholder="Preço por litro (R$)">
+      </div>
+
+      <div class="fuel-help">
+        Em <b>30% do bruto</b>, o app mantém a regra atual.<br>
+        Em <b>Combustível real</b>, o cálculo usa: <b>(KM rodados ÷ consumo médio) × preço por litro</b>.
+      </div>
+
+      <button type="button" class="secondary" onclick="salvarConfigCombustivel()">Salvar configuração</button>
+    </div>
+
     <button class="secondary" onclick="toggleForm('formAbastecimento')">Adicionar abastecimento</button>
     <div id="formAbastecimento" class="collapsible">
       <input type="date" id="dataAbastecimento">
@@ -1855,7 +1929,13 @@ let dados = loadDados() || {
   horarioInicioFora: "",
   horasDecorridasFora: 0,
   ganhoHoraAtualFora: 0,
-  saldoAnteriorFora: 0
+  saldoAnteriorFora: 0,
+  combustivelModo: "fixo",
+  combustivelReal: {
+    kmRodados: 0,
+    consumoMedio: 0,
+    precoLitro: 0
+  }
 };
 // Migração desativada (substituída por loadDados com legacyKeys)
 function salvar(){
@@ -1913,7 +1993,11 @@ function cloudHasUsefulData(obj){
       Number(obj.ganhoDiarioAtual || 0) > 0 ||
       Number(obj.saldoAtualFora || 0) > 0 ||
       Number(obj.saldoAnteriorFora || 0) > 0 ||
-      (obj.horarioInicioFora && String(obj.horarioInicioFora).trim() !== "")
+      (obj.horarioInicioFora && String(obj.horarioInicioFora).trim() !== "") ||
+      (obj.combustivelModo && String(obj.combustivelModo) === "real") ||
+      Number(obj?.combustivelReal?.kmRodados || 0) > 0 ||
+      Number(obj?.combustivelReal?.consumoMedio || 0) > 0 ||
+      Number(obj?.combustivelReal?.precoLitro || 0) > 0
     );
   }catch(e){ return false; }
 }
@@ -2523,8 +2607,15 @@ function importarBackup(ev){
         abastecimentos: Array.isArray(novoDados.abastecimentos) ? novoDados.abastecimentos : [],
         naoTrabalhados: Array.isArray(novoDados.naoTrabalhados) ? novoDados.naoTrabalhados : [],
         metaTotal: Number(novoDados.metaTotal) || 0,
-        dataLimite: (novoDados.dataLimite && String(novoDados.dataLimite)) || "",        metaDiariaManual: Number(novoDados.metaDiariaManual) || 0,
-        ganhoDiarioAtual: Number(novoDados.ganhoDiarioAtual) || 0
+        dataLimite: (novoDados.dataLimite && String(novoDados.dataLimite)) || "",
+        metaDiariaManual: Number(novoDados.metaDiariaManual) || 0,
+        ganhoDiarioAtual: Number(novoDados.ganhoDiarioAtual) || 0,
+        combustivelModo: (String(novoDados.combustivelModo || "fixo") === "real" ? "real" : "fixo"),
+        combustivelReal: {
+          kmRodados: Number(novoDados?.combustivelReal?.kmRodados || 0) || 0,
+          consumoMedio: Number(novoDados?.combustivelReal?.consumoMedio || 0) || 0,
+          precoLitro: Number(novoDados?.combustivelReal?.precoLitro || 0) || 0
+        }
       };
 
       safe.ganhos = safe.ganhos.map(g => ({
@@ -2601,7 +2692,18 @@ safe.naoTrabalhados = (safe.naoTrabalhados || []).map(n => ({
 function zerarTudo(){
   const ok = confirm("Tem certeza? Isso vai apagar TODOS os dados deste aparelho.");
   if(!ok) return;
-  dados = { ganhos: [], gastos: [], abastecimentos: [], naoTrabalhados: [], metaTotal: 0, dataLimite: "", metaDiariaManual: 0, ganhoDiarioAtual: 0 };
+  dados = {
+    ganhos: [],
+    gastos: [],
+    abastecimentos: [],
+    naoTrabalhados: [],
+    metaTotal: 0,
+    dataLimite: "",
+    metaDiariaManual: 0,
+    ganhoDiarioAtual: 0,
+    combustivelModo: "fixo",
+    combustivelReal: { kmRodados: 0, consumoMedio: 0, precoLitro: 0 }
+  };
   salvar();
   atualizar();
   toast("✅ Dados zerados.");
@@ -2647,6 +2749,56 @@ function salvarGanhosForaTempoReal(){
   atualizar();
 }
 
+
+function getCombustivelConfig(brutoBase){
+  const modo = (dados.combustivelModo === "real") ? "real" : "fixo";
+  const kmRodados = Number(dados?.combustivelReal?.kmRodados || 0);
+  const consumoMedio = Number(dados?.combustivelReal?.consumoMedio || 0);
+  const precoLitro = Number(dados?.combustivelReal?.precoLitro || 0);
+
+  let combustivelEstimado = brutoBase * 0.30;
+  let taxaCombustivel = 0.30;
+  let tituloResumo = "Combustível disponível (30% do bruto)";
+  let detalheResumo = "Modo 30% do bruto ativo.";
+
+  if(modo === "real"){
+    const litrosEstimados = (kmRodados > 0 && consumoMedio > 0) ? (kmRodados / consumoMedio) : 0;
+    combustivelEstimado = litrosEstimados * precoLitro;
+    taxaCombustivel = brutoBase > 0 ? (combustivelEstimado / brutoBase) : 0;
+    if(!isFinite(taxaCombustivel)) taxaCombustivel = 0;
+    taxaCombustivel = Math.max(0, Math.min(0.95, taxaCombustivel));
+    tituloResumo = "Combustível previsto real";
+    detalheResumo = (kmRodados > 0 && consumoMedio > 0 && precoLitro > 0)
+      ? ("Modo real ativo: " + kmRodados.toFixed(2) + " km ÷ " + consumoMedio.toFixed(2) + " km/l × R$ " + precoLitro.toFixed(2) + "/l")
+      : "Modo real ativo, mas faltam preencher KM rodados, consumo médio e preço do litro.";
+  }
+
+  return {
+    modo,
+    kmRodados,
+    consumoMedio,
+    precoLitro,
+    combustivelEstimado,
+    taxaCombustivel,
+    tituloResumo,
+    detalheResumo
+  };
+}
+
+function salvarConfigCombustivel(){
+  const modoEl = document.querySelector('input[name="combustivelModo"]:checked');
+  dados.combustivelModo = (modoEl && modoEl.value === "real") ? "real" : "fixo";
+  dados.combustivelReal = {
+    kmRodados: parseFloat(document.getElementById("fuelKmRodados")?.value) || 0,
+    consumoMedio: parseFloat(document.getElementById("fuelConsumoMedio")?.value) || 0,
+    precoLitro: parseFloat(document.getElementById("fuelPrecoLitro")?.value) || 0
+  };
+  salvar();
+  atualizar();
+  toast("⛽ Configuração de combustível salva.");
+}
+
+
 function exportarRelatorioPDF(){
   const stamp = new Date();
   const y = stamp.getFullYear();
@@ -2655,7 +2807,8 @@ function exportarRelatorioPDF(){
 
   const bruto = dados.ganhos.reduce((s,g)=>s+g.valor,0);
   const gastosExtras = dados.gastos.reduce((s,g)=>s+g.valor,0);
-  const combustivelDisponivel = bruto * 0.30;
+  const fuelCfg = getCombustivelConfig(bruto);
+  const combustivelDisponivel = fuelCfg.combustivelEstimado;
   const totalAbastecido = dados.abastecimentos.reduce((s,a)=>s+a.valor,0);
   const saldoCombustivel = combustivelDisponivel - totalAbastecido;
   const liquido = bruto - combustivelDisponivel - gastosExtras;
@@ -2682,7 +2835,8 @@ function exportarRelatorioPDF(){
   }
   const diasRestantes = Math.max(0, diasCalendario - diasNaoTrabalhadosNoPeriodo);
   const faltanteLiquido = Math.max(0, (dados.metaTotal || 0) - liquido);
-  const metaRestante = (faltanteLiquido > 0) ? (faltanteLiquido / 0.70) : 0;
+  const divisorMeta = Math.max(0.05, 1 - Number(fuelCfg.taxaCombustivel || 0));
+  const metaRestante = (faltanteLiquido > 0) ? (faltanteLiquido / divisorMeta) : 0;
   const metaDiariaAuto = (diasRestantes > 0) ? (metaRestante / diasRestantes) : 0;
 
   try{
@@ -2763,10 +2917,11 @@ function exportarRelatorioPDF(){
       <div class="sec">
         <h2>Controle de combustível</h2>
         <div class="grid">
-          <div class="box"><p class="k">Combustível disponível (30% do bruto)</p><p class="v">${money(combustivelDisponivel)}</p></div>
+          <div class="box"><p class="k">${esc(fuelCfg.tituloResumo)}</p><p class="v">${money(combustivelDisponivel)}</p></div>
           <div class="box"><p class="k">Total abastecido</p><p class="v">${money(totalAbastecido)}</p></div>
           <div class="box"><p class="k">Saldo disponível para abastecer</p><p class="v">${money(saldoCombustivel)}</p></div>
         </div>
+        <p class="sub">${esc(fuelCfg.detalheResumo)}</p>
 
         <table>
           <thead><tr><th>Data</th><th class="right">Valor</th></tr></thead>
@@ -2856,6 +3011,22 @@ function atualizar(){
 document.getElementById("metaDiariaManual").value = (dados.metaDiariaManual || dados.metaDiariaManual === 0) ? dados.metaDiariaManual : "";
   document.getElementById("ganhoDiarioAtual").value = (dados.ganhoDiarioAtual ?? "");
 
+  const modoCombustivel = (dados.combustivelModo === "real") ? "real" : "fixo";
+  const radioFixo = document.getElementById("combustivelModoFixo");
+  const radioReal = document.getElementById("combustivelModoReal");
+  if(radioFixo) radioFixo.checked = modoCombustivel === "fixo";
+  if(radioReal) radioReal.checked = modoCombustivel === "real";
+
+  const fuelRealFields = document.getElementById("fuelRealFields");
+  if(fuelRealFields) fuelRealFields.style.display = modoCombustivel === "real" ? "grid" : "none";
+
+  const fuelKmRodados = document.getElementById("fuelKmRodados");
+  const fuelConsumoMedio = document.getElementById("fuelConsumoMedio");
+  const fuelPrecoLitro = document.getElementById("fuelPrecoLitro");
+  if(fuelKmRodados && document.activeElement !== fuelKmRodados) fuelKmRodados.value = Number(dados?.combustivelReal?.kmRodados || 0) || "";
+  if(fuelConsumoMedio && document.activeElement !== fuelConsumoMedio) fuelConsumoMedio.value = Number(dados?.combustivelReal?.consumoMedio || 0) || "";
+  if(fuelPrecoLitro && document.activeElement !== fuelPrecoLitro) fuelPrecoLitro.value = Number(dados?.combustivelReal?.precoLitro || 0) || "";
+
   const bruto = dados.ganhos.reduce((s,g)=>s+g.valor,0);
   const gastosExtras = dados.gastos.reduce((s,g)=>s+g.valor,0);
 
@@ -2881,7 +3052,8 @@ let diasCalendario = 0;
   if(box){
     box.textContent = diasNaoTrabalhadosNoPeriodo > 0 ? (diasRestantes + " (−" + diasNaoTrabalhadosNoPeriodo + ")") : String(diasRestantes);
   }
-const combustivelDisponivel = bruto * 0.30; // cálculo interno
+const fuelCfg = getCombustivelConfig(bruto);
+  const combustivelDisponivel = fuelCfg.combustivelEstimado;
   const totalAbastecido = dados.abastecimentos.reduce((s,a)=>s+a.valor,0);
   const saldoCombustivel = combustivelDisponivel - totalAbastecido;
 
@@ -2891,8 +3063,9 @@ const combustivelDisponivel = bruto * 0.30; // cálculo interno
   // líquido = bruto * 0,70 - gastosExtras
   // então o bruto necessário para atingir a meta e repor gastos é:
   // (meta líquida desejada + gastos extras) / 0,70
+  const divisorMeta = Math.max(0.05, 1 - Number(fuelCfg.taxaCombustivel || 0));
   const metaBrutaComGastos = ((dados.metaTotal || 0) + gastosExtras) > 0
-    ? (((dados.metaTotal || 0) + gastosExtras) / 0.70)
+    ? (((dados.metaTotal || 0) + gastosExtras) / divisorMeta)
     : 0;
 
   // Meta bruta restante:
@@ -2904,10 +3077,10 @@ const combustivelDisponivel = bruto * 0.30; // cálculo interno
     .reduce((s, g) => s + Number(g.valor || 0), 0);
 
   const brutoSemHoje = Math.max(0, bruto - ganhosHoje);
-  const combustivelSemHoje = brutoSemHoje * 0.30;
+  const combustivelSemHoje = brutoSemHoje * Number(fuelCfg.taxaCombustivel || 0);
   const liquidoSemHoje = brutoSemHoje - combustivelSemHoje - gastosExtras;
   const faltanteLiquidoSemHoje = Math.max(0, (dados.metaTotal || 0) - liquidoSemHoje);
-  const metaRestanteSemHoje = (faltanteLiquidoSemHoje > 0) ? (faltanteLiquidoSemHoje / 0.70) : 0;
+  const metaRestanteSemHoje = (faltanteLiquidoSemHoje > 0) ? (faltanteLiquidoSemHoje / divisorMeta) : 0;
   const metaDiariaAuto = (diasRestantes > 0) ? (metaRestanteSemHoje / diasRestantes) : 0;
 
   try{
@@ -2929,7 +3102,7 @@ const combustivelDisponivel = bruto * 0.30; // cálculo interno
   
   document.getElementById("statusMeta").innerHTML =
     "Dias restantes: <span class='" + (diasRestantes < 0 ? "dangerText" : "warning") + "'>" + diasRestantes + "</span><br>" +
-    "Meta bruta necessária total (meta + gastos + combustível): <span class='" + (metaBrutaComGastos < 0 ? "dangerText" : "warning") + "'>R$ " + metaBrutaComGastos.toFixed(2) + "</span><br>" +
+    "Meta bruta necessária total (" + (fuelCfg.modo === "real" ? "combustível real" : "30% combustível") + "): <span class='" + (metaBrutaComGastos < 0 ? "dangerText" : "warning") + "'>R$ " + metaBrutaComGastos.toFixed(2) + "</span><br>" +
     "Meta bruta restante: <span class='" + (metaRestante < 0 ? "dangerText" : "warning") + "'>R$ " + metaRestante.toFixed(2) + "</span><br>" +
     "Meta diária (automática): <span class='" + (metaDiariaAuto < 0 ? "dangerText" : "warning") + "'>R$ " + metaDiariaAuto.toFixed(2) + "</span>";
   const valorRestanteHoras = (metaDia - ganhoDia);
@@ -2939,6 +3112,12 @@ const combustivelDisponivel = bruto * 0.30; // cálculo interno
     "Horas restantes: <span class='" + (horasRestantes < 0 ? "dangerText" : "warning") + "'>" + horasRestantesCeil + "h</span>";
 
   document.getElementById("fuelResumo").innerHTML =
+    "Modo combustível: <span class='warning'>" + (fuelCfg.modo === "real" ? "Real" : "30% do bruto") + "</span><br>" +
+    (fuelCfg.modo === "real"
+      ? ("Combustível previsto real: <span class='" + (combustivelDisponivel < 0 ? "dangerText" : "warning") + "'>R$ " + combustivelDisponivel.toFixed(2) + "</span><br>" +
+         "Base do cálculo: <span class='warning'>" + fuelCfg.kmRodados.toFixed(2) + " km ÷ " + fuelCfg.consumoMedio.toFixed(2) + " km/l × R$ " + fuelCfg.precoLitro.toFixed(2) + "/l</span><br>")
+      : ("Combustível disponível (30% do bruto): <span class='" + (combustivelDisponivel < 0 ? "dangerText" : "warning") + "'>R$ " + combustivelDisponivel.toFixed(2) + "</span><br>")
+    ) +
     "Total abastecido: <span class='" + (totalAbastecido < 0 ? "dangerText" : "warning") + "'>R$ " + totalAbastecido.toFixed(2) + "</span><br>" +
     "Saldo disponível p/ abastecer: " +
     "<span class='" + (saldoCombustivel < 0 ? "dangerText" : "highlight") + "'>" +
@@ -3973,6 +4152,8 @@ function zerarControleUber(){
   dados.dataLimite = "";
   dados.metaDiariaManual = 0;
   dados.ganhoDiarioAtual = 0;
+  dados.combustivelModo = "fixo";
+  dados.combustivelReal = { kmRodados: 0, consumoMedio: 0, precoLitro: 0 };
 }
 
 function zerarManutencaoCarro(){
