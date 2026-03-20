@@ -1556,8 +1556,8 @@ button[onclick="salvarMeta()"]{
         <input type="number" id="metaDiariaManual" inputmode="decimal" placeholder="Meta diária automática" readonly />
       </div>
       <div>
-        <label>Ganho diário atual (R$)</label>
-        <input type="text" id="ganhoDiarioAtual" inputmode="text" placeholder="Ex: 200 ou 10+10" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <label>Ganho diário atual (R$) — automático</label>
+        <input type="text" id="ganhoDiarioAtual" inputmode="text" placeholder="Automático pelo Saldo atual" autocomplete="off" autocapitalize="off" spellcheck="false" readonly>
       </div>
       <div>
         <label>Ganho por hora (R$)</label>
@@ -2321,8 +2321,6 @@ function salvarMeta(){
 }
 
 function salvarHoras(){
-  const ganhoExpr = parseValorOuExpressao(document.getElementById("ganhoDiarioAtual").value);
-  dados.ganhoDiarioAtual = isNaN(ganhoExpr) ? (parseFloat(document.getElementById("ganhoDiarioAtual").value)||0) : ganhoExpr;
   dados.ganhoHoraManual = parseFloat(document.getElementById("ganhoHoraManual").value) || 40;
   salvar();
   atualizar();
