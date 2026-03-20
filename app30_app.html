@@ -2808,7 +2808,271 @@ function getCombustivelConfig(brutoBase){
 
   let combustivelEstimado = brutoBase * percentualSelecionado;
   let taxaCombustivel = percentualSelecionado;
-  let tituloResumo = "" +
+  let tituloResumo = "Combustível disponível (" + Math.round(percentualSelecionado * 100) + "% do bruto)";
+  let detalheResumo = "Modo % do bruto ativo em " + Math.round(percentualSelecionado * 100) + "%.";
+
+  if(modo === "real"){
+    const litrosEstimados = (kmRodados > 0 && consumoMedio > 0) ? (kmRodados / consumoMedio) : 0;
+    combustivelEstimado = litrosEstimados * precoLitro;
+    taxaCombustivel = brutoBase > 0 ? (combustivelEstimado / brutoBase) : 0;
+    if(!isFinite(taxaCombustivel)) taxaCombustivel = 0;
+    taxaCombustivel = Math.max(0, Math.min(0.95, taxaCombustivel));
+    tituloResumo = "Combustível previsto real";
+    detalheResumo = (kmRodados > 0 && consumoMedio > 0 && precoLitro > 0)
+      ? ("Modo real ativo: " + kmRodados.toFixed(2) + " km ÷ " + consumoMedio.toFixed(2) + " km/l × R$ " + precoLitro.toFixed(2) + "/l")
+      : "Modo real ativo, mas faltam preencher KM rodados, consumo médio e preço do litro.";
+  }
+
+  return {
+    modo,
+    percentualSelecionado,
+    kmRodados,
+    consumoMedio,
+    precoLitro,
+    combustivelEstimado,
+    taxaCombustivel,
+    tituloResumo,
+    detalheResumo
+  };
+}
+
+function updateFuelModeUI(){
+  const modoEl = document.querySelector('input[name="combustivelModo"]:checked');
+  const modo = (modoEl && modoEl.value === "real") ? "real" : "fixo";
+  const fuelRealFields = document.getElementById("fuelRealFields");
+  const fuelPercentFields = document.getElementById("fuelPercentFields");
+  if(fuelRealFields) fuelRealFields.style.display = modo === "real" ? "grid" : "none";
+  if(fuelPercentFields) fuelPercentFields.style.display = modo === "fixo" ? "block" : "none";
+}
+
+function setFuelConfigCollapsed(collapsed){
+  const card = document.getElementById("fuelConfigCard");
+  if(!card) return;
+  card.classList.toggle("collapsed", !!collapsed);
+}
+
+function toggleFuelConfigCard(){
+  const card = document.getElementById("fuelConfigCard");
+  if(!card) return;
+  card.classList.toggle("collapsed");
+}
+
+function salvarConfigCombustivel(){
+  const modoEl = document.querySelector('input[name="combustivelModo"]:checked');
+  dados.combustivelModo = (modoEl && modoEl.value === "real") ? "real" : "fixo";
+  const percentualEl = document.getElementById("percentualCombustivel");
+  const percentualSelecionado = percentualEl ? Number(percentualEl.value || 0.30) : 0.30;
+  dados.combustivelPercentual = [0.30,0.35,0.40,0.45,0.50].includes(percentualSelecionado) ? percentualSelecionado : 0.30;
+  dados.combustivelReal = {
+    kmRodados: parseFloat(document.getElementById("fuelKmRodados")?.value) || 0,
+    consumoMedio: parseFloat(document.getElementById("fuelConsumoMedio")?.value) || 0,
+    precoLitro: parseFloat(document.getElementById("fuelPrecoLitro")?.value) || 0
+  };
+  salvar();
+  atualizar();
+  setFuelConfigCollapsed(true);
+  toast("⛽ Configuração de combustível salva.");
+}
+
+
+function exportarRelatorioPDF(){
+  const stamp = new Date();
+  const y = stamp.getFullYear();
+  const m = String(stamp.getMonth()+1).padStart(2,"0");
+  const d = String(stamp.getDate()).padStart(2,"0");
+
+  const bruto = dados.ganhos.reduce((s,g)=>s+g.valor,0);
+  const gastosExtras = dados.gastos.reduce((s,g)=>s+g.valor,0);
+  const fuelCfg = getCombustivelConfig(bruto);
+  const combustivelDisponivel = fuelCfg.combustivelEstimado;
+  const totalAbastecido = dados.abastecimentos.reduce((s,a)=>s+a.valor,0);
+  const saldoCombustivel = combustivelDisponivel - totalAbastecido;
+  const liquido = bruto - combustivelDisponivel - gastosExtras;
+  const saldoTotal = liquido + saldoCombustivel;
+
+  const ganhosOrdenados = dados.ganhos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
+  const gastosOrdenados = dados.gastos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
+  const abastecOrdenados = dados.abastecimentos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
+
+  const hoje = uberHojeMidnight();
+  let diasCalendario = 0;
+  let diasNaoTrabalhadosNoPeriodo = 0;
+  if(dados.dataLimite){
+    const limite = new Date(dados.dataLimite + "T00:00:00");
+    const diffMs = limite.getTime() - hoje.getTime();
+    if(diffMs >= 0){
+      diasCalendario = Math.floor(diffMs / (24*60*60*1000)) + 1;
+    }
+    diasNaoTrabalhadosNoPeriodo = (dados.naoTrabalhados || []).filter(n => {
+      if(!n || !n.data) return false;
+      const dt = new Date(n.data + "T00:00:00");
+      return dt.getTime() >= hoje.getTime() && dt.getTime() <= limite.getTime();
+    }).length;
+  }
+  const diasRestantes = Math.max(0, diasCalendario - diasNaoTrabalhadosNoPeriodo);
+  const faltanteLiquido = Math.max(0, (dados.metaTotal || 0) - liquido);
+  const divisorMeta = Math.max(0.05, 1 - Number(fuelCfg.taxaCombustivel || 0));
+  const metaRestante = (faltanteLiquido > 0) ? (faltanteLiquido / divisorMeta) : 0;
+  const metaDiariaAuto = (diasRestantes > 0) ? (metaRestante / diasRestantes) : 0;
+
+  try{
+    const metaDiaInput = document.getElementById("metaDiariaManual");
+    if(metaDiaInput){
+      metaDiaInput.value = metaDiariaAuto.toFixed(2);
+      metaDiaInput.readOnly = true;
+    }
+  }catch(e){}
+
+  const esc = (s) => String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+  const money = (n) => "R$ " + Number(n || 0).toFixed(2);
+
+  const rowsGanhos = ganhosOrdenados.map(g=>`
+    <tr><td>${esc(g.data)}</td><td>${esc(g.app)}</td><td class="right">${money(g.valor)}</td></tr>
+  `).join("");
+
+  const rowsGastos = gastosOrdenados.map(g=>`
+    <tr><td>${esc(g.data)}</td><td>${esc(g.desc)}</td><td class="right">${money(g.valor)}</td></tr>
+  `).join("");
+
+  const rowsAbast = abastecOrdenados.map(a=>`
+    <tr><td>${esc(a.data)}</td><td class="right">${money(a.valor)}</td></tr>
+  `).join("");
+
+  const w = window.open("", "_blank");
+  if(!w){
+    toast("⚠️ Seu navegador bloqueou a janela do relatório. Permita pop-ups para exportar PDF.");
+    return;
+  }
+
+  w.document.open();
+  w.document.write(`
+    <!doctype html>
+    <html lang="pt-br">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Relatório - MetaDriver</title>
+      <style>
+        *{box-sizing:border-box}
+        body{font-family:Arial,Helvetica,sans-serif;margin:24px;color:#111;background:#fff}
+        h1{margin:0 0 6px;font-size:26px}
+        h2{margin:0 0 10px;font-size:18px}
+        .sub{color:#555;margin:0 0 18px;font-size:13px}
+        .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0 22px}
+        .box{border:1px solid #dcdcdc;border-radius:12px;padding:12px}
+        .k{color:#666;font-size:12px;margin:0 0 6px}
+        .v{font-size:18px;font-weight:700;margin:0}
+        .sec{margin-top:20px}
+        table{width:100%;border-collapse:collapse;margin-top:8px}
+        th,td{border-bottom:1px solid #ececec;padding:8px;font-size:12px;vertical-align:top}
+        th{text-align:left;background:#f8f8f8}
+        .right{text-align:right}
+        .muted{color:#666}
+        @media print{
+          body{margin:0.8cm}
+        }
+      </style>
+    </head>
+    <body>
+      <h1>Relatório - MetaDriver</h1>
+      <p class="sub">Gerado em ${d}/${m}/${y}</p>
+
+      <div class="sec">
+        
+<h2>Resumo geral</h2>
+        <div class="grid">
+          <div class="box"><p class="k">Bruto total</p><p class="v">${money(bruto)}</p></div>
+          <div class="box"><p class="k">Gastos extras</p><p class="v">${money(gastosExtras)}</p></div>
+          <div class="box"><p class="k">Lucro líquido</p><p class="v">${money(liquido)}</p></div>
+          <div class="box"><p class="k">Saldo total 💰+⛽</p><p class="v">${money(saldoTotal)}</p></div>
+        </div>
+      </div>
+
+      </div>
+
+      <div class="sec">
+        <h2>Controle de combustível</h2>
+        <div class="grid">
+          <div class="box"><p class="k">${esc(fuelCfg.tituloResumo)}</p><p class="v">${money(combustivelDisponivel)}</p></div>
+          <div class="box"><p class="k">Total abastecido</p><p class="v">${money(totalAbastecido)}</p></div>
+          <div class="box"><p class="k">Saldo disponível para abastecer</p><p class="v">${money(saldoCombustivel)}</p></div>
+        </div>
+        <p class="sub">${esc(fuelCfg.detalheResumo)}</p>
+
+        <table>
+          <thead><tr><th>Data</th><th class="right">Valor</th></tr></thead>
+          <tbody>${rowsAbast || '<tr><td colspan="2" class="muted">Sem lançamentos</td></tr>'}</tbody>
+        </table>
+      </div>
+
+      <div class="sec">
+        <h2>Lançamentos - Ganhos</h2>
+        <table>
+          <thead><tr><th>Data</th><th>App</th><th class="right">Valor</th></tr></thead>
+          <tbody>${rowsGanhos || '<tr><td colspan="3" class="muted">Sem lançamentos</td></tr>'}</tbody>
+        </table>
+      </div>
+
+      <div class="sec">
+        <h2>Lançamentos - Gastos</h2>
+        <table>
+          <thead><tr><th>Data</th><th>Descrição</th><th class="right">Valor</th></tr></thead>
+          <tbody>${rowsGastos || '<tr><td colspan="3" class="muted">Sem lançamentos</td></tr>'}</tbody>
+        </table>
+      </div>
+
+      <script>
+        setTimeout(()=>window.print(), 250);
+      <\/script>
+    </body>
+    </html>
+  `);
+  w.document.close();
+}
+
+function atualizar(){
+  try{
+    const metaDiaInput = document.getElementById("metaDiariaManual");
+    const ganhoDiaInput = document.getElementById("ganhoDiarioAtual");
+    const ganhoHoraInput = document.getElementById("ganhoHoraManual");
+    const saldoAtualAuto = Number(dados.saldoAtualFora || 0);
+    dados.ganhoDiarioAtual = saldoAtualAuto;
+    if(ganhoDiaInput){
+      ganhoDiaInput.value = saldoAtualAuto || 0;
+      ganhoDiaInput.readOnly = true;
+    }
+    if(ganhoHoraInput && document.activeElement !== ganhoHoraInput) ganhoHoraInput.value = dados.ganhoHoraManual || 40;
+  }catch(e){}
+  // ===== Ganho / hora atual =====
+  try{
+    const saldoInput = document.getElementById("saldoAtualFora");
+    const horaInput = document.getElementById("horarioInicioFora");
+    const resumoEl = document.getElementById("ganhosForaResumo");
+
+    const saldoAnterior = Number(dados.saldoAnteriorFora || 0);
+    const saldoAtual = Number(dados.saldoAtualFora || 0);
+    const horario = dados.horarioInicioFora || "";
+    const horas = Number(dados.horasDecorridasFora || 0);
+    const ganhoHora = Number(dados.ganhoHoraAtualFora || 0);
+    const saldoBase = saldoAnterior > 0 ? (saldoAtual - saldoAnterior) : saldoAtual;
+
+    const saldoAnteriorInput = document.getElementById("saldoAnteriorFora");
+    if(saldoAnteriorInput && document.activeElement !== saldoAnteriorInput){
+      saldoAnteriorInput.value = saldoAnterior ? String(dados.saldoAnteriorFora) : "";
+    }
+    if(saldoInput && document.activeElement !== saldoInput){
+      saldoInput.value = saldoAtual ? String(dados.saldoAtualFora) : "";
+    }
+    if(horaInput && document.activeElement !== horaInput){
+      horaInput.value = horario;
+    }
+
+    if(resumoEl){
+      if(!horario){
+        resumoEl.innerHTML = "Preencha saldo atual e horário de início.";
+      }else{
+        resumoEl.innerHTML =
+          "Base usada no cálculo: <span class='" + (saldoBase < 0 ? "dangerText" : "warning") + "'>R$ " + saldoBase.toFixed(2) + "</span><br>" +
           "Tempo decorrido: <span class='warning'>" + horas.toFixed(2) + "h</span><br>" +
           "Ganho / hora: <span class='" + (ganhoHora < 0 ? "dangerText" : "warning") + "'>R$ " + ganhoHora.toFixed(2) + "</span>";
       }
