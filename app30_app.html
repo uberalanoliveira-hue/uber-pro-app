@@ -2859,26 +2859,40 @@ let diasCalendario = 0;
       diasCalendario = Math.floor(diffMs / (24*60*60*1000)) + 1;
     }
     diasNaoTrabalhadosNoPeriodo = (dados.naoTrabalhados || []).filter(n => {
-      if(!n || !n.data) return false;
-      const dt = new Date(n.data + "T00:00:00");
-      return dt.getTime() >= hoje.getTime() && dt.getTime() <= limite.getTime();
-    }).length;
+      if(!n || !n.data) rconst diasRestantes = Math.max(0, diasCalendario - diasNaoTrabalhadosNoPeriodo);
+  const box = document.getElementById("diasRestantesBox");
+  if(box){
+    box.textContent = diasNaoTrabalhadosNoPeriodo > 0 ? (diasRestantes + " (−" + diasNaoTrabalhadosNoPeriodo + ")") : String(diasRestantes);
   }
-  const diasRestantes = Math.max(0, diasCalendario - diasNaoTrabalhadosNoPeriodo);
+  const combustivelDisponivel = bruto * 0.30; // cálculo interno
+  const totalAbastecido = dados.abastecimentos.reduce((s,a)=>s+a.valor,0);
+  const saldoCombustivel = combustivelDisponivel - totalAbastecido;
+
+  const liquido = bruto - combustivelDisponivel - gastosExtras;
+
+  // Regra correta:
+  // líquido = bruto * 0,70 - gastosExtras
+  // então o bruto necessário para atingir a meta e repor gastos é:
+  // (meta líquida desejada + gastos extras) / 0,70
+  const metaBrutaComGastos = ((dados.metaTotal || 0) + gastosExtras) > 0
+    ? (((dados.metaTotal || 0) + gastosExtras) / 0.70)
+    : 0;
+
+  // Meta bruta restante:
+  // quanto ainda falta em bruto para completar a meta total necessária
+  const metaRestante = Math.max(0, metaBrutaComGastos - bruto);
 
   // Meta diária automática da seção "Horas necessárias":
   // ignora completamente os lançamentos de ganhos da data de hoje.
   const ganhosHoje = (dados.ganhos || [])
     .filter(g => isHojeRegistro(g && g.data))
     .reduce((s, g) => s + Number(g.valor || 0), 0);
-
   const brutoSemHoje = Math.max(0, bruto - ganhosHoje);
   const combustivelSemHoje = brutoSemHoje * 0.30;
   const liquidoSemHoje = brutoSemHoje - combustivelSemHoje - gastosExtras;
-
-  const faltanteLiquido = Math.max(0, (dados.metaTotal || 0) - liquidoSemHoje);
-  const metaRestante = (faltanteLiquido > 0) ? (faltanteLiquido / 0.70) : 0;
-  const metaDiariaAuto = (diasRestantes > 0) ? (metaRestante / diasRestantes) : 0;
+  const faltanteLiquidoSemHoje = Math.max(0, (dados.metaTotal || 0) - liquidoSemHoje);
+  const metaRestanteSemHoje = (faltanteLiquidoSemHoje > 0) ? (faltanteLiquidoSemHoje / 0.70) : 0;
+  const metaDiariaAuto = (diasRestantes > 0) ? (metaRestanteSemHoje / diasRestantes) : 0;
 
   try{
     const metaDiaInput = document.getElementById("metaDiariaManual");
@@ -2888,7 +2902,11 @@ let diasCalendario = 0;
     }
   }catch(e){}
 
-  const metaDia = Math.max(0, metaDiariaAuto || 0);|| 0);
+  const metaDia = Math.max(0, metaDiariaAuto || 0);entById("metaDiariaManual");
+    if(metaDiaInput) metaDiaInput.value = metaDiariaAuto.toFixed(2);
+  }catch(e){}
+
+  const metaDia = Math.max(0, metaDiariaAuto || 0);
   const ganhoDia = Math.max(0, dados.ganhoDiarioAtual || 0);
   const ganhoHoraRef = Math.max(0, Number(dados.ganhoHoraManual || 40));
   const horasNecessarias = (ganhoHoraRef > 0) ? (metaDia / ganhoHoraRef) : 0;
