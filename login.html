@@ -124,8 +124,6 @@ button.action {
   padding:6px 10px;
   font-size:12px;
 }
-
-.negative{color:#ff0000 !important;}
 </style>
 </head>
 <body>
@@ -401,21 +399,5 @@ button.action {
   }
 })();
 </script>
-
-<script>
-function applyNegativeStyle(){
-  const elements = document.querySelectorAll('body *');
-  elements.forEach(el=>{
-    if(el.children.length===0){
-      const txt = el.textContent.trim();
-      if(/^[-−]/.test(txt)){
-        el.classList.add('negative');
-      }
-    }
-  });
-}
-setInterval(applyNegativeStyle,500);
-</script>
-
 </body>
 </html>

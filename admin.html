@@ -207,8 +207,6 @@ button {
   .user-summary { grid-template-columns:34px 1fr; }
   .user-summary .badge { grid-column:2; justify-self:start; }
 }
-
-.negative{color:#ff0000 !important;}
 </style>
 </head>
 <body>
@@ -478,21 +476,5 @@ $("logoutBtn1").addEventListener("click", function(){ clearSession(); location.r
 $("logoutBtn2").addEventListener("click", function(){ clearSession(); location.reload(); }, true);
 initAdmin();
 </script>
-
-<script>
-function applyNegativeStyle(){
-  const elements = document.querySelectorAll('body *');
-  elements.forEach(el=>{
-    if(el.children.length===0){
-      const txt = el.textContent.trim();
-      if(/^[-−]/.test(txt)){
-        el.classList.add('negative');
-      }
-    }
-  });
-}
-setInterval(applyNegativeStyle,500);
-</script>
-
 </body>
 </html>

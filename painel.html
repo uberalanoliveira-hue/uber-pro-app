@@ -21,8 +21,6 @@ button.secondary { background:rgba(255,255,255,.06); color:#fff; border:1px soli
 #msg { margin-top:10px; padding:10px; border-radius:10px; display:none; background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.10); font-size:13px; line-height:1.35; }
 .danger { background:rgba(239,68,68,.10)!important; border-color:rgba(239,68,68,.45)!important; }
 .small { font-size:12px; opacity:.9; margin-top:8px; }
-
-.negative{color:#ff0000 !important;}
 </style>
 </head>
 <body>
@@ -122,21 +120,5 @@ button.secondary { background:rgba(255,255,255,.06); color:#fff; border:1px soli
   loadPanel();
 })();
 </script>
-
-<script>
-function applyNegativeStyle(){
-  const elements = document.querySelectorAll('body *');
-  elements.forEach(el=>{
-    if(el.children.length===0){
-      const txt = el.textContent.trim();
-      if(/^[-−]/.test(txt)){
-        el.classList.add('negative');
-      }
-    }
-  });
-}
-setInterval(applyNegativeStyle,500);
-</script>
-
 </body>
 </html>

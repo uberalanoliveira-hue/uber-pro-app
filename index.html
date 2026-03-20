@@ -70,8 +70,6 @@ button{
   opacity:.8;
   line-height:1.4;
 }
-
-.negative{color:#ff0000 !important;}
 </style>
 </head>
 <body>
@@ -138,21 +136,5 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-
-<script>
-function applyNegativeStyle(){
-  const elements = document.querySelectorAll('body *');
-  elements.forEach(el=>{
-    if(el.children.length===0){
-      const txt = el.textContent.trim();
-      if(/^[-−]/.test(txt)){
-        el.classList.add('negative');
-      }
-    }
-  });
-}
-setInterval(applyNegativeStyle,500);
-</script>
-
 </body>
 </html>

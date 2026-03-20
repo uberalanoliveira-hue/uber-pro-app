@@ -442,6 +442,14 @@ button[onclick="salvarMeta()"]{
   font-weight:800;
 }
 
+.negative-value{
+  color:#ef4444 !important;
+  font-weight:800 !important;
+}
+input.negative-value, input.negative-value::placeholder{
+  color:#ef4444 !important;
+}
+
 
 /* ===== Abas ===== */
 .tabs-wrap{ padding:0 12px 12px; }
@@ -1401,8 +1409,6 @@ button[onclick="salvarMeta()"]{
   top:28px !important;
 }
 
-
-.negative{color:#ff0000 !important;}
 </style>
 
 <style id="app30-auth-guard-style">
@@ -1411,8 +1417,6 @@ button[onclick="salvarMeta()"]{
   padding:10px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.18);
   background:rgba(0,0,0,.55); color:#fff; font:600 14px system-ui, Arial, sans-serif;
 }
-
-.negative{color:#ff0000 !important;}
 </style>
 
 
@@ -2737,9 +2741,7 @@ function exportarRelatorioPDF(){
         @media print{
           body{margin:0.8cm}
         }
-      
-.negative{color:#ff0000 !important;}
-</style>
+      </style>
     </head>
     <body>
       <h1>Relatório - MetaDriver</h1>
@@ -2791,23 +2793,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    
-<script>
-function applyNegativeStyle(){
-  const elements = document.querySelectorAll('body *');
-  elements.forEach(el=>{
-    if(el.children.length===0){
-      const txt = el.textContent.trim();
-      if(/^[-−]/.test(txt)){
-        el.classList.add('negative');
-      }
-    }
-  });
-}
-setInterval(applyNegativeStyle,500);
-</script>
-
-</body>
+    </body>
     </html>
   `);
   w.document.close();
@@ -2855,9 +2841,9 @@ function atualizar(){
         resumoEl.innerHTML = "Preencha saldo atual e horário de início.";
       }else{
         resumoEl.innerHTML =
-          "Base usada no cálculo: <span class='warning'>R$ " + saldoBase.toFixed(2) + "</span><br>" +
+          "Base usada no cálculo: <span class='" + (saldoBase < 0 ? "dangerText" : "warning") + "'>R$ " + saldoBase.toFixed(2) + "</span><br>" +
           "Tempo decorrido: <span class='warning'>" + horas.toFixed(2) + "h</span><br>" +
-          "Ganho / hora: <span class='warning'>R$ " + ganhoHora.toFixed(2) + "</span>";
+          "Ganho / hora: <span class='" + (ganhoHora < 0 ? "dangerText" : "warning") + "'>R$ " + ganhoHora.toFixed(2) + "</span>";
       }
     }
   }catch(e){}
@@ -2953,19 +2939,19 @@ const combustivelDisponivel = bruto * 0.30; // cálculo interno
     "Horas restantes: <span class='" + (horasRestantes < 0 ? "dangerText" : "warning") + "'>" + horasRestantesCeil + "h</span>";
 
   document.getElementById("fuelResumo").innerHTML =
-    "Total abastecido: R$ " + totalAbastecido.toFixed(2) + "<br>" +
+    "Total abastecido: <span class='" + (totalAbastecido < 0 ? "dangerText" : "warning") + "'>R$ " + totalAbastecido.toFixed(2) + "</span><br>" +
     "Saldo disponível p/ abastecer: " +
     "<span class='" + (saldoCombustivel < 0 ? "dangerText" : "highlight") + "'>" +
     "R$ " + saldoCombustivel.toFixed(2) +
     "</span>";
 
   document.getElementById("resumo").innerHTML =
-    "Bruto total: <span class='warning'>R$ " + bruto.toFixed(2) + "</span><br>" +
-    "Gastos extras: R$ " + gastosExtras.toFixed(2) + "<br>" +
+    "Bruto total: <span class='" + (bruto < 0 ? "dangerText" : "warning") + "'>R$ " + bruto.toFixed(2) + "</span><br>" +
+    "Gastos extras: <span class='" + (gastosExtras < 0 ? "dangerText" : "warning") + "'>R$ " + gastosExtras.toFixed(2) + "</span><br>" +
     
-    "<span class='highlight'>Lucro líquido: R$ " + liquido.toFixed(2) + "</span><br>" +
+    "<span class='" + (liquido < 0 ? "dangerText" : "highlight") + "'>Lucro líquido: R$ " + liquido.toFixed(2) + "</span><br>" +
     "Saldo disponível p/ abastecer: <span class='" + (saldoCombustivel < 0 ? "dangerText" : "highlight") + "'>R$ " + saldoCombustivel.toFixed(2) + "</span><br>" +
-    "<span style=\"white-space:nowrap;\">Saldo total 💰+⛽: <span class='highlight'>R$ " + (liquido + saldoCombustivel).toFixed(2) + "</span></span>"
+    "<span style=\"white-space:nowrap;\">Saldo total 💰+⛽: <span class='" + ((liquido + saldoCombustivel) < 0 ? "dangerText" : "highlight") + "'>R$ " + (liquido + saldoCombustivel).toFixed(2) + "</span></span>"
 
   document.getElementById("listaGanhos").innerHTML =
     dados.ganhos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0)).map(item=>{
@@ -2975,7 +2961,7 @@ const combustivelDisponivel = bruto * 0.30; // cálculo interno
           <div class="list-left">
             <span class="li-date">${item.data}</span>
             <span class="li-app">• ${item.app}</span>
-            <span class="li-value">• R$ ${Number(item.valor).toFixed(2)}</span>
+            <span class="li-value ${Number(item.valor) < 0 ? 'dangerText' : ''}">• R$ ${Number(item.valor).toFixed(2)}</span>
           </div>
           <div class="action-menu">
             <button class="kebab-btn" onclick="event.stopPropagation(); toggleItemMenu('menu_listaGanhos_${idx}', this)">≡</button>
@@ -2995,7 +2981,7 @@ document.getElementById("listaGastos").innerHTML =
           <div class="list-left">
             <span class="li-date">${item.data}</span>
             <span class="li-desc">• ${item.desc}</span>
-            <span class="li-value">• R$ ${Number(item.valor).toFixed(2)}</span>
+            <span class="li-value ${Number(item.valor) < 0 ? 'dangerText' : ''}">• R$ ${Number(item.valor).toFixed(2)}</span>
           </div>
           <div class="action-menu">
             <button class="kebab-btn" onclick="event.stopPropagation(); toggleItemMenu('menu_gastos_${idx}', this)">≡</button>
@@ -3015,7 +3001,7 @@ document.getElementById("listaGastos").innerHTML =
         <div class="list-item">
           <div class="list-left">
             <span class="li-date">${item.data}</span>
-            <span class="li-value">• R$ ${Number(item.valor).toFixed(2)}</span>
+            <span class="li-value ${Number(item.valor) < 0 ? 'dangerText' : ''}">• R$ ${Number(item.valor).toFixed(2)}</span>
           </div>
           <div class="action-menu">
             <button class="kebab-btn" onclick="event.stopPropagation(); toggleItemMenu('menu_ab_${idx}', this)">≡</button>
@@ -3051,6 +3037,8 @@ document.getElementById("listaGastos").innerHTML =
             </div>
           </div>`;
       }).join("");
+
+  refreshNegativeInputs();
 }
 
 
@@ -3181,6 +3169,16 @@ function kmNum(v){
   return isFinite(n) ? n : 0;
 }
 function fmtMoney(n){ return (Number(n)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}); }
+function refreshNegativeInputs(){
+  document.querySelectorAll("input").forEach(el=>{
+    const raw = String(el.value ?? "").trim().replace(",", ".");
+    if(raw && !isNaN(raw) && Number(raw) < 0){
+      el.classList.add("negative-value");
+    }else{
+      el.classList.remove("negative-value");
+    }
+  });
+}
 function fmtKm(n){ return (Number(n)||0).toLocaleString("pt-BR"); }
 function escapeHtml(s){
   return String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
