@@ -3121,40 +3121,8 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    
-<button type="button" id="quickBalanceFab" class="quick-balance-fab" onclick="toggleQuickBalancePanel(true)" aria-label="Atualizar saldo atual rápido">$</button>
-
-<div id="quickBalanceOverlay" class="quick-balance-overlay" onclick="toggleQuickBalancePanel(false)"></div>
-
-<div id="quickBalancePanel" class="quick-balance-panel" role="dialog" aria-modal="true" aria-labelledby="quickBalanceTitle">
-  <div id="quickBalanceTitle" class="quick-balance-title">Atualizar saldo atual</div>
-  <div class="quick-balance-sub">Atalho rápido para alterar o <b>Saldo atual</b> sem entrar no card de ganho por hora.</div>
-  <label for="quickSaldoAtual">Saldo atual (R$)</label>
-  <input type="number" id="quickSaldoAtual" inputmode="decimal" step="0.01" placeholder="Ex: 120">
-  <div class="quick-balance-actions">
-    <button type="button" onclick="salvarSaldoAtualRapido()">Salvar</button>
-    <button type="button" class="secondary" onclick="toggleQuickBalancePanel(false)">Fechar</button>
-  </div>
-</div>
-
-
-<div id="saldoAtualButtonMenuOverlay" class="quick-balance-overlay" onclick="fecharSaldoAtualButtonMenu()"></div>
-<div id="saldoAtualButtonMenuPanel" class="quick-balance-panel" role="dialog" aria-modal="true" aria-labelledby="saldoAtualButtonMenuTitle">
-  <div id="saldoAtualButtonMenuTitle" class="quick-balance-title">Botão de saldo atual</div>
-  <div class="quick-balance-sub">Ative ou desative o botão flutuante. Mesmo desligado, a atualização continua normal pela seção <b>Ganho por hora</b>.</div>
-  <label class="fuel-radio" style="display:flex;align-items:center;gap:10px;">
-    <input type="checkbox" id="toggleSaldoAtualButtonCheckbox">
-    <span>Ativar botão flutuante</span>
-  </label>
-  <div class="quick-balance-actions" style="margin-top:12px;">
-    <button type="button" onclick="salvarPreferenciaSaldoAtualButton()">Salvar</button>
-    <button type="button" class="secondary" onclick="fecharSaldoAtualButtonMenu()">Fechar</button>
-  </div>
-</div>
-
-</body>
-    </html>
-  `);
+    </body>
+    </html>  `);
   w.document.close();
 }
 
@@ -4703,3 +4671,35 @@ function logoutApp(){
   forceLogout();
 }
 </script>
+
+<button type="button" id="quickBalanceFab" class="quick-balance-fab" onclick="toggleQuickBalancePanel(true)" aria-label="Atualizar saldo atual rápido">$</button>
+
+<div id="quickBalanceOverlay" class="quick-balance-overlay" onclick="toggleQuickBalancePanel(false)"></div>
+
+<div id="quickBalancePanel" class="quick-balance-panel" role="dialog" aria-modal="true" aria-labelledby="quickBalanceTitle">
+  <div id="quickBalanceTitle" class="quick-balance-title">Atualizar saldo atual</div>
+  <div class="quick-balance-sub">Atalho rápido para alterar o <b>Saldo atual</b> sem entrar no card de ganho por hora.</div>
+  <label for="quickSaldoAtual">Saldo atual (R$)</label>
+  <input type="number" id="quickSaldoAtual" inputmode="decimal" step="0.01" placeholder="Ex: 120">
+  <div class="quick-balance-actions">
+    <button type="button" onclick="salvarSaldoAtualRapido()">Salvar</button>
+    <button type="button" class="secondary" onclick="toggleQuickBalancePanel(false)">Fechar</button>
+  </div>
+</div>
+
+<div id="saldoAtualButtonMenuOverlay" class="quick-balance-overlay" onclick="fecharSaldoAtualButtonMenu()"></div>
+<div id="saldoAtualButtonMenuPanel" class="quick-balance-panel" role="dialog" aria-modal="true" aria-labelledby="saldoAtualButtonMenuTitle">
+  <div id="saldoAtualButtonMenuTitle" class="quick-balance-title">Botão de saldo atual</div>
+  <div class="quick-balance-sub">Ative ou desative o botão flutuante. Mesmo desligado, a atualização continua normal pela seção <b>Ganho por hora</b>.</div>
+  <label class="fuel-radio" style="display:flex;align-items:center;gap:10px;">
+    <input type="checkbox" id="toggleSaldoAtualButtonCheckbox">
+    <span>Ativar botão flutuante</span>
+  </label>
+  <div class="quick-balance-actions" style="margin-top:12px;">
+    <button type="button" onclick="salvarPreferenciaSaldoAtualButton()">Salvar</button>
+    <button type="button" class="secondary" onclick="fecharSaldoAtualButtonMenu()">Fechar</button>
+  </div>
+</div>
+
+</body>
+</html>
