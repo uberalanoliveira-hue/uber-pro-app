@@ -3603,7 +3603,20 @@ function refreshQuickBalanceDisplay(){
 function refreshQuickBalanceFabMiniDisplay(){
   const mini = document.getElementById("quickBalanceFabValue");
   if(!mini) return;
-  const n = Number((window.dados && dados.saldoAtualFora) || 0);
+
+  let n = 0;
+
+  try{
+    const saldoInput = document.getElementById("saldoAtualFora");
+    if(saldoInput && saldoInput.value !== ""){
+      n = Number(String(saldoInput.value).replace(",", ".")) || 0;
+    }else if(window.dados){
+      n = Number(dados.saldoAtualFora || 0);
+    }
+  }catch(e){
+    n = Number((window.dados && dados.saldoAtualFora) || 0);
+  }
+
   mini.textContent = "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
@@ -3661,6 +3674,8 @@ function salvarSaldoAtualRapido(){
   saldoInput.value = novoSaldo ? String(novoSaldo) : "";
 
   try{
+    if(window.dados) dados.saldoAtualFora = novoSaldo;
+    refreshQuickBalanceFabMiniDisplay();
     salvarGanhosForaTempoReal();
     syncGanhoDoSaldoRapido(novoSaldo);
     salvar();
