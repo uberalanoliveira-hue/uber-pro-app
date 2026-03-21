@@ -3474,14 +3474,25 @@ function salvarPreferenciaSaldoAtualButton(){
   const checkbox = document.getElementById("toggleSaldoAtualButtonCheckbox");
   dados.saldoAtualButtonAtivo = !!(checkbox && checkbox.checked);
   salvar();
+  initQuickBalanceFab();
+  initQuickBalanceFab();
   if(typeof window.updateQuickBalanceFabUI === "function") window.updateQuickBalanceFabUI();
   fecharSaldoAtualButtonMenu();
   toast(dados.saldoAtualButtonAtivo ? "💰 Botão de saldo atual ativado." : "💰 Botão de saldo atual desativado.");
 }
 
-(function(){
+
+function initQuickBalanceFab(){
+  if(window.__quickBalanceFabInitialized) {
+    initQuickBalanceFab();
+  if(typeof window.updateQuickBalanceFabUI === "function") window.updateQuickBalanceFabUI();
+    return;
+  }
+
   const fab = document.getElementById("quickBalanceFab");
   if(!fab) return;
+
+  window.__quickBalanceFabInitialized = true;
 
   let startX = 0, startY = 0, offsetX = 0, offsetY = 0, dragging = false, moved = false, idleTimer = null;
 
@@ -3489,7 +3500,7 @@ function salvarPreferenciaSaldoAtualButton(){
   function clearIdle(){ if(idleTimer){ clearTimeout(idleTimer); idleTimer = null; } }
   function scheduleIdle(){
     clearIdle();
-    if(dados.saldoAtualButtonAtivo === false) return;
+    if(window.dados && dados.saldoAtualButtonAtivo === false) return;
     idleTimer = setTimeout(function(){ fab.classList.add("idle-faded"); }, 1800);
   }
   function wakeFab(){
@@ -3497,27 +3508,28 @@ function salvarPreferenciaSaldoAtualButton(){
     fab.classList.remove("idle-faded");
   }
   function applyVisibility(){
-    fab.classList.toggle("hidden", dados.saldoAtualButtonAtivo === false);
-    if(dados.saldoAtualButtonAtivo === false){
+    fab.classList.toggle("hidden", !!(window.dados && dados.saldoAtualButtonAtivo === false));
+    if(window.dados && dados.saldoAtualButtonAtivo === false){
       wakeFab();
-    }else{
+    } else {
       scheduleIdle();
     }
   }
   function applyPosition(){
-    if(dados.saldoAtualButtonPos && typeof dados.saldoAtualButtonPos.x === "number" && typeof dados.saldoAtualButtonPos.y === "number"){
+    if(window.dados && dados.saldoAtualButtonPos && typeof dados.saldoAtualButtonPos.x === "number" && typeof dados.saldoAtualButtonPos.y === "number"){
       fab.style.left = dados.saldoAtualButtonPos.x + "px";
       fab.style.top = dados.saldoAtualButtonPos.y + "px";
       fab.style.transform = "none";
-    }else{
+    } else {
       fab.style.left = "50%";
       fab.style.top = "70%";
       fab.style.transform = "translate(-50%, -50%)";
     }
   }
   function savePosition(x, y){
+    if(!window.dados) return;
     dados.saldoAtualButtonPos = { x, y };
-    salvar();
+    if(typeof salvar === "function") salvar();
   }
   function snapToEdge(x, y){
     const maxX = window.innerWidth - fab.offsetWidth;
@@ -3533,7 +3545,7 @@ function salvarPreferenciaSaldoAtualButton(){
     return e.touches ? { x:e.touches[0].clientX, y:e.touches[0].clientY } : { x:e.clientX, y:e.clientY };
   }
   function onStart(e){
-    if(dados.saldoAtualButtonAtivo === false) return;
+    if(window.dados && dados.saldoAtualButtonAtivo === false) return;
     wakeFab();
     const rect = fab.getBoundingClientRect();
     const p = getPoint(e);
@@ -3590,6 +3602,7 @@ function salvarPreferenciaSaldoAtualButton(){
   }, true);
   fab.addEventListener("mouseenter", wakeFab);
   fab.addEventListener("mouseleave", scheduleIdle);
+
   window.addEventListener("resize", function(){
     if(fab.style.transform === "none"){
       const rect = fab.getBoundingClientRect();
@@ -3608,12 +3621,11 @@ function salvarPreferenciaSaldoAtualButton(){
     applyPosition();
   };
 
-  setTimeout(function(){
-    applyVisibility();
-    applyPosition();
-  }, 60);
-})();
+  applyVisibility();
+  applyPosition();
+}
 
+document.addEventListener("DOMContentLoaded", initQuickBalanceFab);
 function bootApp(){
   try{ ensureFirstInstallCollapsed(); }catch(e){}
   try{ initSectionCollapse(); }catch(e){}
