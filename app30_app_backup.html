@@ -2213,6 +2213,7 @@ let dados = loadDados() || {
   horasDecorridasFora: 0,
   ganhoHoraAtualFora: 0,
   saldoAnteriorFora: 0,
+  ganhoHoraSessaoBaseFora: null,
   ganhoHoraSessoes: [],
   ganhoHoraDiaRef: dataUberISO(),
   ganhoHoraSessaoDiaRef: "",
@@ -2232,6 +2233,7 @@ if(!dados.saldoAtualButtonPos || typeof dados.saldoAtualButtonPos !== "object"){
 if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
 if(!dados.ganhoHoraDiaRef) dados.ganhoHoraDiaRef = dataUberISO();
 if(typeof dados.ganhoHoraSessaoDiaRef !== "string") dados.ganhoHoraSessaoDiaRef = "";
+if(dados.ganhoHoraSessaoBaseFora == null || isNaN(Number(dados.ganhoHoraSessaoBaseFora))) dados.ganhoHoraSessaoBaseFora = null;
 // Migração desativada (substituída por loadDados com legacyKeys)
 function salvar(){
   try{
@@ -3064,6 +3066,22 @@ function limparDadosGanhoHora(){
   dados.ganhoHoraAtualFora = 0;
   dados.ganhoHoraSessoes = [];
   dados.ganhoHoraSessaoDiaRef = "";
+  dados.ganhoHoraSessaoBaseFora = null;
+}
+
+function getSaldoAnteriorCorretoGanhoHora(){
+  const sessoes = Array.isArray(dados.ganhoHoraSessoes) ? dados.ganhoHoraSessoes : [];
+  if(!sessoes.length) return 0;
+  return Number((sessoes[sessoes.length - 1] || {}).valorTotal || 0);
+}
+
+function getBaseSessaoAtualGanhoHora(){
+  if(dados.ganhoHoraSessaoBaseFora != null && !isNaN(Number(dados.ganhoHoraSessaoBaseFora))){
+    return Number(dados.ganhoHoraSessaoBaseFora || 0);
+  }
+  const base = getSaldoAnteriorCorretoGanhoHora();
+  dados.ganhoHoraSessaoBaseFora = base;
+  return base;
 }
 
 function getViradaOperacional(refDate){
@@ -3119,15 +3137,17 @@ function editarHorarioSessaoFinalizada(indice, campo){
 }
 
 function fecharMenuSessaoFinalizada(indice){
-  const el = document.getElementById('menu_sessao_' + indice);
-  if(el) el.classList.remove('show');
+  if(!Array.isArray(dados.ganhoHoraSessoes) || !dados.ganhoHoraSessoes[indice]) return;
+  dados.ganhoHoraSessoes.splice(indice, 1);
+  salvar();
+  atualizar();
+  try{ toast('✅ Sessão apagada.'); }catch(e){}
 }
 
 function finalizarSessaoGanhoHoraInterno(opcoes){
   const opts = opcoes || {};
   if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
 
-  const saldoAnterior = Number(dados.saldoAnteriorFora || 0);
   const saldoAtual = Number(opts.saldoAtual != null ? opts.saldoAtual : (parseFloat(document.getElementById("saldoAtualFora")?.value) || 0));
   const horarioInicio = String(opts.horarioInicio != null ? opts.horarioInicio : ((document.getElementById("horarioInicioFora")?.value || "").trim()));
   if(!horarioInicio){
@@ -3135,10 +3155,12 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
     return false;
   }
 
+  const saldoAnterior = Number(opts.saldoAnterior != null ? opts.saldoAnterior : getBaseSessaoAtualGanhoHora());
   const agora = opts.dataFim instanceof Date ? new Date(opts.dataFim.getTime()) : new Date();
   const horaFim = String(opts.horaFim || (String(agora.getHours()).padStart(2,'0') + ':' + String(agora.getMinutes()).padStart(2,'0')));
   const valorTotal = saldoAtual;
   const ganhoSessao = saldoAtual - saldoAnterior;
+  const iniciarProxima = opts.iniciarProxima !== false;
 
   let ganhoHora = 0;
   let horas = 0;
@@ -3167,25 +3189,26 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
   });
 
   dados.saldoAnteriorFora = valorTotal;
-  dados.saldoAtualFora = 0;
-  dados.ganhoDiarioAtual = 0;
-  dados.horarioInicioFora = "";
+  dados.saldoAtualFora = saldoAtual;
+  dados.ganhoDiarioAtual = saldoAtual;
+  dados.horarioInicioFora = iniciarProxima ? horaFim : "";
   dados.horasDecorridasFora = 0;
   dados.ganhoHoraAtualFora = 0;
-  dados.ganhoHoraSessaoDiaRef = "";
+  dados.ganhoHoraSessaoDiaRef = iniciarProxima ? String(dados.ganhoHoraDiaRef || dataUberISO()) : "";
+  dados.ganhoHoraSessaoBaseFora = iniciarProxima ? valorTotal : null;
 
   try{
     const saldoAnteriorEl = document.getElementById("saldoAnteriorFora");
     const saldoAtualEl = document.getElementById("saldoAtualFora");
     const horarioInicioEl = document.getElementById("horarioInicioFora");
     if(saldoAnteriorEl) saldoAnteriorEl.value = String(valorTotal);
-    if(saldoAtualEl) saldoAtualEl.value = "";
-    if(horarioInicioEl) horarioInicioEl.value = "";
+    if(saldoAtualEl) saldoAtualEl.value = String(saldoAtual);
+    if(horarioInicioEl) horarioInicioEl.value = iniciarProxima ? horaFim : "";
   }catch(e){}
 
   if(!opts.skipSave){ salvar(); }
   if(!opts.skipUpdate){ atualizar(); }
-  if(!opts.silent){ toast("✅ Sessão finalizada."); }
+  if(!opts.silent){ toast(iniciarProxima ? "✅ Sessão finalizada e próxima iniciada." : "✅ Sessão finalizada."); }
   return true;
 }
 
@@ -3208,6 +3231,20 @@ function ensureGanhoHoraDiaAtual(){
 
   if(!mudouDia && !precisaCorrigirLegado) return false;
 
+  const temSessaoEmAndamento = String(dados.horarioInicioFora || '').trim();
+  if(temSessaoEmAndamento){
+    try{
+      finalizarSessaoGanhoHoraInterno({
+        silent: true,
+        skipSave: true,
+        skipUpdate: true,
+        horaFim: '04:00',
+        dataFim: getViradaOperacional(new Date()),
+        iniciarProxima: false
+      });
+    }catch(e){}
+  }
+
   limparDadosGanhoHora();
   dados.ganhoHoraDiaRef = diaAtualUber;
   salvar();
@@ -3223,15 +3260,28 @@ function salvarGanhosForaTempoReal(){
   if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
   if(!dados.ganhoHoraDiaRef) dados.ganhoHoraDiaRef = dataUberISO();
 
-  const saldoAnterior = Number(dados.saldoAnteriorFora || 0);
-  const saldoAtual = parseFloat(document.getElementById("saldoAtualFora").value) || 0;
-  const horario = document.getElementById("horarioInicioFora").value || "";
+  const saldoAtualEl = document.getElementById("saldoAtualFora");
+  const horarioEl = document.getElementById("horarioInicioFora");
+  const saldoAtual = parseFloat((saldoAtualEl && saldoAtualEl.value) || 0) || 0;
+  const horario = (horarioEl && horarioEl.value) || "";
+  const tinhaSessao = String(dados.horarioInicioFora || '').trim();
+  const horarioMudou = horario !== String(dados.horarioInicioFora || '');
+  const precisaNovaBase = !tinhaSessao || horarioMudou || dados.ganhoHoraSessaoBaseFora == null || isNaN(Number(dados.ganhoHoraSessaoBaseFora));
+
+  if(precisaNovaBase){
+    dados.ganhoHoraSessaoBaseFora = getSaldoAnteriorCorretoGanhoHora();
+  }
+
+  const saldoAnterior = Number(dados.ganhoHoraSessaoBaseFora || 0);
 
   dados.saldoAnteriorFora = saldoAnterior;
   dados.saldoAtualFora = saldoAtual;
   dados.ganhoDiarioAtual = saldoAtual;
   dados.horarioInicioFora = horario;
   dados.ganhoHoraSessaoDiaRef = horario ? String(dados.ganhoHoraDiaRef || dataUberISO()) : "";
+  if(!horario){
+    dados.ganhoHoraSessaoBaseFora = null;
+  }
 
   const saldoBase = saldoAtual - saldoAnterior;
 
@@ -3519,7 +3569,7 @@ function atualizar(){
     const horaInput = document.getElementById("horarioInicioFora");
     const resumoEl = document.getElementById("ganhosForaResumo");
 
-    const saldoAnterior = Number(dados.saldoAnteriorFora || 0);
+    const saldoAnterior = String(dados.horarioInicioFora || "").trim() ? Number(getBaseSessaoAtualGanhoHora()) : Number(dados.saldoAnteriorFora || 0);
     const saldoAtual = Number(dados.saldoAtualFora || 0);
     const horario = dados.horarioInicioFora || "";
     const horas = Number(dados.horasDecorridasFora || 0);
@@ -3528,7 +3578,7 @@ function atualizar(){
 
     const saldoAnteriorInput = document.getElementById("saldoAnteriorFora");
     if(saldoAnteriorInput && document.activeElement !== saldoAnteriorInput){
-      saldoAnteriorInput.value = saldoAnterior ? String(dados.saldoAnteriorFora) : "";
+      saldoAnteriorInput.value = saldoAnterior ? String(saldoAnterior) : "";
     }
     if(saldoInput && document.activeElement !== saldoInput){
       saldoInput.value = saldoAtual ? String(dados.saldoAtualFora) : "";
@@ -3539,17 +3589,21 @@ function atualizar(){
 
     if(resumoEl){
       const sessoes = Array.isArray(dados.ganhoHoraSessoes) ? dados.ganhoHoraSessoes : [];
-      const indiceAtual = sessoes.length + 1;
-      const tituloSessao = getNomeSessao(indiceAtual) + " sessão";
-      const valorClass = saldoAtual < 0 ? "dangerText" : "warning";
-      const horaClass = ganhoHora < 0 ? "dangerText" : "warning";
-      resumoEl.innerHTML =
-        "<div style='margin-top:0;padding-top:0'><b>" + tituloSessao + " em andamento</b><br>" +
-        "Hora de início: " + (horario || "-") + "<br>" +
-        "Hora de término: -<br>" +
-        "Valor total: <span class='" + valorClass + "'>R$ " + saldoAtual.toFixed(2) + "</span><br>" +
-        "Ganho por hora: <span class='" + horaClass + "'>R$ " + ganhoHora.toFixed(2) + "</span><br>" +
-        "Tempo decorrido: <span class='warning'>" + horas.toFixed(2) + "h</span></div>";
+      if(String(horario || '').trim()){
+        const indiceAtual = sessoes.length + 1;
+        const tituloSessao = getNomeSessao(indiceAtual) + " sessão";
+        const valorClass = saldoAtual < 0 ? "dangerText" : "warning";
+        const horaClass = ganhoHora < 0 ? "dangerText" : "warning";
+        resumoEl.innerHTML =
+          "<div style='margin-top:0;padding-top:0'><b>" + tituloSessao + " em andamento</b><br>" +
+          "Hora de início: " + horario + "<br>" +
+          "Hora de término: -<br>" +
+          "Valor total: <span class='" + valorClass + "'>R$ " + saldoAtual.toFixed(2) + "</span><br>" +
+          "Ganho por hora: <span class='" + horaClass + "'>R$ " + ganhoHora.toFixed(2) + "</span><br>" +
+          "Tempo decorrido: <span class='warning'>" + horas.toFixed(2) + "h</span></div>";
+      }else{
+        resumoEl.innerHTML = "";
+      }
     }
 
     const sessoesEl = document.getElementById("ganhosForaSessoes");
@@ -3558,19 +3612,19 @@ function atualizar(){
       if(!sessoes.length){
         sessoesEl.innerHTML = "";
       }else{
-        const sessoesVisiveis = sessoes.filter(s => {
-          const diaRef = String((s && s.diaRef) || '').trim();
+        const sessoesVisiveis = sessoes.map((s, originalIdx) => ({ s, originalIdx })).filter(item => {
+          const diaRef = String((item.s && item.s.diaRef) || '').trim();
           return !diaRef || diaRef === String(dados.ganhoHoraDiaRef || dataUberISO());
         });
         if(!sessoesVisiveis.length){
           sessoesEl.innerHTML = "";
         }else{
-          sessoesEl.innerHTML = sessoesVisiveis.map((sessaoBruta, idx) => {
-            const s = recalcularSessaoGanhoHora(sessaoBruta, idx);
+          sessoesEl.innerHTML = sessoesVisiveis.map((item, idx) => {
+            const s = recalcularSessaoGanhoHora(item.s, item.originalIdx);
             const valorClass = Number(s.valorTotal || 0) < 0 ? "dangerText" : "warning";
             const horaClass = Number(s.ganhoHora || 0) < 0 ? "dangerText" : "warning";
             const tempoDecorrido = Number(s.tempoDecorrido || 0);
-            return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);position:relative;padding-right:40px"><div class="action-menu" style="position:absolute;top:8px;right:0"><button class="kebab-btn" type="button" onclick="event.stopPropagation(); toggleItemMenu('menu_sessao_${idx}', this)">≡</button><div class="menu-pop" id="menu_sessao_${idx}"><button type="button" onclick="editarHorarioSessaoFinalizada(${idx}, 'inicio')">Editar hora de início</button><button type="button" onclick="editarHorarioSessaoFinalizada(${idx}, 'fim')">Editar hora de término</button><button type="button" onclick="fecharMenuSessaoFinalizada(${idx})">Fechar</button></div></div><b>${getNomeSessao(idx + 1)} sessão</b><br>Hora de início: ${s.inicio || "-"}<br>Hora de término: ${s.fim || "-"}<br>Valor total: <span class="${valorClass}">R$ ${Number(s.valorTotal || 0).toFixed(2)}</span><br>Ganho por hora: <span class="${horaClass}">R$ ${Number(s.ganhoHora || 0).toFixed(2)}</span><br>Tempo decorrido: <span class="warning">${tempoDecorrido.toFixed(2)}h</span></div>`;
+            return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);position:relative;padding-right:40px"><div class="action-menu" style="position:absolute;top:8px;right:0"><button class="kebab-btn" type="button" onclick="event.stopPropagation(); toggleItemMenu('menu_sessao_${item.originalIdx}', this)">≡</button><div class="menu-pop" id="menu_sessao_${item.originalIdx}"><button type="button" onclick="editarHorarioSessaoFinalizada(${item.originalIdx}, 'inicio')">Editar hora de início</button><button type="button" onclick="editarHorarioSessaoFinalizada(${item.originalIdx}, 'fim')">Editar hora de término</button><button type="button" onclick="fecharMenuSessaoFinalizada(${item.originalIdx})">Fechar</button></div></div><b>${getNomeSessao(idx + 1)} sessão</b><br>Hora de início: ${s.inicio || "-"}<br>Hora de término: ${s.fim || "-"}<br>Valor total: <span class="${valorClass}">R$ ${Number(s.valorTotal || 0).toFixed(2)}</span><br>Ganho por hora: <span class="${horaClass}">R$ ${Number(s.ganhoHora || 0).toFixed(2)}</span><br>Tempo decorrido: <span class="warning">${tempoDecorrido.toFixed(2)}h</span></div>`;
           }).join("");
         }
       }
