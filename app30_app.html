@@ -611,6 +611,7 @@ input.negative-value, input.negative-value::placeholder{
   height:40vh;
   border-radius:18px;
   border:1px solid rgba(255,255,255,.14);
+  border-top:2px solid rgba(255,255,255,.18);
   background:rgba(255,255,255,.05);
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);
   margin-bottom:10px;
@@ -690,6 +691,7 @@ input.negative-value, input.negative-value::placeholder{
   height:40vh;
   border-radius:18px;
   border:1px solid rgba(255,255,255,.14);
+  border-top:2px solid rgba(255,255,255,.18);
   background:rgba(255,255,255,.05);
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);
   margin-bottom:10px;
@@ -2690,6 +2692,43 @@ function addGanho(){
 
 
 
+function syncGanhoDoSaldoRapido(valorSaldoAtual){
+  const valor = Number(valorSaldoAtual || 0);
+  const dataRef = dataUberISO();
+  if(!Array.isArray(dados.ganhos)) dados.ganhos = [];
+
+  // Prioridade 1: lançamento manual já existente na data
+  let idx = dados.ganhos.findIndex(g =>
+    g &&
+    String(g.data || "").slice(0,10) === dataRef &&
+    String(g.app || "").trim() !== "Saldo atual (botão)"
+  );
+
+  // Prioridade 2: lançamento já criado pelo botão na data
+  if(idx < 0){
+    idx = dados.ganhos.findIndex(g =>
+      g &&
+      String(g.data || "").slice(0,10) === dataRef &&
+      String(g.app || "").trim() === "Saldo atual (botão)"
+    );
+  }
+
+  if(idx >= 0){
+    dados.ganhos[idx].data = dataRef;
+    dados.ganhos[idx].valor = valor;
+    if(!dados.ganhos[idx].app || String(dados.ganhos[idx].app).trim() === ""){
+      dados.ganhos[idx].app = "Saldo atual (botão)";
+    }
+  }else{
+    dados.ganhos.push({
+      data: dataRef,
+      app: "Saldo atual (botão)",
+      valor
+    });
+  }
+}
+
+
 function addGasto(){
   const valor = parseFloat(document.getElementById("valorGasto").value);
   const desc = (document.getElementById("descGasto").value || "").trim();
@@ -3583,6 +3622,9 @@ function salvarSaldoAtualRapido(){
 
   try{
     salvarGanhosForaTempoReal();
+    syncGanhoDoSaldoRapido(novoSaldo);
+    salvar();
+    atualizar();
     toggleQuickBalancePanel(false);
     toast("💰 Saldo atual atualizado.");
   }catch(e){
@@ -3625,20 +3667,19 @@ function salvarPreferenciaSaldoAtualButton(){
   dados.saldoAtualButtonAtivo = !!(checkbox && checkbox.checked);
 
   try{
-    if(typeof salvar === "function") salvar();
+    salvar();
   }catch(e){
     console.error("Erro ao salvar preferência do botão:", e);
   }
 
-  if(typeof initQuickBalanceFab === "function"){
-    initQuickBalanceFab();
-  }
   if(typeof window.updateQuickBalanceFabUI === "function"){
     window.updateQuickBalanceFabUI();
   }
-
-  toggleQuickBalancePanel(false);
+  if(dados.saldoAtualButtonAtivo === false){
+    toggleQuickBalancePanel(false);
+  }
   fecharSaldoAtualButtonMenu();
+  atualizar();
   toast(dados.saldoAtualButtonAtivo ? "💰 Botão de saldo atual ativado." : "💰 Botão de saldo atual desativado.");
 }
 
@@ -3646,7 +3687,7 @@ function salvarPreferenciaSaldoAtualButton(){
 
 function initQuickBalanceFab(){
   if(window.__quickBalanceFabInitialized) {
-    initQuickBalanceFab();
+    if(typeof initQuickBalanceFab === "function") initQuickBalanceFab();
   if(typeof window.updateQuickBalanceFabUI === "function") window.updateQuickBalanceFabUI();
     return;
   }
@@ -3779,12 +3820,17 @@ function initQuickBalanceFab(){
   });
 
   window.updateQuickBalanceFabUI = function(){
+    const isOff = !!(window.dados && dados.saldoAtualButtonAtivo === false);
     applyVisibility();
-    applyPosition();
-    if(window.dados && dados.saldoAtualButtonAtivo === false){
-      fab.classList.add("hidden");
+    if(!isOff){
+      applyPosition();
+    }
+    fab.style.display = isOff ? "none" : "flex";
+    fab.classList.toggle("hidden", isOff);
+    if(isOff){
+      wakeFab();
     }else{
-      fab.classList.remove("hidden");
+      scheduleIdle();
     }
   };
 
