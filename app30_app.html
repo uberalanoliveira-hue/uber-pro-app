@@ -564,6 +564,7 @@ input.negative-value, input.negative-value::placeholder{
 }
 .quick-balance-fab.hidden{
   display:none !important;
+  pointer-events:none !important;
 }
 .quick-balance-fab.idle-faded{
   opacity:.6;
@@ -3664,6 +3665,8 @@ function fecharSaldoAtualButtonMenu(){
 
 function salvarPreferenciaSaldoAtualButton(){
   const checkbox = document.getElementById("toggleSaldoAtualButtonCheckbox");
+  const fab = document.getElementById("quickBalanceFab");
+
   dados.saldoAtualButtonAtivo = !!(checkbox && checkbox.checked);
 
   try{
@@ -3672,12 +3675,23 @@ function salvarPreferenciaSaldoAtualButton(){
     console.error("Erro ao salvar preferência do botão:", e);
   }
 
+  if(dados.saldoAtualButtonAtivo === false){
+    toggleQuickBalancePanel(false);
+    if(fab){
+      fab.classList.add("hidden");
+      fab.style.display = "none";
+      fab.style.pointerEvents = "none";
+    }
+  }else if(fab){
+    fab.classList.remove("hidden");
+    fab.style.display = "flex";
+    fab.style.pointerEvents = "auto";
+  }
+
   if(typeof window.updateQuickBalanceFabUI === "function"){
     window.updateQuickBalanceFabUI();
   }
-  if(dados.saldoAtualButtonAtivo === false){
-    toggleQuickBalancePanel(false);
-  }
+
   fecharSaldoAtualButtonMenu();
   atualizar();
   toast(dados.saldoAtualButtonAtivo ? "💰 Botão de saldo atual ativado." : "💰 Botão de saldo atual desativado.");
@@ -3821,21 +3835,29 @@ function initQuickBalanceFab(){
 
   window.updateQuickBalanceFabUI = function(){
     const isOff = !!(window.dados && dados.saldoAtualButtonAtivo === false);
-    applyVisibility();
-    if(!isOff){
-      applyPosition();
-    }
-    fab.style.display = isOff ? "none" : "flex";
-    fab.classList.toggle("hidden", isOff);
+
     if(isOff){
+      clearIdle();
       wakeFab();
-    }else{
-      scheduleIdle();
+      fab.classList.add("hidden");
+      fab.style.display = "none";
+      fab.style.pointerEvents = "none";
+      return;
     }
+
+    fab.classList.remove("hidden");
+    fab.style.display = "flex";
+    fab.style.pointerEvents = "auto";
+    applyPosition();
+    scheduleIdle();
   };
 
-  applyVisibility();
-  applyPosition();
+  if(typeof window.updateQuickBalanceFabUI === "function"){
+    window.updateQuickBalanceFabUI();
+  }else{
+    applyVisibility();
+    applyPosition();
+  }
 }
 
 document.addEventListener("DOMContentLoaded", initQuickBalanceFab);
