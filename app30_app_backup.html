@@ -3072,6 +3072,13 @@ function getViradaOperacional(refDate){
   return d;
 }
 
+function getSaldoAnteriorSessaoAtual(){
+  const sessoes = Array.isArray(dados.ganhoHoraSessoes) ? dados.ganhoHoraSessoes : [];
+  if(!sessoes.length) return 0;
+  const ultima = sessoes[sessoes.length - 1] || {};
+  return Number(ultima.valorTotal || 0);
+}
+
 function recalcularSessaoGanhoHora(sessao, indice){
   if(!sessao) return sessao;
   const inicio = String(sessao.inicio || '').trim();
@@ -3119,15 +3126,24 @@ function editarHorarioSessaoFinalizada(indice, campo){
 }
 
 function fecharMenuSessaoFinalizada(indice){
-  const el = document.getElementById('menu_sessao_' + indice);
-  if(el) el.classList.remove('show');
+  if(!Array.isArray(dados.ganhoHoraSessoes) || !dados.ganhoHoraSessoes[indice]) return;
+  if(!confirm('Apagar esta sessão?')) return;
+  dados.ganhoHoraSessoes.splice(indice, 1);
+  if(Array.isArray(dados.ganhoHoraSessoes)){
+    dados.ganhoHoraSessoes.forEach((sessao, idx) => {
+      recalcularSessaoGanhoHora(sessao, idx);
+    });
+  }
+  salvar();
+  atualizar();
+  toast('✅ Sessão apagada.');
 }
 
 function finalizarSessaoGanhoHoraInterno(opcoes){
   const opts = opcoes || {};
   if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
 
-  const saldoAnterior = Number(dados.saldoAnteriorFora || 0);
+  const saldoAnterior = getSaldoAnteriorSessaoAtual();
   const saldoAtual = Number(opts.saldoAtual != null ? opts.saldoAtual : (parseFloat(document.getElementById("saldoAtualFora")?.value) || 0));
   const horarioInicio = String(opts.horarioInicio != null ? opts.horarioInicio : ((document.getElementById("horarioInicioFora")?.value || "").trim()));
   if(!horarioInicio){
@@ -3167,8 +3183,8 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
   });
 
   dados.saldoAnteriorFora = valorTotal;
-  dados.saldoAtualFora = 0;
-  dados.ganhoDiarioAtual = 0;
+  dados.saldoAtualFora = saldoAtual;
+  dados.ganhoDiarioAtual = saldoAtual;
   dados.horarioInicioFora = "";
   dados.horasDecorridasFora = 0;
   dados.ganhoHoraAtualFora = 0;
@@ -3179,7 +3195,7 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
     const saldoAtualEl = document.getElementById("saldoAtualFora");
     const horarioInicioEl = document.getElementById("horarioInicioFora");
     if(saldoAnteriorEl) saldoAnteriorEl.value = String(valorTotal);
-    if(saldoAtualEl) saldoAtualEl.value = "";
+    if(saldoAtualEl) saldoAtualEl.value = String(saldoAtual);
     if(horarioInicioEl) horarioInicioEl.value = "";
   }catch(e){}
 
@@ -3223,7 +3239,7 @@ function salvarGanhosForaTempoReal(){
   if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
   if(!dados.ganhoHoraDiaRef) dados.ganhoHoraDiaRef = dataUberISO();
 
-  const saldoAnterior = Number(dados.saldoAnteriorFora || 0);
+  const saldoAnterior = getSaldoAnteriorSessaoAtual();
   const saldoAtual = parseFloat(document.getElementById("saldoAtualFora").value) || 0;
   const horario = document.getElementById("horarioInicioFora").value || "";
 
@@ -3519,7 +3535,7 @@ function atualizar(){
     const horaInput = document.getElementById("horarioInicioFora");
     const resumoEl = document.getElementById("ganhosForaResumo");
 
-    const saldoAnterior = Number(dados.saldoAnteriorFora || 0);
+    const saldoAnterior = horario ? getSaldoAnteriorSessaoAtual() : Number(dados.saldoAnteriorFora || 0);
     const saldoAtual = Number(dados.saldoAtualFora || 0);
     const horario = dados.horarioInicioFora || "";
     const horas = Number(dados.horasDecorridasFora || 0);
@@ -3543,8 +3559,9 @@ function atualizar(){
       const tituloSessao = getNomeSessao(indiceAtual) + " sessão";
       const valorClass = saldoAtual < 0 ? "dangerText" : "warning";
       const horaClass = ganhoHora < 0 ? "dangerText" : "warning";
+      const tituloAtualSessao = horario ? (tituloSessao + " em andamento") : tituloSessao;
       resumoEl.innerHTML =
-        "<div style='margin-top:0;padding-top:0'><b>" + tituloSessao + " em andamento</b><br>" +
+        "<div style='margin-top:0;padding-top:0'><b>" + tituloAtualSessao + "</b><br>" +
         "Hora de início: " + (horario || "-") + "<br>" +
         "Hora de término: -<br>" +
         "Valor total: <span class='" + valorClass + "'>R$ " + saldoAtual.toFixed(2) + "</span><br>" +
