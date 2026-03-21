@@ -1842,17 +1842,18 @@ document.addEventListener("DOMContentLoaded", function(){
         <span class="collapse-arrow">▼</span>
       </div>
   <div class="card-body">
-<label>Saldo anterior (R$)</label>
-<input type="number" id="saldoAnteriorFora" inputmode="decimal" placeholder="Se não preencher, fica zero" step="0.01">
-
 <label>Saldo atual (R$)</label>
 <input type="number" id="saldoAtualFora" inputmode="decimal" placeholder="Ex: 120" step="0.01">
 
 <label>Horário de início</label>
 <input type="time" id="horarioInicioFora">
 
-<button onclick="salvarGanhosForaTempoReal()">Salvar / Atualizar</button>
+<div class="ganhohora-actions">
+  <button onclick="salvarGanhosForaTempoReal()">Salvar / Atualizar</button>
+  <button class="secondary" onclick="finalizarGanhosForaSessao()">Finalizar</button>
+</div>
 <div id="ganhosForaResumo" class="muted" style="margin-top:10px;"></div>
+<div id="ganhosForaSessoes" class="ganhohora-sessoes"></div>
 </div>
 </div>
 
@@ -2207,6 +2208,7 @@ let dados = loadDados() || {
   horasDecorridasFora: 0,
   ganhoHoraAtualFora: 0,
   saldoAnteriorFora: 0,
+  ganhoHoraSessoes: [],
   combustivelModo: "fixo",
   combustivelPercentual: 0.30,
   combustivelReal: {
@@ -3033,17 +3035,30 @@ function zerarTudo(){
 }
 
 /* PDF Report: ONLY Ganhos, Gastos, Abastecimentos + valores disponíveis */
-function salvarGanhosForaTempoReal(){
-  const saldoAnterior = parseFloat(document.getElementById("saldoAnteriorFora").value) || 0;
-  const saldoAtual = parseFloat(document.getElementById("saldoAtualFora").value) || 0;
-  const horario = document.getElementById("horarioInicioFora").value || "";
 
-  dados.saldoAnteriorFora = saldoAnterior;
-  dados.saldoAtualFora = saldoAtual;
-  dados.ganhoDiarioAtual = saldoAtual;
-  dados.horarioInicioFora = horario;
+function getSaldoAnteriorAutomaticoGanhosFora(){
+  if(Array.isArray(dados.ganhoHoraSessoes) && dados.ganhoHoraSessoes.length){
+    return Number(dados.ganhoHoraSessoes[dados.ganhoHoraSessoes.length - 1].total || 0);
+  }
+  return Number(dados.saldoAnteriorFora || 0);
+}
 
-  const saldoBase = saldoAnterior > 0 ? (saldoAtual - saldoAnterior) : saldoAtual;
+function getTituloSessaoGanhosFora(numero){
+  const nomes = ["Primeira","Segunda","Terceira","Quarta","Quinta","Sexta","Sétima","Oitava","Nona","Décima","Décima primeira","Décima segunda","Décima terceira","Décima quarta","Décima quinta","Décima sexta","Décima sétima","Décima oitava","Décima nona","Vigésima"];
+  return (nomes[numero - 1] || (numero + "ª")) + " sessão";
+}
+
+function formatHoraAgora(){
+  const now = new Date();
+  return String(now.getHours()).padStart(2,"0") + ":" + String(now.getMinutes()).padStart(2,"0");
+}
+
+function calcularGanhosForaTempoReal(saldoAtual, horario){
+  const saldoAnterior = getSaldoAnteriorAutomaticoGanhosFora();
+  const saldoBase = saldoAtual - saldoAnterior;
+
+  let horas = 0;
+  let ganhoHora = 0;
 
   if(horario){
     const now = new Date();
@@ -3060,20 +3075,72 @@ function salvarGanhosForaTempoReal(){
       diffMs = now.getTime() - inicio.getTime();
     }
 
-    const horas = diffMs / 3600000;
-    dados.horasDecorridasFora = horas > 0 ? horas : 0;
-    dados.ganhoHoraAtualFora = horas > 0 ? (saldoBase / horas) : 0;
-  }else{
-    dados.horasDecorridasFora = 0;
-    dados.ganhoHoraAtualFora = 0;
+    horas = diffMs / 3600000;
+    ganhoHora = horas > 0 ? (saldoBase / horas) : 0;
   }
+
+  return {
+    saldoAnterior,
+    saldoBase,
+    horas: horas > 0 ? horas : 0,
+    ganhoHora: ganhoHora || 0
+  };
+}
+
+function salvarGanhosForaTempoReal(){
+  const saldoAtual = parseFloat(document.getElementById("saldoAtualFora").value) || 0;
+  const horario = document.getElementById("horarioInicioFora").value || "";
+
+  dados.saldoAtualFora = saldoAtual;
+  dados.ganhoDiarioAtual = saldoAtual;
+  dados.horarioInicioFora = horario;
+
+  const calc = calcularGanhosForaTempoReal(saldoAtual, horario);
+  dados.saldoAnteriorFora = calc.saldoAnterior;
+  dados.horasDecorridasFora = calc.horas;
+  dados.ganhoHoraAtualFora = calc.ganhoHora;
 
   salvar();
   atualizar();
 }
 
+function finalizarGanhosForaSessao(){
+  const saldoAtual = parseFloat(document.getElementById("saldoAtualFora").value) || 0;
+  const horario = document.getElementById("horarioInicioFora").value || "";
 
-function getCombustivelConfig(brutoBase){
+  if(!horario){
+    toast("Preencha o horário de início para finalizar a sessão.");
+    return;
+  }
+
+  salvarGanhosForaTempoReal();
+
+  const calc = calcularGanhosForaTempoReal(Number(dados.saldoAtualFora || 0), dados.horarioInicioFora || "");
+  if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
+
+  const numero = dados.ganhoHoraSessoes.length + 1;
+  dados.ganhoHoraSessoes.push({
+    numero,
+    titulo: getTituloSessaoGanhosFora(numero),
+    inicio: dados.horarioInicioFora || horario,
+    termino: formatHoraAgora(),
+    total: calc.saldoBase,
+    ganhoHora: calc.ganhoHora
+  });
+
+  dados.saldoAnteriorFora = calc.saldoBase;
+  dados.saldoAtualFora = 0;
+  dados.ganhoDiarioAtual = 0;
+  dados.horarioInicioFora = "";
+  dados.horasDecorridasFora = 0;
+  dados.ganhoHoraAtualFora = 0;
+
+  salvar();
+  atualizar();
+  toast("Sessão finalizada.");
+}
+
+function getCombustivelConfigfunction getCombustivelConfig(brutoBase){
   const modo = (dados.combustivelModo === "real") ? "real" : "fixo";
   const percentualSelecionado = [0.30,0.35,0.40,0.45,0.50].includes(Number(dados.combustivelPercentual))
     ? Number(dados.combustivelPercentual)
@@ -3323,18 +3390,15 @@ function atualizar(){
     const saldoInput = document.getElementById("saldoAtualFora");
     const horaInput = document.getElementById("horarioInicioFora");
     const resumoEl = document.getElementById("ganhosForaResumo");
+    const sessoesEl = document.getElementById("ganhosForaSessoes");
 
-    const saldoAnterior = Number(dados.saldoAnteriorFora || 0);
+    const saldoAnterior = getSaldoAnteriorAutomaticoGanhosFora();
     const saldoAtual = Number(dados.saldoAtualFora || 0);
     const horario = dados.horarioInicioFora || "";
     const horas = Number(dados.horasDecorridasFora || 0);
     const ganhoHora = Number(dados.ganhoHoraAtualFora || 0);
-    const saldoBase = saldoAnterior > 0 ? (saldoAtual - saldoAnterior) : saldoAtual;
+    const saldoBase = saldoAtual - saldoAnterior;
 
-    const saldoAnteriorInput = document.getElementById("saldoAnteriorFora");
-    if(saldoAnteriorInput && document.activeElement !== saldoAnteriorInput){
-      saldoAnteriorInput.value = saldoAnterior ? String(dados.saldoAnteriorFora) : "";
-    }
     if(saldoInput && document.activeElement !== saldoInput){
       saldoInput.value = saldoAtual ? String(dados.saldoAtualFora) : "";
     }
@@ -3344,12 +3408,34 @@ function atualizar(){
 
     if(resumoEl){
       if(!horario){
-        resumoEl.innerHTML = "Preencha saldo atual e horário de início.";
+        resumoEl.innerHTML =
+          "Saldo anterior automático: <span class='" + (saldoAnterior < 0 ? "dangerText" : "warning") + "'>R$ " + saldoAnterior.toFixed(2) + "</span><br>" +
+          "Preencha saldo atual e horário de início para começar uma nova sessão.";
       }else{
         resumoEl.innerHTML =
-          "Base usada no cálculo: <span class='" + (saldoBase < 0 ? "dangerText" : "warning") + "'>R$ " + saldoBase.toFixed(2) + "</span><br>" +
+          "Saldo anterior automático: <span class='" + (saldoAnterior < 0 ? "dangerText" : "warning") + "'>R$ " + saldoAnterior.toFixed(2) + "</span><br>" +
+          "Valor total da sessão: <span class='" + (saldoBase < 0 ? "dangerText" : "warning") + "'>R$ " + saldoBase.toFixed(2) + "</span><br>" +
           "Tempo decorrido: <span class='warning'>" + horas.toFixed(2) + "h</span><br>" +
           "Ganho / hora: <span class='" + (ganhoHora < 0 ? "dangerText" : "warning") + "'>R$ " + ganhoHora.toFixed(2) + "</span>";
+      }
+    }
+
+    if(sessoesEl){
+      const lista = Array.isArray(dados.ganhoHoraSessoes) ? dados.ganhoHoraSessoes : [];
+      if(!lista.length){
+        sessoesEl.innerHTML = "";
+      }else{
+        sessoesEl.innerHTML = lista.map(sessao => (
+          "<div class='ganhohora-sessao-item'>" +
+            "<div class='ganhohora-sessao-titulo'>" + (sessao.titulo || ("Sessão " + sessao.numero)) + "</div>" +
+            "<div class='ganhohora-sessao-linha'>" +
+              "Hora de início: <span class='warning'>" + (sessao.inicio || "--:--") + "</span><br>" +
+              "Hora de término: <span class='warning'>" + (sessao.termino || "--:--") + "</span><br>" +
+              "Valor total: <span class='" + (Number(sessao.total || 0) < 0 ? "dangerText" : "warning") + "'>R$ " + Number(sessao.total || 0).toFixed(2) + "</span><br>" +
+              "Ganho por hora: <span class='" + (Number(sessao.ganhoHora || 0) < 0 ? "dangerText" : "warning") + "'>R$ " + Number(sessao.ganhoHora || 0).toFixed(2) + "</span>" +
+            "</div>" +
+          "</div>"
+        )).join("");
       }
     }
   }catch(e){}
