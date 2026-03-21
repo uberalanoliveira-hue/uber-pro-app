@@ -3136,11 +3136,34 @@ function editarHorarioSessaoFinalizada(indice, campo){
   toast('✅ Sessão atualizada.');
 }
 
+function reprocessarSessoesGanhoHoraAposExclusao(){
+  if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
+
+  dados.ganhoHoraSessoes.forEach((sessao, indice) => {
+    const saldoAnterior = indice > 0 ? Number((dados.ganhoHoraSessoes[indice - 1] || {}).valorTotal || 0) : 0;
+    sessao.saldoAnterior = saldoAnterior;
+    sessao.ganhoSessao = Number(sessao.valorTotal || 0) - saldoAnterior;
+    recalcularSessaoGanhoHora(sessao, indice);
+  });
+
+  const temSessaoAtual = String(dados.horarioInicioFora || '').trim();
+  if(temSessaoAtual){
+    const novaBase = dados.ganhoHoraSessoes.length
+      ? Number((dados.ganhoHoraSessoes[dados.ganhoHoraSessoes.length - 1] || {}).valorTotal || 0)
+      : 0;
+    dados.ganhoHoraSessaoBaseFora = novaBase;
+    dados.saldoAnteriorFora = novaBase;
+  }else{
+    dados.ganhoHoraSessaoBaseFora = null;
+    dados.saldoAnteriorFora = getSaldoAnteriorCorretoGanhoHora();
+  }
+}
+
 function fecharMenuSessaoFinalizada(indice){
   if(!Array.isArray(dados.ganhoHoraSessoes) || !dados.ganhoHoraSessoes[indice]) return;
   dados.ganhoHoraSessoes.splice(indice, 1);
-  salvar();
-  atualizar();
+  reprocessarSessoesGanhoHoraAposExclusao();
+  salvarGanhosForaTempoReal();
   try{ toast('✅ Sessão apagada.'); }catch(e){}
 }
 
