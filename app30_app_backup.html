@@ -3535,12 +3535,11 @@ function atualizar(){
     const horaInput = document.getElementById("horarioInicioFora");
     const resumoEl = document.getElementById("ganhosForaResumo");
 
+    const horario = dados.horarioInicioFora || "";
     const saldoAnterior = horario ? getSaldoAnteriorSessaoAtual() : Number(dados.saldoAnteriorFora || 0);
     const saldoAtual = Number(dados.saldoAtualFora || 0);
-    const horario = dados.horarioInicioFora || "";
     const horas = Number(dados.horasDecorridasFora || 0);
     const ganhoHora = Number(dados.ganhoHoraAtualFora || 0);
-    const saldoBase = saldoAtual - saldoAnterior;
 
     const saldoAnteriorInput = document.getElementById("saldoAnteriorFora");
     if(saldoAnteriorInput && document.activeElement !== saldoAnteriorInput){
