@@ -2213,7 +2213,6 @@ let dados = loadDados() || {
   horasDecorridasFora: 0,
   ganhoHoraAtualFora: 0,
   saldoAnteriorFora: 0,
-  ganhoHoraSessaoBaseFora: null,
   ganhoHoraSessoes: [],
   ganhoHoraDiaRef: dataUberISO(),
   ganhoHoraSessaoDiaRef: "",
@@ -2233,7 +2232,16 @@ if(!dados.saldoAtualButtonPos || typeof dados.saldoAtualButtonPos !== "object"){
 if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
 if(!dados.ganhoHoraDiaRef) dados.ganhoHoraDiaRef = dataUberISO();
 if(typeof dados.ganhoHoraSessaoDiaRef !== "string") dados.ganhoHoraSessaoDiaRef = "";
-if(dados.ganhoHoraSessaoBaseFora == null || isNaN(Number(dados.ganhoHoraSessaoBaseFora))) dados.ganhoHoraSessaoBaseFora = null;
+try{
+  const sessoesDiaAtualBoot = Array.isArray(dados.ganhoHoraSessoes) ? dados.ganhoHoraSessoes.filter(function(s){
+    const diaRef = String((s && s.diaRef) || '').trim();
+    return !diaRef || diaRef === String(dados.ganhoHoraDiaRef || dataUberISO());
+  }) : [];
+  if(!String(dados.horarioInicioFora || '').trim() && !sessoesDiaAtualBoot.length){
+    dados.saldoAnteriorFora = 0;
+  }
+}catch(e){}
+try{ reprocessarSessoesGanhoHora(); }catch(e){}
 // Migração desativada (substituída por loadDados com legacyKeys)
 function salvar(){
   try{
@@ -3066,28 +3074,39 @@ function limparDadosGanhoHora(){
   dados.ganhoHoraAtualFora = 0;
   dados.ganhoHoraSessoes = [];
   dados.ganhoHoraSessaoDiaRef = "";
-  dados.ganhoHoraSessaoBaseFora = null;
-}
-
-function getSaldoAnteriorCorretoGanhoHora(){
-  const sessoes = Array.isArray(dados.ganhoHoraSessoes) ? dados.ganhoHoraSessoes : [];
-  if(!sessoes.length) return 0;
-  return Number((sessoes[sessoes.length - 1] || {}).valorTotal || 0);
-}
-
-function getBaseSessaoAtualGanhoHora(){
-  if(dados.ganhoHoraSessaoBaseFora != null && !isNaN(Number(dados.ganhoHoraSessaoBaseFora))){
-    return Number(dados.ganhoHoraSessaoBaseFora || 0);
-  }
-  const base = getSaldoAnteriorCorretoGanhoHora();
-  dados.ganhoHoraSessaoBaseFora = base;
-  return base;
 }
 
 function getViradaOperacional(refDate){
   const d = refDate instanceof Date ? new Date(refDate.getTime()) : new Date();
   d.setHours(4,0,0,0);
   return d;
+}
+
+function getSessoesGanhoHoraDoDiaAtual(){
+  const diaAtual = String(dados.ganhoHoraDiaRef || dataUberISO());
+  const sessoes = Array.isArray(dados.ganhoHoraSessoes) ? dados.ganhoHoraSessoes : [];
+  return sessoes.filter(function(s){
+    const diaRef = String((s && s.diaRef) || '').trim();
+    return !diaRef || diaRef === diaAtual;
+  });
+}
+
+function getUltimoValorTotalSessaoDoDiaAtual(){
+  const sessoesDia = getSessoesGanhoHoraDoDiaAtual();
+  if(!sessoesDia.length) return 0;
+  return Number((sessoesDia[sessoesDia.length - 1] || {}).valorTotal || 0);
+}
+
+function getSaldoAnteriorCorretoSessaoAtual(){
+  const sessoesDia = getSessoesGanhoHoraDoDiaAtual();
+  if(!sessoesDia.length) return 0;
+  return Number((sessoesDia[sessoesDia.length - 1] || {}).valorTotal || 0);
+}
+
+function syncSaldoAnteriorSessaoAtual(){
+  const base = getSaldoAnteriorCorretoSessaoAtual();
+  dados.saldoAnteriorFora = base;
+  return base;
 }
 
 function recalcularSessaoGanhoHora(sessao, indice){
@@ -3098,7 +3117,7 @@ function recalcularSessaoGanhoHora(sessao, indice){
     const [h,m] = String(hm || '00:00').split(':').map(v => Number(v || 0));
     return {h,m};
   };
-  const ini = parseHM(inicio);
+  const ini = parseHM(inicio || '00:00');
   const end = parseHM(fim || inicio || '00:00');
   const base = new Date();
   const dIni = new Date(base.getTime());
@@ -3107,14 +3126,59 @@ function recalcularSessaoGanhoHora(sessao, indice){
   dFim.setHours(end.h, end.m, 0, 0);
   if(dFim.getTime() < dIni.getTime()) dFim.setDate(dFim.getDate() + 1);
   const horas = Math.max(0, (dFim.getTime() - dIni.getTime()) / 3600000);
+
   const sessoes = Array.isArray(dados.ganhoHoraSessoes) ? dados.ganhoHoraSessoes : [];
-  const anterior = indice > 0 ? Number((sessoes[indice-1] || {}).valorTotal || 0) : 0;
-  const ganhoSessao = Number(sessao.ganhoSessao != null ? sessao.ganhoSessao : (Number(sessao.valorTotal || 0) - anterior));
-  sessao.saldoAnterior = Number(sessao.saldoAnterior != null ? sessao.saldoAnterior : anterior);
+  let anterior = 0;
+  const diaRefSessao = String(sessao.diaRef || dados.ganhoHoraDiaRef || dataUberISO()).trim();
+  for(let i = Number(indice || 0) - 1; i >= 0; i--){
+    const prev = sessoes[i];
+    if(!prev) continue;
+    const diaPrev = String(prev.diaRef || '').trim();
+    if(diaPrev && diaPrev !== diaRefSessao) continue;
+    anterior = Number(prev.valorTotal || 0);
+    break;
+  }
+
+  const valorTotal = Number(sessao.valorTotal || 0);
+  const saldoAnterior = anterior;
+  const ganhoSessao = valorTotal - saldoAnterior;
+
+  sessao.saldoAnterior = saldoAnterior;
   sessao.ganhoSessao = ganhoSessao;
   sessao.tempoDecorrido = horas;
   sessao.ganhoHora = horas > 0 ? (ganhoSessao / horas) : 0;
   return sessao;
+}
+
+function reprocessarSessoesGanhoHora(){
+  if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
+  for(let i = 0; i < dados.ganhoHoraSessoes.length; i++){
+    recalcularSessaoGanhoHora(dados.ganhoHoraSessoes[i], i);
+  }
+  syncSaldoAnteriorSessaoAtual();
+
+  const temSessaoEmAndamento = String(dados.horarioInicioFora || '').trim();
+  if(temSessaoEmAndamento){
+    const saldoAtual = Number(dados.saldoAtualFora || 0);
+    const saldoAnterior = Number(dados.saldoAnteriorFora || 0);
+    const agora = new Date();
+    const partes = String(dados.horarioInicioFora || '').split(':');
+    const hIni = Number(partes[0] || 0);
+    const mIni = Number(partes[1] || 0);
+    let inicio = new Date(agora.getTime());
+    inicio.setHours(hIni, mIni, 0, 0);
+    let diffMs = agora.getTime() - inicio.getTime();
+    if(diffMs < 0){
+      inicio.setDate(inicio.getDate() - 1);
+      diffMs = agora.getTime() - inicio.getTime();
+    }
+    const horas = Math.max(0, diffMs / 3600000);
+    dados.horasDecorridasFora = horas;
+    dados.ganhoHoraAtualFora = horas > 0 ? ((saldoAtual - saldoAnterior) / horas) : 0;
+  }else{
+    dados.horasDecorridasFora = 0;
+    dados.ganhoHoraAtualFora = 0;
+  }
 }
 
 function editarHorarioSessaoFinalizada(indice, campo){
@@ -3130,40 +3194,18 @@ function editarHorarioSessaoFinalizada(indice, campo){
     return;
   }
   sessao[campo] = valor;
-  recalcularSessaoGanhoHora(sessao, indice);
+  reprocessarSessoesGanhoHora();
   salvar();
   atualizar();
   toast('✅ Sessão atualizada.');
 }
 
-function reprocessarSessoesGanhoHoraAposExclusao(){
-  if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
-
-  dados.ganhoHoraSessoes.forEach((sessao, indice) => {
-    const saldoAnterior = indice > 0 ? Number((dados.ganhoHoraSessoes[indice - 1] || {}).valorTotal || 0) : 0;
-    sessao.saldoAnterior = saldoAnterior;
-    sessao.ganhoSessao = Number(sessao.valorTotal || 0) - saldoAnterior;
-    recalcularSessaoGanhoHora(sessao, indice);
-  });
-
-  const temSessaoAtual = String(dados.horarioInicioFora || '').trim();
-  if(temSessaoAtual){
-    const novaBase = dados.ganhoHoraSessoes.length
-      ? Number((dados.ganhoHoraSessoes[dados.ganhoHoraSessoes.length - 1] || {}).valorTotal || 0)
-      : 0;
-    dados.ganhoHoraSessaoBaseFora = novaBase;
-    dados.saldoAnteriorFora = novaBase;
-  }else{
-    dados.ganhoHoraSessaoBaseFora = null;
-    dados.saldoAnteriorFora = getSaldoAnteriorCorretoGanhoHora();
-  }
-}
-
 function fecharMenuSessaoFinalizada(indice){
   if(!Array.isArray(dados.ganhoHoraSessoes) || !dados.ganhoHoraSessoes[indice]) return;
   dados.ganhoHoraSessoes.splice(indice, 1);
-  reprocessarSessoesGanhoHoraAposExclusao();
-  salvarGanhosForaTempoReal();
+  reprocessarSessoesGanhoHora();
+  salvar();
+  atualizar();
   try{ toast('✅ Sessão apagada.'); }catch(e){}
 }
 
@@ -3171,21 +3213,22 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
   const opts = opcoes || {};
   if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
 
-  const saldoAtual = Number(opts.saldoAtual != null ? opts.saldoAtual : (parseFloat(document.getElementById("saldoAtualFora")?.value) || 0));
-  const horarioInicio = String(opts.horarioInicio != null ? opts.horarioInicio : ((document.getElementById("horarioInicioFora")?.value || "").trim()));
+  const saldoAtualDom = parseFloat(document.getElementById("saldoAtualFora")?.value || 0) || 0;
+  const horarioDom = String(document.getElementById("horarioInicioFora")?.value || "").trim();
+  const saldoAtual = Number(opts.saldoAtual != null ? opts.saldoAtual : (Number((document.getElementById("saldoAtualFora")?.value || dados.saldoAtualFora || saldoAtualDom))));
+  const horarioInicio = String(opts.horarioInicio != null ? opts.horarioInicio : (String((document.getElementById("horarioInicioFora")?.value || dados.horarioInicioFora || horarioDom)).trim()));
+  const saldoAnterior = Number(opts.saldoAnterior != null ? opts.saldoAnterior : syncSaldoAnteriorSessaoAtual());
+
   if(!horarioInicio){
     if(!opts.silent) toast("Preencha o horário de início.");
     return false;
   }
 
-  const saldoAnterior = Number(opts.saldoAnterior != null ? opts.saldoAnterior : getBaseSessaoAtualGanhoHora());
   const agora = opts.dataFim instanceof Date ? new Date(opts.dataFim.getTime()) : new Date();
   const horaFim = String(opts.horaFim || (String(agora.getHours()).padStart(2,'0') + ':' + String(agora.getMinutes()).padStart(2,'0')));
   const valorTotal = saldoAtual;
-  const ganhoSessao = saldoAtual - saldoAnterior;
-  const iniciarProxima = opts.iniciarProxima !== false;
+  const ganhoSessao = valorTotal - saldoAnterior;
 
-  let ganhoHora = 0;
   let horas = 0;
   const partes = horarioInicio.split(":");
   const hIni = Number(partes[0] || 0);
@@ -3197,41 +3240,52 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
     inicio.setDate(inicio.getDate() - 1);
     diffMs = agora.getTime() - inicio.getTime();
   }
-  horas = diffMs / 3600000;
-  ganhoHora = horas > 0 ? (ganhoSessao / horas) : 0;
+  horas = Math.max(0, diffMs / 3600000);
+  const ganhoHora = horas > 0 ? (ganhoSessao / horas) : 0;
 
   dados.ganhoHoraSessoes.push({
     inicio: horarioInicio,
     fim: horaFim,
-    valorTotal,
-    saldoAnterior,
-    ganhoSessao,
-    ganhoHora,
+    valorTotal: valorTotal,
+    saldoAnterior: saldoAnterior,
+    ganhoSessao: ganhoSessao,
+    ganhoHora: ganhoHora,
     tempoDecorrido: horas,
     diaRef: String(dados.ganhoHoraDiaRef || dataUberISO())
   });
 
-  dados.saldoAnteriorFora = valorTotal;
+  reprocessarSessoesGanhoHora();
+
   dados.saldoAtualFora = saldoAtual;
   dados.ganhoDiarioAtual = saldoAtual;
-  dados.horarioInicioFora = iniciarProxima ? horaFim : "";
-  dados.horasDecorridasFora = 0;
-  dados.ganhoHoraAtualFora = 0;
-  dados.ganhoHoraSessaoDiaRef = iniciarProxima ? String(dados.ganhoHoraDiaRef || dataUberISO()) : "";
-  dados.ganhoHoraSessaoBaseFora = iniciarProxima ? valorTotal : null;
+
+  const deveIniciarProxima = !opts.naoIniciarProxima && horaFim !== '04:00';
+  if(deveIniciarProxima){
+    dados.horarioInicioFora = horaFim;
+    dados.ganhoHoraSessaoDiaRef = String(dados.ganhoHoraDiaRef || dataUberISO());
+    syncSaldoAnteriorSessaoAtual();
+    dados.horasDecorridasFora = 0;
+    dados.ganhoHoraAtualFora = 0;
+  }else{
+    dados.horarioInicioFora = "";
+    dados.ganhoHoraSessaoDiaRef = "";
+    syncSaldoAnteriorSessaoAtual();
+    dados.horasDecorridasFora = 0;
+    dados.ganhoHoraAtualFora = 0;
+  }
 
   try{
     const saldoAnteriorEl = document.getElementById("saldoAnteriorFora");
     const saldoAtualEl = document.getElementById("saldoAtualFora");
     const horarioInicioEl = document.getElementById("horarioInicioFora");
-    if(saldoAnteriorEl) saldoAnteriorEl.value = String(valorTotal);
+    if(saldoAnteriorEl) saldoAnteriorEl.value = String(dados.saldoAnteriorFora || 0);
     if(saldoAtualEl) saldoAtualEl.value = String(saldoAtual);
-    if(horarioInicioEl) horarioInicioEl.value = iniciarProxima ? horaFim : "";
+    if(horarioInicioEl) horarioInicioEl.value = deveIniciarProxima ? horaFim : "";
   }catch(e){}
 
   if(!opts.skipSave){ salvar(); }
   if(!opts.skipUpdate){ atualizar(); }
-  if(!opts.silent){ toast(iniciarProxima ? "✅ Sessão finalizada e próxima iniciada." : "✅ Sessão finalizada."); }
+  if(!opts.silent){ toast("✅ Sessão finalizada."); }
   return true;
 }
 
@@ -3261,9 +3315,9 @@ function ensureGanhoHoraDiaAtual(){
         silent: true,
         skipSave: true,
         skipUpdate: true,
+        naoIniciarProxima: true,
         horaFim: '04:00',
-        dataFim: getViradaOperacional(new Date()),
-        iniciarProxima: false
+        dataFim: getViradaOperacional(new Date())
       });
     }catch(e){}
   }
@@ -3286,25 +3340,13 @@ function salvarGanhosForaTempoReal(){
   const saldoAtualEl = document.getElementById("saldoAtualFora");
   const horarioEl = document.getElementById("horarioInicioFora");
   const saldoAtual = parseFloat((saldoAtualEl && saldoAtualEl.value) || 0) || 0;
-  const horario = (horarioEl && horarioEl.value) || "";
-  const tinhaSessao = String(dados.horarioInicioFora || '').trim();
-  const horarioMudou = horario !== String(dados.horarioInicioFora || '');
-  const precisaNovaBase = !tinhaSessao || horarioMudou || dados.ganhoHoraSessaoBaseFora == null || isNaN(Number(dados.ganhoHoraSessaoBaseFora));
+  const horario = String((horarioEl && horarioEl.value) || "").trim();
+  const saldoAnterior = syncSaldoAnteriorSessaoAtual();
 
-  if(precisaNovaBase){
-    dados.ganhoHoraSessaoBaseFora = getSaldoAnteriorCorretoGanhoHora();
-  }
-
-  const saldoAnterior = Number(dados.ganhoHoraSessaoBaseFora || 0);
-
-  dados.saldoAnteriorFora = saldoAnterior;
   dados.saldoAtualFora = saldoAtual;
   dados.ganhoDiarioAtual = saldoAtual;
   dados.horarioInicioFora = horario;
   dados.ganhoHoraSessaoDiaRef = horario ? String(dados.ganhoHoraDiaRef || dataUberISO()) : "";
-  if(!horario){
-    dados.ganhoHoraSessaoBaseFora = null;
-  }
 
   const saldoBase = saldoAtual - saldoAnterior;
 
@@ -3314,7 +3356,7 @@ function salvarGanhosForaTempoReal(){
     const hIni = Number(partes[0] || 0);
     const mIni = Number(partes[1] || 0);
 
-    let inicio = new Date();
+    let inicio = new Date(now.getTime());
     inicio.setHours(hIni, mIni, 0, 0);
 
     let diffMs = now.getTime() - inicio.getTime();
@@ -3323,8 +3365,8 @@ function salvarGanhosForaTempoReal(){
       diffMs = now.getTime() - inicio.getTime();
     }
 
-    const horas = diffMs / 3600000;
-    dados.horasDecorridasFora = horas > 0 ? horas : 0;
+    const horas = Math.max(0, diffMs / 3600000);
+    dados.horasDecorridasFora = horas;
     dados.ganhoHoraAtualFora = horas > 0 ? (saldoBase / horas) : 0;
   }else{
     dados.horasDecorridasFora = 0;
@@ -3592,7 +3634,7 @@ function atualizar(){
     const horaInput = document.getElementById("horarioInicioFora");
     const resumoEl = document.getElementById("ganhosForaResumo");
 
-    const saldoAnterior = String(dados.horarioInicioFora || "").trim() ? Number(getBaseSessaoAtualGanhoHora()) : Number(dados.saldoAnteriorFora || 0);
+    const saldoAnterior = syncSaldoAnteriorSessaoAtual();
     const saldoAtual = Number(dados.saldoAtualFora || 0);
     const horario = dados.horarioInicioFora || "";
     const horas = Number(dados.horasDecorridasFora || 0);
@@ -3601,7 +3643,7 @@ function atualizar(){
 
     const saldoAnteriorInput = document.getElementById("saldoAnteriorFora");
     if(saldoAnteriorInput && document.activeElement !== saldoAnteriorInput){
-      saldoAnteriorInput.value = saldoAnterior ? String(saldoAnterior) : "";
+      saldoAnteriorInput.value = saldoAnterior ? String(dados.saldoAnteriorFora) : "";
     }
     if(saldoInput && document.activeElement !== saldoInput){
       saldoInput.value = saldoAtual ? String(dados.saldoAtualFora) : "";
