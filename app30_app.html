@@ -610,9 +610,11 @@ input.negative-value, input.negative-value::placeholder{
   justify-content:center;
   height:40vh;
   border-radius:18px;
-  border:1px solid rgba(255,255,255,.08);
-  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.05);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);
   margin-bottom:10px;
+  overflow:hidden;
 }
 
 .quick-balance-value{
@@ -687,9 +689,11 @@ input.negative-value, input.negative-value::placeholder{
   justify-content:center;
   height:40vh;
   border-radius:18px;
-  border:1px solid rgba(255,255,255,.08);
-  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.05);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);
   margin-bottom:10px;
+  overflow:hidden;
 }
 
   .quick-balance-value{
@@ -1686,6 +1690,19 @@ input.negative-value, input.negative-value::placeholder{
     location.replace("login.html");
   }
 })();
+
+document.addEventListener("DOMContentLoaded", function(){
+  const hiddenQuickInput = document.getElementById("quickSaldoAtual");
+  if(hiddenQuickInput){
+    hiddenQuickInput.addEventListener("focus", function(){
+      try{ this.blur(); }catch(e){}
+    });
+    hiddenQuickInput.addEventListener("touchstart", function(e){
+      e.preventDefault();
+    }, {passive:false});
+  }
+});
+
 </script>
 
 </head>
@@ -3552,7 +3569,6 @@ function toggleQuickBalancePanel(forceOpen){
     if(input){
       input.value = saldoAtual ? String(saldoAtual) : "";
       refreshQuickBalanceDisplay();
-      setTimeout(()=>{ try{ input.focus(); }catch(e){} }, 30);
     }
   }
 }
@@ -3603,16 +3619,29 @@ function fecharSaldoAtualButtonMenu(){
   if(overlay) overlay.classList.remove("show");
   if(panel) panel.classList.remove("show");
 }
+
 function salvarPreferenciaSaldoAtualButton(){
   const checkbox = document.getElementById("toggleSaldoAtualButtonCheckbox");
   dados.saldoAtualButtonAtivo = !!(checkbox && checkbox.checked);
-  salvar();
-  initQuickBalanceFab();
-  initQuickBalanceFab();
-  if(typeof window.updateQuickBalanceFabUI === "function") window.updateQuickBalanceFabUI();
+
+  try{
+    if(typeof salvar === "function") salvar();
+  }catch(e){
+    console.error("Erro ao salvar preferência do botão:", e);
+  }
+
+  if(typeof initQuickBalanceFab === "function"){
+    initQuickBalanceFab();
+  }
+  if(typeof window.updateQuickBalanceFabUI === "function"){
+    window.updateQuickBalanceFabUI();
+  }
+
+  toggleQuickBalancePanel(false);
   fecharSaldoAtualButtonMenu();
   toast(dados.saldoAtualButtonAtivo ? "💰 Botão de saldo atual ativado." : "💰 Botão de saldo atual desativado.");
 }
+
 
 
 function initQuickBalanceFab(){
@@ -3752,6 +3781,11 @@ function initQuickBalanceFab(){
   window.updateQuickBalanceFabUI = function(){
     applyVisibility();
     applyPosition();
+    if(window.dados && dados.saldoAtualButtonAtivo === false){
+      fab.classList.add("hidden");
+    }else{
+      fab.classList.remove("hidden");
+    }
   };
 
   applyVisibility();
@@ -4826,9 +4860,14 @@ function logoutApp(){
   <div id="quickBalanceTitle" class="quick-balance-title">Atualizar saldo atual</div>
   <div class="quick-balance-sub">Atalho rápido para alterar o <b>Saldo atual</b> enquanto dirige.</div>
   <div class="quick-balance-display">
-    <div id="quickBalanceValue" class="quick-balance-value">R$ 0,00</div>
+    <div style="width:100%;height:100%;display:flex;flex-direction:column;">
+      <div style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.12);font-size:13px;font-weight:800;opacity:.92;text-align:center;">Saldo atual</div>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px 12px;">
+        <div id="quickBalanceValue" class="quick-balance-value">R$ 0,00</div>
+      </div>
+    </div>
   </div>
-  <input type="number" id="quickSaldoAtual" class="quick-balance-hidden-input" inputmode="decimal" step="0.01" placeholder="Ex: 120">
+  <input type="text" id="quickSaldoAtual" class="quick-balance-hidden-input" inputmode="none" readonly tabindex="-1" aria-hidden="true" placeholder="Ex: 120">
   <div class="quick-balance-keypad">
     <button type="button" class="quick-balance-key" onclick="appendQuickBalanceKey('1')">1</button>
     <button type="button" class="quick-balance-key" onclick="appendQuickBalanceKey('2')">2</button>
@@ -4859,7 +4898,7 @@ function logoutApp(){
     <span>Ativar botão flutuante</span>
   </label>
   <div class="quick-balance-actions" style="margin-top:12px;">
-    <button type="button" onclick="salvarPreferenciaSaldoAtualButton()">Salvar</button>
+    <button type="button" id="btnSalvarSaldoAtualMenu" onclick="salvarPreferenciaSaldoAtualButton(); return false;">Salvar</button>
     <button type="button" class="secondary" onclick="fecharSaldoAtualButtonMenu()">Fechar</button>
   </div>
 </div>
