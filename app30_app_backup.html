@@ -1868,8 +1868,8 @@ document.addEventListener("DOMContentLoaded", function(){
 <input type="time" id="horarioInicioFora">
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-<button onclick="salvarGanhosForaTempoReal()">Salvar / Atualizar</button>
-<button onclick="finalizarSessaoGanhoHora()">Finalizar</button>
+<button onclick="salvarGanhosForaTempoReal()">Iniciar / Atualizar sessão</button>
+<button onclick="finalizarSessaoGanhoHora()">Finalizar sessão</button>
 </div>
 <div id="ganhosForaResumo" class="muted" style="margin-top:10px;"></div>
 <div id="ganhosForaSessoes" class="muted" style="margin-top:10px;"></div>
@@ -1900,7 +1900,7 @@ document.addEventListener("DOMContentLoaded", function(){
         <input type="number" id="ganhoHoraManual" inputmode="decimal" placeholder="Ex: 40">
       </div>
     </div>
-    <button onclick="salvarHoras()">Salvar / Atualizar</button>
+    <button onclick="salvarHoras()">Iniciar / Atualizar sessão</button>
     <div id="horasResumo" class="muted" style="margin-top:10px;"></div>
   </div>
 </div>
@@ -3212,13 +3212,13 @@ function getSessoesGanhoHoraDoDiaAtual(){
 function getUltimoValorTotalSessaoDoDiaAtual(){
   const sessoesDia = getSessoesGanhoHoraDoDiaAtual();
   if(!sessoesDia.length) return 0;
-  return Number((sessoesDia[sessoesDia.length - 1] || {}).valorTotal || 0);
+  return sessoesDia.reduce(function(total, s){
+    return total + Number((s && s.valorTotal) || 0);
+  }, 0);
 }
 
 function getSaldoAnteriorCorretoSessaoAtual(){
-  const sessoesDia = getSessoesGanhoHoraDoDiaAtual();
-  if(!sessoesDia.length) return Number(dados.saldoAnteriorFora || 0);
-  return Number((sessoesDia[sessoesDia.length - 1] || {}).valorTotal || 0);
+  return getUltimoValorTotalSessaoDoDiaAtual();
 }
 
 function syncSaldoAnteriorSessaoAtual(){
@@ -3246,20 +3246,19 @@ function recalcularSessaoGanhoHora(sessao, indice){
   const horas = Math.max(0, (dFim.getTime() - dIni.getTime()) / 3600000);
 
   const sessoes = Array.isArray(dados.ganhoHoraSessoes) ? dados.ganhoHoraSessoes : [];
-  let anterior = Number(sessao.saldoAnteriorBase != null ? sessao.saldoAnteriorBase : (sessao.saldoAnterior || 0));
+  let anterior = 0;
   const diaRefSessao = String(sessao.diaRef || dados.ganhoHoraDiaRef || dataUberISO()).trim();
-  for(let i = Number(indice || 0) - 1; i >= 0; i--){
+  for(let i = 0; i < Number(indice || 0); i++){
     const prev = sessoes[i];
     if(!prev) continue;
     const diaPrev = String(prev.diaRef || '').trim();
     if(diaPrev && diaPrev !== diaRefSessao) continue;
-    anterior = Number(prev.valorTotal || 0);
-    break;
+    anterior += Number(prev.valorTotal || 0);
   }
 
   const valorTotal = Number(sessao.valorTotal || 0);
   const saldoAnterior = anterior;
-  const ganhoSessao = valorTotal - saldoAnterior;
+  const ganhoSessao = valorTotal;
 
   sessao.saldoAnterior = saldoAnterior;
   sessao.ganhoSessao = ganhoSessao;
@@ -3292,7 +3291,8 @@ function reprocessarSessoesGanhoHora(){
     }
     const horas = Math.max(0, diffMs / 3600000);
     dados.horasDecorridasFora = horas;
-    dados.ganhoHoraAtualFora = horas > 0 ? ((saldoAtual - saldoAnterior) / horas) : 0;
+    const valorSessaoAtual = saldoAtual - saldoAnterior;
+  dados.ganhoHoraAtualFora = horas > 0 ? (valorSessaoAtual / horas) : 0;
   }else{
     dados.horasDecorridasFora = 0;
     dados.ganhoHoraAtualFora = 0;
@@ -3344,8 +3344,8 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
 
   const agora = opts.dataFim instanceof Date ? new Date(opts.dataFim.getTime()) : new Date();
   const horaFim = String(opts.horaFim || (String(agora.getHours()).padStart(2,'0') + ':' + String(agora.getMinutes()).padStart(2,'0')));
-  const valorTotal = saldoAtual;
-  const ganhoSessao = valorTotal - saldoAnterior;
+  const valorTotal = saldoAtual - saldoAnterior;
+  const ganhoSessao = valorTotal;
 
   let horas = 0;
   const partes = horarioInicio.split(":");
@@ -3770,7 +3770,7 @@ function atualizar(){
     const horario = dados.horarioInicioFora || "";
     const horas = Number(dados.horasDecorridasFora || 0);
     const ganhoHora = Number(dados.ganhoHoraAtualFora || 0);
-    const saldoBase = saldoAtual - saldoAnterior;
+    const valorSessaoAtual = saldoAtual - saldoAnterior;
 
     const saldoAnteriorInput = document.getElementById("saldoAnteriorFora");
     if(saldoAnteriorInput && document.activeElement !== saldoAnteriorInput){
@@ -3788,13 +3788,13 @@ function atualizar(){
       if(String(horario || '').trim()){
         const indiceAtual = sessoes.length + 1;
         const tituloSessao = getNomeSessao(indiceAtual) + " sessão";
-        const valorClass = saldoAtual < 0 ? "dangerText" : "warning";
+        const valorClass = valorSessaoAtual < 0 ? "dangerText" : "warning";
         const horaClass = ganhoHora < 0 ? "dangerText" : "warning";
         resumoEl.innerHTML =
           "<div style='margin-top:0;padding-top:0'><b>" + tituloSessao + " em andamento</b><br>" +
           "Hora de início: " + horario + "<br>" +
           "Hora de término: -<br>" +
-          "Valor total: <span class='" + valorClass + "'>R$ " + saldoAtual.toFixed(2) + "</span><br>" +
+          "Valor total: <span class='" + valorClass + "'>R$ " + valorSessaoAtual.toFixed(2) + "</span><br>" +
           "Ganho por hora: <span class='" + horaClass + "'>R$ " + ganhoHora.toFixed(2) + "</span><br>" +
           "Tempo decorrido: <span class='warning'>" + horas.toFixed(2) + "h</span></div>";
       }else{
@@ -4530,7 +4530,7 @@ atualizar();
       }
     });
   }
-  // (Removido) Auto-salvar no blur do Ganho diário atual para não sobrescrever ao clicar em "Salvar/Atualizar"
+  // (Removido) Auto-salvar no blur do Ganho diário atual para não sobrescrever ao clicar em "Iniciar/Atualizar sessão"
 // Meta diária segue numérica (sem expressão)
 })();
 
