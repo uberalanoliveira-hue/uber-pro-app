@@ -1713,6 +1713,10 @@ input.negative-value, input.negative-value::placeholder{
   top:28px !important;
 }
 
+
+.gh-actions{display:flex;gap:8px;flex-wrap:nowrap;align-items:center;}
+.gh-actions button{flex:1 1 0;min-width:0;padding:10px 8px;font-size:14px;}
+
 </style>
 
 <style id="app30-auth-guard-style">
@@ -1867,8 +1871,8 @@ document.addEventListener("DOMContentLoaded", function(){
 <label>Horário de início</label>
 <input type="time" id="horarioInicioFora">
 
-<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-<button onclick="salvarGanhosForaTempoReal()">Iniciar / Atualizar sessão</button>
+<div class="gh-actions">
+<button onclick="salvarGanhosForaTempoReal()">Iniciar sessão</button>
 <button onclick="finalizarSessaoGanhoHora()">Finalizar sessão</button>
 </div>
 <div id="ganhosForaResumo" class="muted" style="margin-top:10px;"></div>
@@ -2315,12 +2319,23 @@ function cloudHasUsefulData(obj){
       (obj.gastos && obj.gastos.length) ||
       (obj.abastecimentos && obj.abastecimentos.length) ||
       (obj.naoTrabalhados && obj.naoTrabalhados.length) ||
+      (obj.ganhoHoraSessoes && obj.ganhoHoraSessoes.length) ||
+      (obj.ganhoHoraHistorico && obj.ganhoHoraHistorico.length) ||
       Number(obj.metaTotal || 0) > 0 ||
+      String(obj.dataLimite || '').trim() !== '' ||
       Number(obj.metaDiariaManual || 0) > 0 ||
       Number(obj.ganhoDiarioAtual || 0) > 0 ||
+      Number(obj.ganhoHoraManual || 40) !== 40 ||
       Number(obj.saldoAtualFora || 0) > 0 ||
       Number(obj.saldoAnteriorFora || 0) > 0 ||
+      Number(obj.horasDecorridasFora || 0) > 0 ||
+      Number(obj.ganhoHoraAtualFora || 0) > 0 ||
       (obj.horarioInicioFora && String(obj.horarioInicioFora).trim() !== "") ||
+      String(obj.ganhoHoraDiaRef || '').trim() !== '' ||
+      String(obj.ganhoHoraSessaoDiaRef || '').trim() !== '' ||
+      typeof obj.ganhoHoraHistoricoAberto === 'boolean' ||
+      typeof obj.saldoAtualButtonAtivo === 'boolean' ||
+      (obj.saldoAtualButtonPos && typeof obj.saldoAtualButtonPos === 'object') ||
       Number(obj.combustivelPercentual || 0.30) !== 0.30 ||
       (obj.combustivelModo && String(obj.combustivelModo) === "real") ||
       Number(obj?.combustivelReal?.kmRodados || 0) > 0 ||
