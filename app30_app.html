@@ -1714,34 +1714,22 @@ input.negative-value, input.negative-value::placeholder{
 }
 
 
-/* Remove setas visuais dos campos nativos */
-#dataLimite::-webkit-calendar-picker-indicator,
-#horarioInicioFora::-webkit-calendar-picker-indicator{
-  opacity:0;
-  display:none;
-  -webkit-appearance:none;
-}
-#dataLimite,
-#horarioInicioFora{
-  -webkit-appearance:none;
-  appearance:none;
-  background-image:none !important;
-}
-
-/* Seção Tempo para atingir a meta diária compacta e alinhada ao padrão do app */
-.meta-tempo-stack > div{margin-bottom:6px;}
-.meta-tempo-stack label{margin-top:4px;}
-.meta-tempo-stack input{
-  width:100%;
-  box-sizing:border-box;
-  margin-top:6px;
-  margin-bottom:0;
-}
-.meta-tempo-stack + button[onclick="salvarHoras()"]{
-  margin-top:8px;
-}
 .gh-actions{display:flex;gap:8px;flex-wrap:nowrap;align-items:center;}
 .gh-actions button{flex:1 1 0;min-width:0;padding:10px 8px;font-size:14px;}
+/* PATCH_V86_TEMPO_META */
+.tempo-meta-stack{display:block;}
+.tempo-meta-stack > div{margin-bottom:0;}
+.tempo-meta-stack label{margin-top:8px;}
+.tempo-meta-stack input{width:100%; margin-top:8px;}
+#cardTempoMeta button[onclick="salvarHoras()"]{width:100%; margin-top:8px;}
+/* remove setas visuais de data/hora */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator{opacity:0;display:none;-webkit-appearance:none;}
+input[type="date"],input[type="time"]{-webkit-appearance:none;appearance:none;background-image:none;}
+/* neutraliza ajustes antigos que deixavam campos despadronizados */
+#metaDiariaManual,#ganhoDiarioAtual,#ganhoHoraManual,#metaTotal,#dataLimite{width:100%;margin-right:0;margin-left:0;}
+/* END_PATCH_V86_TEMPO_META */
+
 
 </style>
 
@@ -1910,16 +1898,15 @@ document.addEventListener("DOMContentLoaded", function(){
 </div>
 </div>
 
-<div class="card">
+<div class="card" id="cardTempoMeta">
   <div class="card-header collapsible-header" onclick="toggleSection(this)">
         <h3>Tempo para atingir a meta diária</h3>
         <span class="collapse-arrow">▼</span>
       </div>
-  <div class="card-body">
-    <div class="meta-tempo-stack">
+  <div class="card-body tempo-meta-stack">
       <div>
         <label>Meta diária (R$) — automática</label>
-        <input type="number" id="metaDiariaManual" inputmode="decimal" placeholder="Meta diária automática" readonly />
+        <input type="number" id="metaDiariaManual" inputmode="decimal" placeholder="Meta diária automática" readonly>
       </div>
       <div>
         <label>Ganho diário atual (R$) — automático</label>
@@ -1929,8 +1916,7 @@ document.addEventListener("DOMContentLoaded", function(){
         <label>Ganho por hora (R$)</label>
         <input type="number" id="ganhoHoraManual" inputmode="decimal" placeholder="Ex: 40">
       </div>
-    </div>
-    <button onclick="salvarHoras()">Iniciar / Atualizar sessão</button>
+    <button onclick="salvarHoras()">Salvar</button>
     <div id="horasResumo" class="muted" style="margin-top:10px;"></div>
   </div>
 </div>
