@@ -2902,8 +2902,6 @@ function confirmEditValor(){
       const item = dados.ganhoHoraSessoes && dados.ganhoHoraSessoes[ctx.index];
       if(item){
         item.valorTotal = v;
-        reprocessarSessoesGanhoHora();
-        reconfigurarSessaoEmAndamentoAposMudancaDeSessoes();
         salvar();
         atualizar();
       }
@@ -3219,7 +3217,7 @@ function getUltimoValorTotalSessaoDoDiaAtual(){
 
 function getSaldoAnteriorCorretoSessaoAtual(){
   const sessoesDia = getSessoesGanhoHoraDoDiaAtual();
-  if(!sessoesDia.length) return 0;
+  if(!sessoesDia.length) return Number(dados.saldoAnteriorFora || 0);
   return Number((sessoesDia[sessoesDia.length - 1] || {}).valorTotal || 0);
 }
 
@@ -3227,45 +3225,6 @@ function syncSaldoAnteriorSessaoAtual(){
   const base = getSaldoAnteriorCorretoSessaoAtual();
   dados.saldoAnteriorFora = base;
   return base;
-}
-
-function reconfigurarSessaoEmAndamentoAposMudancaDeSessoes(){
-  const saldoAtualEl = document.getElementById("saldoAtualFora");
-  const horarioInicioEl = document.getElementById("horarioInicioFora");
-
-  if(saldoAtualEl){
-    const valorTela = parseFloat(String(saldoAtualEl.value || '').replace(',', '.'));
-    if(!isNaN(valorTela)) dados.saldoAtualFora = valorTela;
-  }
-  if(horarioInicioEl){
-    dados.horarioInicioFora = String(horarioInicioEl.value || dados.horarioInicioFora || '').trim();
-  }
-
-  const temSessaoEmAndamento = !!String(dados.horarioInicioFora || '').trim();
-  const saldoAnterior = syncSaldoAnteriorSessaoAtual();
-
-  if(!temSessaoEmAndamento){
-    dados.horasDecorridasFora = 0;
-    dados.ganhoHoraAtualFora = 0;
-    return;
-  }
-
-  const saldoAtual = Number(dados.saldoAtualFora || 0);
-  const partes = String(dados.horarioInicioFora || '').split(':');
-  const hIni = Number(partes[0] || 0);
-  const mIni = Number(partes[1] || 0);
-  const agora = new Date();
-  let inicio = new Date(agora.getTime());
-  inicio.setHours(hIni, mIni, 0, 0);
-  let diffMs = agora.getTime() - inicio.getTime();
-  if(diffMs < 0){
-    inicio.setDate(inicio.getDate() - 1);
-    diffMs = agora.getTime() - inicio.getTime();
-  }
-
-  const horas = Math.max(0, diffMs / 3600000);
-  dados.horasDecorridasFora = horas;
-  dados.ganhoHoraAtualFora = horas > 0 ? ((saldoAtual - saldoAnterior) / horas) : 0;
 }
 
 function recalcularSessaoGanhoHora(sessao, indice){
@@ -3361,20 +3320,8 @@ function editarHorarioSessaoFinalizada(indice, campo){
 
 function fecharMenuSessaoFinalizada(indice){
   if(!Array.isArray(dados.ganhoHoraSessoes) || !dados.ganhoHoraSessoes[indice]) return;
-
-  const saldoAtualEl = document.getElementById("saldoAtualFora");
-  const horarioInicioEl = document.getElementById("horarioInicioFora");
-  if(saldoAtualEl){
-    const valorTela = parseFloat(String(saldoAtualEl.value || '').replace(',', '.'));
-    if(!isNaN(valorTela)) dados.saldoAtualFora = valorTela;
-  }
-  if(horarioInicioEl){
-    dados.horarioInicioFora = String(horarioInicioEl.value || dados.horarioInicioFora || '').trim();
-  }
-
   dados.ganhoHoraSessoes.splice(indice, 1);
   reprocessarSessoesGanhoHora();
-  reconfigurarSessaoEmAndamentoAposMudancaDeSessoes();
   salvar();
   atualizar();
   try{ toast('✅ Sessão apagada.'); }catch(e){}
@@ -4173,14 +4120,24 @@ function refreshQuickBalanceFabMiniDisplay(){
   mini.textContent = "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
+let quickBalanceReplaceOnNextInput = false;
+
 function appendQuickBalanceKey(key){
   const input = document.getElementById("quickSaldoAtual");
   if(!input) return;
+
   let current = String(input.value || "");
+
+  if(quickBalanceReplaceOnNextInput){
+    current = "";
+    quickBalanceReplaceOnNextInput = false;
+  }
+
   if(key === "."){
     if(current.includes(".")) return;
     if(!current) current = "0";
   }
+
   input.value = current + key;
   refreshQuickBalanceDisplay();
 }
@@ -4188,7 +4145,14 @@ function appendQuickBalanceKey(key){
 function backspaceQuickBalance(){
   const input = document.getElementById("quickSaldoAtual");
   if(!input) return;
-  input.value = String(input.value || "").slice(0, -1);
+
+  if(quickBalanceReplaceOnNextInput){
+    input.value = "";
+    quickBalanceReplaceOnNextInput = false;
+  }else{
+    input.value = String(input.value || "").slice(0, -1);
+  }
+
   refreshQuickBalanceDisplay();
 }
 
@@ -4196,6 +4160,7 @@ function clearQuickBalance(){
   const input = document.getElementById("quickSaldoAtual");
   if(!input) return;
   input.value = "";
+  quickBalanceReplaceOnNextInput = false;
   refreshQuickBalanceDisplay();
 }
 
@@ -4213,8 +4178,11 @@ function toggleQuickBalancePanel(forceOpen){
     const saldoAtual = Number(dados.saldoAtualFora || 0);
     if(input){
       input.value = saldoAtual ? String(saldoAtual) : "";
+      quickBalanceReplaceOnNextInput = true;
       refreshQuickBalanceDisplay();
     }
+  }else{
+    quickBalanceReplaceOnNextInput = false;
   }
 }
 
