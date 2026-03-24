@@ -287,30 +287,6 @@ button:active{transform:scale(0.99);}
 }
 .btn-historico-link:active{transform:none !important;}
 
-.historico-dia-toggle{
-  background:transparent !important;
-  border:none !important;
-  padding:0 !important;
-  margin:0 !important;
-  width:auto !important;
-  color:var(--text) !important;
-  font-weight:800;
-  text-decoration:underline;
-  display:inline-block;
-  min-height:auto !important;
-  box-shadow:none !important;
-}
-.historico-dia-toggle:active{transform:none !important;}
-.historico-sessao{
-  margin-top:8px;
-  padding-top:8px;
-  border-top:1px solid var(--line);
-  position:relative;
-  padding-right:40px;
-}
-#quickBalanceTitle:empty{display:none;}
-.admin-safe-hide-floating,#quickBalanceFab.admin-safe-hide-floating{display:none !important;}
-
 
 
 .theme-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:6px;}
@@ -2447,7 +2423,6 @@ if(!dados.saldoAtualButtonPos || typeof dados.saldoAtualButtonPos !== "object"){
 if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
 if(!Array.isArray(dados.ganhoHoraHistorico)) dados.ganhoHoraHistorico = [];
 if(typeof dados.ganhoHoraHistoricoAberto !== "boolean") dados.ganhoHoraHistoricoAberto = false;
-if(!dados.ganhoHoraHistoricoDiasAbertos || typeof dados.ganhoHoraHistoricoDiasAbertos !== "object") dados.ganhoHoraHistoricoDiasAbertos = {};
 if(!dados.ganhoHoraDiaRef) dados.ganhoHoraDiaRef = dataUberISO();
 if(typeof dados.ganhoHoraSessaoDiaRef !== "string") dados.ganhoHoraSessaoDiaRef = "";
 try{
@@ -3156,17 +3131,6 @@ function confirmEditValor(){
         salvar();
         atualizar();
       }
-    }else if(ctx.tipo === 'ganhoHoraSessaoHistorico'){
-      const hist = Array.isArray(dados.ganhoHoraHistorico) ? dados.ganhoHoraHistorico.find(function(entry){
-        return String((entry && entry.diaUber) || '').trim() === String(ctx.diaUber || '').trim();
-      }) : null;
-      const item = hist && hist.sessoes && hist.sessoes[ctx.index];
-      if(item){
-        item.valorTotal = v;
-        recalcularResumoHistoricoGanhoHora(hist);
-        salvar();
-        atualizar();
-      }
     }else{
       const item = dados[ctx.tipo] && dados[ctx.tipo][ctx.index];
       if(item){
@@ -3428,19 +3392,7 @@ function getResumoDiaGanhoHora(diaRef){
     diaUber: dia,
     totalSaldoBase: totalSaldoBase,
     totalHoras: totalHoras,
-    totalGanhoHora: totalGanhoHora,
-    sessoes: sessoesDia.map(function(s){
-      return {
-        inicio: String((s && s.inicio) || ''),
-        fim: String((s && s.fim) || ''),
-        valorTotal: Number((s && s.valorTotal) || 0),
-        ganhoHora: Number((s && s.ganhoHora) || 0),
-        tempoDecorrido: Number((s && s.tempoDecorrido) || 0),
-        saldoAnterior: Number((s && s.saldoAnterior) || 0),
-        ganhoSessao: Number((s && s.ganhoSessao) || 0),
-        diaRef: dia
-      };
-    })
+    totalGanhoHora: totalGanhoHora
   };
 }
 
@@ -3466,42 +3418,6 @@ function toggleHistoricoGanhoHora(){
   dados.ganhoHoraHistoricoAberto = !dados.ganhoHoraHistoricoAberto;
   salvar();
   atualizar();
-}
-
-function toggleDiaHistoricoGanhoHora(diaUber){
-  if(!dados.ganhoHoraHistoricoDiasAbertos || typeof dados.ganhoHoraHistoricoDiasAbertos !== "object") dados.ganhoHoraHistoricoDiasAbertos = {};
-  const chave = String(diaUber || '').trim();
-  if(!chave) return;
-  dados.ganhoHoraHistoricoDiasAbertos[chave] = !dados.ganhoHoraHistoricoDiasAbertos[chave];
-  salvar();
-  atualizar();
-}
-
-function recalcularResumoHistoricoGanhoHora(item){
-  if(!item) return item;
-  const sessoes = Array.isArray(item.sessoes) ? item.sessoes : [];
-  item.totalSaldoBase = sessoes.reduce(function(acc, s){ return acc + Number((s && s.valorTotal) || 0); }, 0);
-  item.totalHoras = sessoes.reduce(function(acc, s){ return acc + Number((s && s.tempoDecorrido) || 0); }, 0);
-  item.totalGanhoHora = Number(item.totalHoras || 0) > 0 ? (Number(item.totalSaldoBase || 0) / Number(item.totalHoras || 0)) : 0;
-  return item;
-}
-
-function editarValorSessaoHistorico(diaUber, indice){
-  const dia = String(diaUber || '').trim();
-  if(!dia || !Array.isArray(dados.ganhoHoraHistorico)) return;
-  const hist = dados.ganhoHoraHistorico.find(function(item){
-    return String((item && item.diaUber) || '').trim() === dia;
-  });
-  if(!hist || !Array.isArray(hist.sessoes) || !hist.sessoes[indice]) return;
-  window.__editValorCtx = { tipo: 'ganhoHoraSessaoHistorico', diaUber: dia, index: indice };
-  const atual = Number(hist.sessoes[indice].valorTotal || 0);
-  const ov = document.getElementById('editValorOverlay');
-  const inp = document.getElementById('editValorInput');
-  if(!ov || !inp) return;
-  inp.value = (atual ?? 0);
-  ov.classList.add('show');
-  try{ closeAllMenus(); }catch(e){}
-  setTimeout(()=>{ try{ inp.focus(); inp.select(); }catch(e){} }, 50);
 }
 
 function getViradaOperacional(refDate){
@@ -4205,24 +4121,12 @@ function atualizar(){
         historicoWrap.innerHTML = dados.ganhoHoraHistoricoAberto ? "<div style='padding-top:6px'>Sem histórico.</div>" : "";
       }else{
         historicoWrap.innerHTML = historico.map(function(item){
-          recalcularResumoHistoricoGanhoHora(item);
           const total = Number(item.totalSaldoBase || 0);
           const horasItem = Number(item.totalHoras || 0);
           const ganhoHoraItem = Number(item.totalGanhoHora || 0);
           const totalClass = total < 0 ? "dangerText" : "warning";
           const ghClass = ganhoHoraItem < 0 ? "dangerText" : "warning";
-          const diaItem = String(item.diaUber || "-");
-          const abertoDia = !!(dados.ganhoHoraHistoricoDiasAbertos && dados.ganhoHoraHistoricoDiasAbertos[diaItem]);
-          const sessoesHistorico = Array.isArray(item.sessoes) ? item.sessoes : [];
-          const detalhes = abertoDia ? sessoesHistorico.map(function(s, idxSessao){
-            const valorSessao = Number(s.valorTotal || 0);
-            const ganhoHoraSessao = Number(s.ganhoHora || 0);
-            const tempoDecorrido = Number(s.tempoDecorrido || 0);
-            const valorClass = valorSessao < 0 ? "dangerText" : "warning";
-            const horaClass = ganhoHoraSessao < 0 ? "dangerText" : "warning";
-            return `<div class="historico-sessao"><div class="action-menu" style="position:absolute;top:8px;right:0"><button class="kebab-btn" type="button" onclick="event.stopPropagation(); toggleItemMenu('menu_hist_sessao_${diaItem}_${idxSessao}', this)">≡</button><div class="menu-pop" id="menu_hist_sessao_${diaItem}_${idxSessao}"><button type="button" onclick="editarValorSessaoHistorico('${diaItem}', ${idxSessao})">Editar valor</button></div></div><b>${getNomeSessao(idxSessao + 1)} sessão</b><br>Hora de início: ${s.inicio || "-"}<br>Hora de término: ${s.fim || "-"}<br>Valor total: <span class="${valorClass}">R$ ${valorSessao.toFixed(2)}</span><br>Ganho por hora: <span class="${horaClass}">R$ ${ganhoHoraSessao.toFixed(2)}</span><br>Tempo decorrido: <span class="warning">${tempoDecorrido.toFixed(2)}h</span></div>`;
-          }).join("") : "";
-          return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)"><button type="button" class="historico-dia-toggle" onclick="toggleDiaHistoricoGanhoHora('${diaItem}')">${diaItem}</button><br>Total: <span class="${totalClass}">R$ ${total.toFixed(2)}</span> | <span class="warning">${horasItem.toFixed(2)}h</span> | <span class="${ghClass}">R$ ${ganhoHoraItem.toFixed(2)}/h</span>${abertoDia ? `<div style="margin-top:8px">${detalhes || `<div style='padding-top:6px'>Sem sessões.</div>`}</div>` : ``}</div>`;
+          return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)"><b>${item.diaUber || "-"}</b><br>Total: <span class="${totalClass}">R$ ${total.toFixed(2)}</span> | <span class="warning">${horasItem.toFixed(2)}h</span> | <span class="${ghClass}">R$ ${ganhoHoraItem.toFixed(2)}/h</span></div>`;
         }).join("");
       }
     }
@@ -5926,7 +5830,7 @@ function logoutApp(){
 
 
 <div id="quickBalancePanel" class="quick-balance-panel" role="dialog" aria-modal="true" aria-labelledby="quickBalanceTitle">
-  <div id="quickBalanceTitle" class="quick-balance-title"></div>
+  <div id="quickBalanceTitle" class="quick-balance-title">Atualizar saldo atual</div>
   <div class="quick-balance-sub">Atalho rápido para alterar o <b>Saldo atual</b> enquanto dirige.</div>
   <div class="quick-balance-display">
     <div class="quick-balance-display-inner">
@@ -5951,9 +5855,8 @@ function logoutApp(){
     <button type="button" class="quick-balance-key" onclick="appendQuickBalanceKey('0')">0</button>
     <button type="button" class="quick-balance-key" onclick="backspaceQuickBalance()">⌫</button>
   </div>
-  <div class="quick-balance-actions" style="grid-template-columns:1fr 1fr 1fr;">
+  <div class="quick-balance-actions">
     <button type="button" onclick="salvarSaldoAtualRapido()">Salvar</button>
-    <button type="button" class="secondary" onclick="toggleQuickBalancePanel(false)">Home</button>
     <button type="button" class="secondary" onclick="clearQuickBalance()">Limpar</button>
   </div>
 </div>
