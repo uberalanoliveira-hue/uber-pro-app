@@ -15,7 +15,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v7.0.6</title>
+<title>MetaDriver v8.4</title>
 
 <style>
 :root{
@@ -30,8 +30,125 @@
   --warn:#facc15;
   --danger:#fb7185;
 }
+
+/* ===== Sistema de temas ===== */
+body[data-theme="metadriver-dark"]{
+  --bg:#0f172a;
+  --card:#1e293b;
+  --input:#334155;
+  --accent:#22c55e;
+  --accent2:#60a5fa;
+  --text:#ffffff;
+  --muted:rgba(255,255,255,0.88);
+  --line:rgba(255,255,255,0.10);
+  --warn:#facc15;
+  --danger:#fb7185;
+  --theme-header:linear-gradient(135deg, rgba(96,165,250,0.25), rgba(34,197,94,0.18));
+  --theme-topbar:linear-gradient(to bottom, rgba(15,23,42,0.92), rgba(15,23,42,0.78));
+  --theme-menu:rgba(30,41,59,0.98);
+  --theme-menu-header:linear-gradient(135deg, rgba(96,165,250,0.22), rgba(34,197,94,0.16));
+  --theme-shadow:0 8px 20px rgba(0,0,0,0.25);
+  --theme-radius:16px;
+  --theme-font:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+body[data-theme="metadriver-light"]{
+  --bg:#eef3fb;
+  --card:#ffffff;
+  --input:#e6edf7;
+  --accent:#1fbf67;
+  --accent2:#4f8df7;
+  --text:#0f172a;
+  --muted:rgba(15,23,42,0.78);
+  --line:rgba(15,23,42,0.10);
+  --warn:#d4a900;
+  --danger:#e11d48;
+  --theme-header:linear-gradient(135deg, rgba(79,141,247,0.18), rgba(31,191,103,0.16));
+  --theme-topbar:linear-gradient(to bottom, rgba(238,243,251,0.95), rgba(238,243,251,0.88));
+  --theme-menu:rgba(255,255,255,0.98);
+  --theme-menu-header:linear-gradient(135deg, rgba(79,141,247,0.14), rgba(31,191,103,0.14));
+  --theme-shadow:0 8px 20px rgba(15,23,42,0.10);
+  --theme-radius:16px;
+  --theme-font:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+body[data-theme="executivo-dark"]{
+  --bg:#000000;
+  --card:#121212;
+  --input:#1c1c1c;
+  --accent:#ffffff;
+  --accent2:#b5b5b5;
+  --text:#f5f5f5;
+  --muted:rgba(255,255,255,0.72);
+  --line:rgba(255,255,255,0.08);
+  --warn:#f4b400;
+  --danger:#ff6b6b;
+  --theme-header:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  --theme-topbar:linear-gradient(to bottom, rgba(0,0,0,0.96), rgba(0,0,0,0.90));
+  --theme-menu:rgba(14,14,14,0.98);
+  --theme-menu-header:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  --theme-shadow:0 10px 26px rgba(0,0,0,0.45);
+  --theme-radius:18px;
+  --theme-font:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+body[data-theme="executivo-light"]{
+  --bg:#f7f7f7;
+  --card:#ffffff;
+  --input:#f0f0f0;
+  --accent:#111111;
+  --accent2:#444444;
+  --text:#111111;
+  --muted:rgba(17,17,17,0.70);
+  --line:rgba(17,17,17,0.08);
+  --warn:#d99a00;
+  --danger:#d64545;
+  --theme-header:linear-gradient(180deg, rgba(17,17,17,0.06), rgba(17,17,17,0.02));
+  --theme-topbar:linear-gradient(to bottom, rgba(247,247,247,0.96), rgba(247,247,247,0.90));
+  --theme-menu:rgba(255,255,255,0.98);
+  --theme-menu-header:linear-gradient(180deg, rgba(17,17,17,0.07), rgba(17,17,17,0.02));
+  --theme-shadow:0 8px 20px rgba(17,17,17,0.08);
+  --theme-radius:18px;
+  --theme-font:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+body[data-theme="energia-dark"]{
+  --bg:#161300;
+  --card:#241f00;
+  --input:#332b00;
+  --accent:#ffd400;
+  --accent2:#ffec80;
+  --text:#fff7cc;
+  --muted:rgba(255,247,204,0.78);
+  --line:rgba(255,212,0,0.14);
+  --warn:#ffe066;
+  --danger:#ff7f50;
+  --theme-header:linear-gradient(135deg, rgba(255,212,0,0.24), rgba(255,236,128,0.10));
+  --theme-topbar:linear-gradient(to bottom, rgba(22,19,0,0.96), rgba(22,19,0,0.90));
+  --theme-menu:rgba(36,31,0,0.98);
+  --theme-menu-header:linear-gradient(135deg, rgba(255,212,0,0.24), rgba(255,236,128,0.10));
+  --theme-shadow:0 10px 24px rgba(0,0,0,0.32);
+  --theme-radius:18px;
+  --theme-font:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+body[data-theme="energia-light"]{
+  --bg:#fff9db;
+  --card:#fff4b8;
+  --input:#ffe98a;
+  --accent:#f4c400;
+  --accent2:#ffe066;
+  --text:#2b2200;
+  --muted:rgba(43,34,0,0.76);
+  --line:rgba(43,34,0,0.10);
+  --warn:#b58900;
+  --danger:#d94841;
+  --theme-header:linear-gradient(135deg, rgba(244,196,0,0.28), rgba(255,224,102,0.16));
+  --theme-topbar:linear-gradient(to bottom, rgba(255,249,219,0.96), rgba(255,249,219,0.90));
+  --theme-menu:rgba(255,248,214,0.99);
+  --theme-menu-header:linear-gradient(135deg, rgba(244,196,0,0.24), rgba(255,224,102,0.14));
+  --theme-shadow:0 8px 20px rgba(120,98,0,0.12);
+  --theme-radius:18px;
+  --theme-font:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 body{
-  font-family:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:var(--theme-font,'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
   background:var(--bg);
   color:var(--text);
   margin:0;
@@ -45,7 +162,7 @@ h1{text-align:center;margin:8px 0 14px;letter-spacing:0.2px;}
 /* Top bar */
 .topbar{
   position:sticky; top:0; z-index:50;
-  background:linear-gradient(to bottom, rgba(15,23,42,0.92), rgba(15,23,42,0.78));
+  background:var(--theme-topbar, linear-gradient(to bottom, rgba(15,23,42,0.92), rgba(15,23,42,0.78)));
   backdrop-filter: blur(8px);
   padding:10px 12px;
   margin:-15px -15px 12px;
@@ -88,7 +205,7 @@ h1{text-align:center;margin:8px 0 14px;letter-spacing:0.2px;}
 .menu-panel{
   position:fixed; top:64px; right:12px; z-index:100;
   width:min(320px, calc(100% - 24px));
-  background:rgba(30,41,59,0.98);
+  background:var(--theme-menu, rgba(30,41,59,0.98));
   border:1px solid rgba(255,255,255,0.10);
   border-radius:16px;
   box-shadow:0 18px 40px rgba(0,0,0,0.45);
@@ -98,7 +215,7 @@ h1{text-align:center;margin:8px 0 14px;letter-spacing:0.2px;}
 .menu-panel.show{display:block;}
 .menu-header{
   padding:12px 14px;
-  background:linear-gradient(135deg, rgba(96,165,250,0.22), rgba(34,197,94,0.16));
+  background:var(--theme-menu-header, linear-gradient(135deg, rgba(96,165,250,0.22), rgba(34,197,94,0.16)));
   border-bottom:1px solid rgba(255,255,255,0.10);
   font-weight:bold;
 }
@@ -125,13 +242,13 @@ h1{text-align:center;margin:8px 0 14px;letter-spacing:0.2px;}
 
 .card{
   background:var(--card);
-  border-radius:16px;
+  border-radius:var(--theme-radius,16px);
   margin-bottom:16px;
   overflow:visible;
-  box-shadow:0 8px 20px rgba(0,0,0,0.25);
+  box-shadow:var(--theme-shadow,0 8px 20px rgba(0,0,0,0.25));
 }
 .card-header{
-  background:linear-gradient(135deg, rgba(96,165,250,0.25), rgba(34,197,94,0.18));
+  background:var(--theme-header, linear-gradient(135deg, rgba(96,165,250,0.25), rgba(34,197,94,0.18)));
   padding:12px 14px;
   border-bottom:1px solid var(--line);
 }
@@ -170,6 +287,16 @@ button:active{transform:scale(0.99);}
 }
 .btn-historico-link:active{transform:none !important;}
 
+
+
+.theme-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:6px;}
+.theme-card{background:rgba(255,255,255,0.06);border:1px solid var(--line);border-radius:14px;padding:12px;}
+.theme-card-title{font-weight:800;font-size:14px;margin-bottom:4px;}
+.theme-card-sub{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.35;}
+.theme-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.theme-option{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--input);color:var(--text);font-weight:700;font-size:13px;}
+.theme-option.active{outline:2px solid var(--accent);background:rgba(255,255,255,0.12);}
+#themeOverlay .editvalor-modal{max-width:420px;width:min(92vw,420px);}
 
 .list-item{
   background:rgba(255,255,255,0.06);
@@ -650,7 +777,7 @@ input.negative-value, input.negative-value::placeholder{
   display:flex;
   align-items:center;
   justify-content:center;
-  height:24vh;
+  height:40vh;
   border-radius:22px;
   border:2px solid rgba(255,255,255,.38);
   background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
@@ -726,28 +853,9 @@ input.negative-value, input.negative-value::placeholder{
 }
 .quick-balance-actions{
   display:grid;
-  grid-template-columns:1fr 1fr 1fr;
+  grid-template-columns:1fr 1fr;
   gap:10px;
   margin-top:12px;
-}
-.quick-balance-actions button{
-  min-height:64px;
-  font-size:20px;
-  font-weight:900;
-  border-radius:18px;
-}
-.quick-balance-home-btn{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.quick-balance-home-icon{
-  width:26px;
-  height:26px;
-  border:3px solid currentColor;
-  border-radius:8px;
-  display:inline-block;
-  box-sizing:border-box;
 }
 .quick-balance-hidden-input{
   position:absolute !important;
@@ -776,7 +884,7 @@ input.negative-value, input.negative-value::placeholder{
     padding:14px;
   }
   .quick-balance-display{
-    height:40vh;
+    height:18vh;
   }
   .quick-balance-value{
     font-size:40px;
@@ -1735,20 +1843,6 @@ input.negative-value, input.negative-value::placeholder{
 
 .gh-actions{display:flex;gap:8px;flex-wrap:nowrap;align-items:center;}
 .gh-actions button{flex:1 1 0;min-width:0;padding:10px 8px;font-size:14px;}
-/* PATCH_V86_TEMPO_META */
-.tempo-meta-stack{display:block;}
-.tempo-meta-stack > div{margin-bottom:0;}
-.tempo-meta-stack label{margin-top:8px;}
-.tempo-meta-stack input{width:100%; margin-top:8px;}
-#cardTempoMeta button[onclick="salvarHoras()"]{width:100%; margin-top:8px;}
-/* remove setas visuais de data/hora */
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="time"]::-webkit-calendar-picker-indicator{opacity:0;display:none;-webkit-appearance:none;}
-input[type="date"],input[type="time"]{-webkit-appearance:none;appearance:none;background-image:none;}
-/* neutraliza ajustes antigos que deixavam campos despadronizados */
-#metaDiariaManual,#ganhoDiarioAtual,#ganhoHoraManual,#metaTotal,#dataLimite{width:100%;margin-right:0;margin-left:0;}
-/* END_PATCH_V86_TEMPO_META */
-
 
 </style>
 
@@ -1819,6 +1913,7 @@ document.addEventListener("DOMContentLoaded", function(){
   <div class="menu-item"><button class="danger" onclick="openZerar(); closeMenu();">Zerar dados (cuidado)</button></div>
   <div class="menu-item"><button class="secondary" onclick="location.href='painel.html'; closeMenu();">Gerenciar APP</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
+  <div class="menu-item"><button class="secondary" onclick="openThemeModal(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
   <div class="menu-note">
     • Backup exporta um .json com tudo.<br>
@@ -1917,15 +2012,16 @@ document.addEventListener("DOMContentLoaded", function(){
 </div>
 </div>
 
-<div class="card" id="cardTempoMeta">
+<div class="card">
   <div class="card-header collapsible-header" onclick="toggleSection(this)">
-        <h3>Tempo para atingir a meta diária</h3>
+        <h3>Horas necessárias para atingir a Meta</h3>
         <span class="collapse-arrow">▼</span>
       </div>
-  <div class="card-body tempo-meta-stack">
+  <div class="card-body">
+    <div class="grid2">
       <div>
         <label>Meta diária (R$) — automática</label>
-        <input type="number" id="metaDiariaManual" inputmode="decimal" placeholder="Meta diária automática" readonly>
+        <input type="number" id="metaDiariaManual" inputmode="decimal" placeholder="Meta diária automática" readonly />
       </div>
       <div>
         <label>Ganho diário atual (R$) — automático</label>
@@ -1935,7 +2031,8 @@ document.addEventListener("DOMContentLoaded", function(){
         <label>Ganho por hora (R$)</label>
         <input type="number" id="ganhoHoraManual" inputmode="decimal" placeholder="Ex: 40">
       </div>
-    <button onclick="salvarHoras()">Salvar</button>
+    </div>
+    <button onclick="salvarHoras()">Iniciar / Atualizar sessão</button>
     <div id="horasResumo" class="muted" style="margin-top:10px;"></div>
   </div>
 </div>
@@ -2048,6 +2145,43 @@ document.addEventListener("DOMContentLoaded", function(){
       </div>
   <div class="card-body">
     <div id="resumo" class="muted"></div>
+  </div>
+</div>
+
+
+<div id="themeOverlay" class="editvalor-overlay" role="dialog" aria-modal="true" aria-label="Temas">
+  <div class="editvalor-modal">
+    <div class="editvalor-title">Temas</div>
+    <div style="opacity:.85;font-size:13px;line-height:1.35;margin-bottom:10px">Escolha um visual original inspirado em apps de mobilidade, com versões clara e escura.</div>
+    <div class="theme-grid">
+      <div class="theme-card">
+        <div class="theme-card-title">MetaDriver</div>
+        <div class="theme-card-sub">Visual oficial do app, com identidade própria.</div>
+        <div class="theme-options">
+          <button type="button" class="theme-option" data-theme-choice="metadriver-light" onclick="applyTheme('metadriver-light')">Claro</button>
+          <button type="button" class="theme-option" data-theme-choice="metadriver-dark" onclick="applyTheme('metadriver-dark')">Escuro</button>
+        </div>
+      </div>
+      <div class="theme-card">
+        <div class="theme-card-title">Preto Profissional</div>
+        <div class="theme-card-sub">Minimalista, contraste forte e aparência premium.</div>
+        <div class="theme-options">
+          <button type="button" class="theme-option" data-theme-choice="executivo-light" onclick="applyTheme('executivo-light')">Claro</button>
+          <button type="button" class="theme-option" data-theme-choice="executivo-dark" onclick="applyTheme('executivo-dark')">Escuro</button>
+        </div>
+      </div>
+      <div class="theme-card">
+        <div class="theme-card-title">Amarelo Dinâmico</div>
+        <div class="theme-card-sub">Mais vibrante, energético e com leitura rápida.</div>
+        <div class="theme-options">
+          <button type="button" class="theme-option" data-theme-choice="energia-light" onclick="applyTheme('energia-light')">Claro</button>
+          <button type="button" class="theme-option" data-theme-choice="energia-dark" onclick="applyTheme('energia-dark')">Escuro</button>
+        </div>
+      </div>
+    </div>
+    <div class="editvalor-actions" style="margin-top:14px">
+      <button type="button" class="cancel" onclick="closeThemeModal()">Fechar</button>
+    </div>
   </div>
 </div>
 
@@ -2277,9 +2411,11 @@ let dados = loadDados() || {
     kmRodados: 0,
     consumoMedio: 0,
     precoLitro: 0
-  }
+  },
+  appTema: 'metadriver-dark'
 };
 
+if(typeof dados.appTema !== 'string' || !dados.appTema) dados.appTema = 'metadriver-dark';
 if(typeof dados.saldoAtualButtonAtivo !== "boolean"){ dados.saldoAtualButtonAtivo = getQuickBalanceFabPref ? getQuickBalanceFabPref() : true; }
 if(!dados.saldoAtualButtonPos || typeof dados.saldoAtualButtonPos !== "object"){
   dados.saldoAtualButtonPos = null;
@@ -2287,6 +2423,7 @@ if(!dados.saldoAtualButtonPos || typeof dados.saldoAtualButtonPos !== "object"){
 if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
 if(!Array.isArray(dados.ganhoHoraHistorico)) dados.ganhoHoraHistorico = [];
 if(typeof dados.ganhoHoraHistoricoAberto !== "boolean") dados.ganhoHoraHistoricoAberto = false;
+window.__historicoGanhoHoraDiasAbertos = window.__historicoGanhoHoraDiasAbertos || {};
 if(!dados.ganhoHoraDiaRef) dados.ganhoHoraDiaRef = dataUberISO();
 if(typeof dados.ganhoHoraSessaoDiaRef !== "string") dados.ganhoHoraSessaoDiaRef = "";
 try{
@@ -2299,6 +2436,7 @@ try{
   }
 }catch(e){}
 try{ reprocessarSessoesGanhoHora(); }catch(e){}
+try{ document.addEventListener('DOMContentLoaded', function(){ applyTheme(dados.appTema || 'metadriver-dark', true); }); }catch(e){}
 // Migração desativada (substituída por loadDados com legacyKeys)
 function salvar(){
   try{
@@ -2586,6 +2724,47 @@ document.addEventListener("click", function(e){
   }
 });
 
+
+
+function updateThemeButtons(){
+  try{
+    const atual = String((dados && dados.appTema) || 'metadriver-dark');
+    document.querySelectorAll('[data-theme-choice]').forEach(function(btn){
+      btn.classList.toggle('active', btn.getAttribute('data-theme-choice') === atual);
+    });
+  }catch(e){}
+}
+
+function updateThemeMetaColor(){
+  try{
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if(!meta) return;
+    const bg = getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#0f172a';
+    meta.setAttribute('content', bg);
+  }catch(e){}
+}
+
+function applyTheme(themeName, skipSave){
+  try{
+    const tema = String(themeName || 'metadriver-dark');
+    document.body.setAttribute('data-theme', tema);
+    if(typeof dados === 'object' && dados){ dados.appTema = tema; }
+    updateThemeButtons();
+    updateThemeMetaColor();
+    if(!skipSave){ salvar(); }
+  }catch(e){}
+}
+
+function openThemeModal(){
+  try{ document.getElementById('themeOverlay').classList.add('show'); updateThemeButtons(); }catch(e){}
+}
+function closeThemeModal(){
+  try{ document.getElementById('themeOverlay').classList.remove('show'); }catch(e){}
+}
+document.addEventListener('click', function(ev){
+  const ov = document.getElementById('themeOverlay');
+  if(ov && ev.target === ov) closeThemeModal();
+});
 
 /* Menu */
 function toggleMenu(){
@@ -2953,6 +3132,15 @@ function confirmEditValor(){
         salvar();
         atualizar();
       }
+    }else if(ctx.tipo === 'ganhoHoraHistoricoSessao'){
+      const historico = Array.isArray(dados.ganhoHoraHistorico) ? dados.ganhoHoraHistorico : [];
+      const hist = historico.find(function(h){ return String((h && h.diaUber) || '').trim() === String(ctx.dia || '').trim(); });
+      if(hist && Array.isArray(hist.sessoes) && hist.sessoes[ctx.index]){
+        hist.sessoes[ctx.index].valorTotal = v;
+        recalcularResumoHistoricoItem(hist);
+        salvar();
+        atualizar();
+      }
     }else{
       const item = dados[ctx.tipo] && dados[ctx.tipo][ctx.index];
       if(item){
@@ -3214,7 +3402,17 @@ function getResumoDiaGanhoHora(diaRef){
     diaUber: dia,
     totalSaldoBase: totalSaldoBase,
     totalHoras: totalHoras,
-    totalGanhoHora: totalGanhoHora
+    totalGanhoHora: totalGanhoHora,
+    sessoes: sessoesDia.map(function(s, idx){
+      return {
+        id: String((s && s.id) || (dia + '_sessao_' + idx)),
+        inicio: String((s && s.inicio) || ''),
+        fim: String((s && s.fim) || ''),
+        valorTotal: Number((s && s.valorTotal) || 0),
+        ganhoHora: Number((s && s.ganhoHora) || 0),
+        tempoDecorrido: Number((s && s.tempoDecorrido) || 0)
+      };
+    })
   };
 }
 
@@ -3234,6 +3432,46 @@ function salvarResumoDiaGanhoHora(diaRef){
     return da < db ? 1 : da > db ? -1 : 0;
   });
   return true;
+}
+
+function recalcularResumoHistoricoItem(item){
+  if(!item) return item;
+  if(!Array.isArray(item.sessoes)) item.sessoes = [];
+  item.totalSaldoBase = item.sessoes.reduce(function(acc, s){ return acc + Number((s && s.valorTotal) || 0); }, 0);
+  item.totalHoras = item.sessoes.reduce(function(acc, s){ return acc + Number((s && s.tempoDecorrido) || 0); }, 0);
+  item.totalGanhoHora = Number(item.totalHoras || 0) > 0 ? (Number(item.totalSaldoBase || 0) / Number(item.totalHoras || 0)) : 0;
+  item.sessoes = item.sessoes.map(function(s){
+    const horas = Number((s && s.tempoDecorrido) || 0);
+    const valor = Number((s && s.valorTotal) || 0);
+    return Object.assign({}, s, {
+      valorTotal: valor,
+      tempoDecorrido: horas,
+      ganhoHora: horas > 0 ? (valor / horas) : 0
+    });
+  });
+  return item;
+}
+
+function toggleHistoricoGanhoHoraDia(dia){
+  const key = String(dia || '').trim();
+  if(!key) return;
+  window.__historicoGanhoHoraDiasAbertos[key] = !window.__historicoGanhoHoraDiasAbertos[key];
+  atualizar();
+}
+
+function editarValorSessaoHistorico(dia, sessaoIndex){
+  const historico = Array.isArray(dados.ganhoHoraHistorico) ? dados.ganhoHoraHistorico : [];
+  const item = historico.find(function(h){ return String((h && h.diaUber) || '').trim() === String(dia || '').trim(); });
+  if(!item || !Array.isArray(item.sessoes) || !item.sessoes[sessaoIndex]) return;
+  window.__editValorCtx = { tipo: 'ganhoHoraHistoricoSessao', dia: String(dia || '').trim(), index: sessaoIndex };
+  const atual = Number(item.sessoes[sessaoIndex].valorTotal || 0);
+  const ov = document.getElementById('editValorOverlay');
+  const inp = document.getElementById('editValorInput');
+  if(!ov || !inp) return;
+  inp.value = (atual ?? 0);
+  ov.classList.add('show');
+  try{ closeAllMenus(); }catch(e){}
+  setTimeout(()=>{ try{ inp.focus(); inp.select(); }catch(e){} }, 50);
 }
 
 function toggleHistoricoGanhoHora(){
@@ -3948,7 +4186,17 @@ function atualizar(){
           const ganhoHoraItem = Number(item.totalGanhoHora || 0);
           const totalClass = total < 0 ? "dangerText" : "warning";
           const ghClass = ganhoHoraItem < 0 ? "dangerText" : "warning";
-          return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)"><b>${item.diaUber || "-"}</b><br>Total: <span class="${totalClass}">R$ ${total.toFixed(2)}</span> | <span class="warning">${horasItem.toFixed(2)}h</span> | <span class="${ghClass}">R$ ${ganhoHoraItem.toFixed(2)}/h</span></div>`;
+          const dia = String(item.diaUber || '-');
+          const aberto = !!window.__historicoGanhoHoraDiasAbertos[dia];
+          const sessoesHtml = aberto ? ((Array.isArray(item.sessoes) ? item.sessoes : []).map(function(s, idx){
+            const valor = Number((s && s.valorTotal) || 0);
+            const ganhoHoraSessao = Number((s && s.ganhoHora) || 0);
+            const tempo = Number((s && s.tempoDecorrido) || 0);
+            const valorClass = valor < 0 ? 'dangerText' : 'warning';
+            const horaClass = ganhoHoraSessao < 0 ? 'dangerText' : 'warning';
+            return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);position:relative;padding-right:40px"><div class="action-menu" style="position:absolute;top:8px;right:0"><button class="kebab-btn" type="button" onclick="event.stopPropagation(); toggleItemMenu('menu_hist_${dia}_${idx}', this)">≡</button><div class="menu-pop" id="menu_hist_${dia}_${idx}"><button type="button" onclick="editarValorSessaoHistorico('${dia}', ${idx})">Editar valor</button></div></div><b>${getNomeSessao(idx + 1)} sessão</b><br>Hora de início: ${s.inicio || '-'}<br>Hora de término: ${s.fim || '-'}<br>Valor total: <span class="${valorClass}">R$ ${valor.toFixed(2)}</span><br>Ganho por hora: <span class="${horaClass}">R$ ${ganhoHoraSessao.toFixed(2)}</span><br>Tempo decorrido: <span class="warning">${tempo.toFixed(2)}h</span></div>`;
+          }).join('')) : '';
+          return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)"><div onclick="toggleHistoricoGanhoHoraDia('${dia}')" style="cursor:pointer"><b>${dia}</b></div>Total: <span class="${totalClass}">R$ ${total.toFixed(2)}</span> | <span class="warning">${horasItem.toFixed(2)}h</span> | <span class="${ghClass}">R$ ${ganhoHoraItem.toFixed(2)}/h</span>${sessoesHtml}</div>`;
         }).join("");
       }
     }
@@ -5652,7 +5900,7 @@ function logoutApp(){
 
 
 <div id="quickBalancePanel" class="quick-balance-panel" role="dialog" aria-modal="true" aria-labelledby="quickBalanceTitle">
-    <div class="quick-balance-display">
+  <div class="quick-balance-display quick-balance-display-compact">
     <div class="quick-balance-display-inner">
       <div class="quick-balance-display-top">Saldo atual</div>
       <div class="quick-balance-display-bottom">
@@ -5677,9 +5925,7 @@ function logoutApp(){
   </div>
   <div class="quick-balance-actions">
     <button type="button" onclick="salvarSaldoAtualRapido()">Salvar</button>
-    <button type="button" class="secondary quick-balance-home-btn" onclick="toggleQuickBalancePanel(false)" aria-label="Fechar painel">
-      <span class="quick-balance-home-icon" aria-hidden="true"></span>
-    </button>
+    <button type="button" class="secondary quick-balance-home-btn" onclick="toggleQuickBalancePanel(false)" aria-label="Home"><span class="quick-balance-home-icon" aria-hidden="true"></span></button>
     <button type="button" class="secondary" onclick="clearQuickBalance()">Limpar</button>
   </div>
 </div>
