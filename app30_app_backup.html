@@ -118,9 +118,9 @@ h1{text-align:center;margin:8px 0 14px;letter-spacing:0.2px;}
   background:rgba(255,255,255,0.10);
   color:var(--text);
 }
-.menu-item button.primary{background:var(--accent);color:var(--btn-text,#0b1220);}
-.menu-item button.secondary{background:var(--accent2);color:var(--btn-text,#0b1220);}
-.menu-item button.danger{background:var(--danger);color:var(--btn-text,#0b1220);}
+.menu-item button.primary{background:var(--accent);color:#0b1220;}
+.menu-item button.secondary{background:var(--accent2);color:#0b1220;}
+.menu-item button.danger{background:var(--danger);color:#0b1220;}
 .menu-note{padding:10px 14px; font-size:12px; opacity:0.85; line-height:1.35;}
 
 .card{
@@ -153,7 +153,7 @@ input,select,button{
   font-size:15px;
 }
 input,select{background:var(--input);color:var(--text);outline:none;}
-button{background:var(--accent);color:var(--btn-text,#0b1220);font-weight:bold;}
+button{background:var(--accent);color:#0b1220;font-weight:bold;}
 button.secondary{background:var(--accent2);}
 button:active{transform:scale(0.99);}
 .btn-historico-link{
@@ -1733,56 +1733,196 @@ input.negative-value, input.negative-value::placeholder{
 }
 
 
-/* ===== TEMAS PREMIUM ===== */
-:root{
-  --btn-text:#0b1220;
-  --panel-overlay:rgba(0,0,0,0.58);
+
+/* ===== META THEMES (additive only) ===== */
+body{
+  transition: background .28s ease, color .28s ease;
 }
 body[data-tema="meta-escuro"]{
-  --bg:#0f172a; --card:#1e293b; --input:#334155; --accent:#22c55e; --accent2:#60a5fa;
-  --text:#ffffff; --muted:rgba(255,255,255,0.88); --line:rgba(255,255,255,0.10);
-  --warn:#facc15; --danger:#fb7185; --btn-text:#0b1220; --panel-overlay:rgba(0,0,0,0.58);
+  --bg:#0f172a;
+  --card:#1e293b;
+  --input:#334155;
+  --accent:#22c55e;
+  --accent2:#60a5fa;
+  --text:#ffffff;
+  --muted:rgba(255,255,255,0.88);
+  --line:rgba(255,255,255,0.10);
+  --warn:#facc15;
+  --danger:#fb7185;
 }
 body[data-tema="meta-claro"]{
-  --bg:#eef2f7; --card:#ffffff; --input:#e7edf5; --accent:#16a34a; --accent2:#3b82f6;
-  --text:#0f172a; --muted:rgba(15,23,42,0.72); --line:rgba(15,23,42,0.10);
-  --warn:#b45309; --danger:#dc2626; --btn-text:#ffffff; --panel-overlay:rgba(0,0,0,0.42);
+  --bg:#f5f7fb;
+  --card:#ffffff;
+  --input:#e6ebf2;
+  --accent:#1db954;
+  --accent2:#3b82f6;
+  --text:#0f172a;
+  --muted:rgba(15,23,42,0.72);
+  --line:rgba(15,23,42,0.10);
+  --warn:#ca8a04;
+  --danger:#e11d48;
 }
+/* Próximo da linguagem visual de apps executivos escuros, sem copiar marca */
 body[data-tema="preto-escuro"]{
-  --bg:#0a0a0a; --card:#141414; --input:#1f1f1f; --accent:#ffffff; --accent2:#8b8b8b;
-  --text:#f5f5f5; --muted:rgba(255,255,255,0.76); --line:rgba(255,255,255,0.09);
-  --warn:#f4b740; --danger:#ff6b6b; --btn-text:#111111; --panel-overlay:rgba(0,0,0,0.66);
+  --bg:#000000;
+  --card:#121212;
+  --input:#1c1c1e;
+  --accent:#ffffff;
+  --accent2:#6b7280;
+  --text:#f5f5f7;
+  --muted:rgba(245,245,247,0.74);
+  --line:rgba(255,255,255,0.10);
+  --warn:#ffd166;
+  --danger:#ff6b6b;
 }
 body[data-tema="preto-claro"]{
-  --bg:#f6f6f6; --card:#ffffff; --input:#ececec; --accent:#111111; --accent2:#4b5563;
-  --text:#111111; --muted:rgba(17,17,17,0.72); --line:rgba(17,17,17,0.10);
-  --warn:#a16207; --danger:#dc2626; --btn-text:#ffffff; --panel-overlay:rgba(0,0,0,0.46);
+  --bg:#f2f2f2;
+  --card:#ffffff;
+  --input:#e8e8e8;
+  --accent:#111111;
+  --accent2:#5b5b5b;
+  --text:#111111;
+  --muted:rgba(17,17,17,0.68);
+  --line:rgba(17,17,17,0.08);
+  --warn:#b45309;
+  --danger:#dc2626;
 }
+/* Próximo da sensação de app amarelo vibrante, sem copiar marca */
 body[data-tema="amarelo-escuro"]{
-  --bg:#1b1600; --card:#2a2200; --input:#3a3000; --accent:#ffd400; --accent2:#ffec99;
-  --text:#fff8db; --muted:rgba(255,248,219,0.80); --line:rgba(255,212,0,0.16);
-  --warn:#ffd400; --danger:#ff7b7b; --btn-text:#171717; --panel-overlay:rgba(0,0,0,0.62);
+  --bg:#161100;
+  --card:#241c00;
+  --input:#332800;
+  --accent:#ffd400;
+  --accent2:#ffe98a;
+  --text:#fffdf5;
+  --muted:rgba(255,253,245,0.76);
+  --line:rgba(255,212,0,0.14);
+  --warn:#ffe066;
+  --danger:#ff7b7b;
 }
 body[data-tema="amarelo-claro"]{
-  --bg:#fff8dc; --card:#fff2b8; --input:#ffe98a; --accent:#ffcc00; --accent2:#f59e0b;
-  --text:#1f2937; --muted:rgba(31,41,55,0.72); --line:rgba(31,41,55,0.10);
-  --warn:#92400e; --danger:#dc2626; --btn-text:#111111; --panel-overlay:rgba(0,0,0,0.42);
+  --bg:#fff8d9;
+  --card:#fff1a6;
+  --input:#ffe58a;
+  --accent:#ffcc00;
+  --accent2:#f59e0b;
+  --text:#2a2110;
+  --muted:rgba(42,33,16,0.72);
+  --line:rgba(42,33,16,0.10);
+  --warn:#a16207;
+  --danger:#dc2626;
 }
-.themes-modal{position:fixed;inset:0;z-index:1400;background:var(--panel-overlay);display:none;align-items:flex-end;justify-content:center;padding:14px}
-.themes-modal.show{display:flex}
-.themes-sheet{width:min(520px,100%);max-height:85vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:0 24px 60px rgba(0,0,0,.45);padding:16px}
-.themes-title{font-size:18px;font-weight:800;margin:0 0 4px}
-.themes-sub{font-size:12px;color:var(--muted);margin:0 0 14px;line-height:1.35}
-.themes-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.theme-option{border:1px solid var(--line);border-radius:16px;padding:12px;background:rgba(255,255,255,.04);cursor:pointer}
-.theme-option.active{outline:2px solid var(--accent)}
-.theme-option h4{margin:0 0 8px;font-size:14px}
-.theme-preview{height:82px;border-radius:12px;border:1px solid rgba(255,255,255,.08);padding:8px;display:flex;flex-direction:column;gap:6px}
-.theme-preview .pv-top{height:14px;border-radius:8px;opacity:.9}
-.theme-preview .pv-card{flex:1;border-radius:10px;opacity:.95}
-.themes-actions{display:flex;gap:10px;margin-top:14px}
-.themes-actions button{margin-top:0}
-@media (max-width:420px){.themes-grid{grid-template-columns:1fr}}
+body[data-tema="meta-claro"],
+body[data-tema="preto-claro"],
+body[data-tema="amarelo-claro"]{ color-scheme:light; }
+body[data-tema="meta-escuro"],
+body[data-tema="preto-escuro"],
+body[data-tema="amarelo-escuro"]{ color-scheme:dark; }
+body[data-tema$="claro"] .topbar{
+  background:linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.84));
+  border-bottom:1px solid var(--line);
+}
+body[data-tema$="claro"] .menu-panel{
+  background:rgba(255,255,255,0.98);
+}
+body[data-tema="preto-escuro"] .card-header{
+  background:linear-gradient(135deg, rgba(255,255,255,0.13), rgba(255,255,255,0.04));
+}
+body[data-tema="preto-claro"] .card-header{
+  background:linear-gradient(135deg, rgba(17,17,17,0.12), rgba(17,17,17,0.03));
+}
+body[data-tema="amarelo-escuro"] .card-header{
+  background:linear-gradient(135deg, rgba(255,212,0,0.18), rgba(255,245,180,0.06));
+}
+body[data-tema="amarelo-claro"] .card-header{
+  background:linear-gradient(135deg, rgba(255,212,0,0.28), rgba(255,204,0,0.10));
+}
+body[data-tema="preto-escuro"] .quick-balance-panel,
+body[data-tema="preto-escuro"] .quick-balance-display{
+  background-color:#0d0d0d;
+}
+body[data-tema="preto-claro"] .quick-balance-panel{
+  background:#ffffff;
+}
+body[data-tema="amarelo-escuro"] .quick-balance-panel{
+  background:#171300;
+}
+body[data-tema="amarelo-claro"] .quick-balance-panel{
+  background:#fff7d1;
+}
+body[data-tema="preto-escuro"] button,
+body[data-tema="amarelo-escuro"] button,
+body[data-tema="amarelo-claro"] button,
+body[data-tema="preto-claro"] button,
+body[data-tema="meta-claro"] button{
+  color:#0b1220;
+}
+body[data-tema="preto-escuro"] .menu-item button.secondary,
+body[data-tema="preto-claro"] .menu-item button.secondary{
+  background:var(--accent2);
+  color:#fff;
+}
+body[data-tema="meta-claro"] .menu-btn,
+body[data-tema="preto-claro"] .menu-btn,
+body[data-tema="amarelo-claro"] .menu-btn{
+  background:rgba(15,23,42,0.06);
+  color:var(--text);
+  border-color:var(--line);
+}
+
+.temas-overlay{
+  position:fixed; inset:0; z-index:1500;
+  background:rgba(0,0,0,0.62);
+  display:none;
+}
+.temas-overlay.show{ display:block; }
+.temas-panel{
+  position:fixed; left:12px; right:12px; bottom:18px; z-index:1501;
+  max-width:520px; margin:0 auto;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:22px;
+  box-shadow:0 30px 70px rgba(0,0,0,.50);
+  display:none;
+  overflow:hidden;
+}
+.temas-panel.show{ display:block; }
+.temas-head{
+  padding:16px 16px 10px;
+  background:linear-gradient(135deg, rgba(96,165,250,0.18), rgba(34,197,94,0.12));
+  border-bottom:1px solid var(--line);
+}
+.temas-title{ font-size:18px; font-weight:800; letter-spacing:.2px; }
+.temas-sub{ font-size:12px; opacity:.86; line-height:1.35; margin-top:4px; }
+.temas-body{ padding:14px; display:grid; gap:12px; max-height:68vh; overflow:auto; }
+.tema-card{
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:rgba(255,255,255,.03);
+  padding:12px;
+}
+.tema-card-title{ font-size:14px; font-weight:800; }
+.tema-card-desc{ font-size:12px; opacity:.8; line-height:1.35; margin-top:4px; }
+.tema-options{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+.tema-option{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:10px;
+  cursor:pointer;
+  background:rgba(255,255,255,.04);
+}
+.tema-option.active{ outline:2px solid var(--accent2); outline-offset:1px; }
+.tema-preview{
+  height:68px; border-radius:12px; overflow:hidden; position:relative;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.06);
+}
+.tema-preview-top{ height:14px; width:100%; opacity:.94; }
+.tema-preview-card{
+  position:absolute; left:10px; right:10px; bottom:10px; height:24px; border-radius:10px;
+}
+.tema-label{ margin-top:8px; font-size:12px; font-weight:800; text-align:center; }
+.temas-actions{ padding:0 14px 14px; }
+.temas-actions button{ margin-top:0; }
 
 </style>
 
@@ -1820,6 +1960,52 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 });
 
+
+
+const META_TEMA_STORAGE_KEY = "md_tema_premium";
+function temaPadraoMetaDriver(){
+  return "meta-escuro";
+}
+function aplicarTemaPremium(tema){
+  const temaSeguro = tema || temaPadraoMetaDriver();
+  document.body.setAttribute("data-tema", temaSeguro);
+  try{ localStorage.setItem(META_TEMA_STORAGE_KEY, temaSeguro); }catch(e){}
+  try{
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if(metaTheme){
+      const corAtual = getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#0f172a';
+      metaTheme.setAttribute('content', corAtual);
+    }
+  }catch(e){}
+  atualizarEstadoTemaUI();
+}
+function obterTemaPremium(){
+  try{ return localStorage.getItem(META_TEMA_STORAGE_KEY) || temaPadraoMetaDriver(); }catch(e){ return temaPadraoMetaDriver(); }
+}
+function atualizarEstadoTemaUI(){
+  try{
+    const atual = document.body.getAttribute('data-tema') || temaPadraoMetaDriver();
+    document.querySelectorAll('[data-tema-option]').forEach(function(el){
+      el.classList.toggle('active', el.getAttribute('data-tema-option') === atual);
+    });
+  }catch(e){}
+}
+function abrirTemas(){
+  try{ document.getElementById('temasOverlay').classList.add('show'); }catch(e){}
+  try{ document.getElementById('temasPanel').classList.add('show'); }catch(e){}
+  atualizarEstadoTemaUI();
+}
+function fecharTemas(){
+  try{ document.getElementById('temasOverlay').classList.remove('show'); }catch(e){}
+  try{ document.getElementById('temasPanel').classList.remove('show'); }catch(e){}
+}
+function selecionarTema(tema){
+  aplicarTemaPremium(tema);
+}
+window.addEventListener('load', function(){
+  try{ aplicarTemaPremium(obterTemaPremium()); }catch(e){}
+});
+
 </script>
 
 </head>
@@ -1853,14 +2039,68 @@ document.addEventListener("DOMContentLoaded", function(){
   <div class="menu-item"><button class="danger" onclick="openZerar(); closeMenu();">Zerar dados (cuidado)</button></div>
   <div class="menu-item"><button class="secondary" onclick="location.href='painel.html'; closeMenu();">Gerenciar APP</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
+  <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-item"><button type="button" onclick="abrirTemas()">Temas</button></div>
-<div class="menu-note">
+  <div class="menu-note">
     • Backup exporta um .json com tudo.<br>
     • Importar substitui os dados atuais (com confirmação).<br>
     • PDF abre a tela de impressão pra salvar em PDF.
   </div>
 </div>
+
+<div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
+<div id="temasPanel" class="temas-panel" role="dialog" aria-modal="true" aria-labelledby="temasTitle">
+  <div class="temas-head">
+    <div id="temasTitle" class="temas-title">Temas</div>
+    <div class="temas-sub">Visual premium com identidade própria, inspirado na clareza e contraste de apps grandes de mobilidade.</div>
+  </div>
+  <div class="temas-body">
+    <div class="tema-card">
+      <div class="tema-card-title">MetaDriver</div>
+      <div class="tema-card-desc">Visual atual do app, refinado para contraste e leitura.</div>
+      <div class="tema-options">
+        <div class="tema-option" data-tema-option="meta-escuro" onclick="selecionarTema('meta-escuro')">
+          <div class="tema-preview" style="background:#0f172a;"><div class="tema-preview-top" style="background:#60a5fa"></div><div class="tema-preview-card" style="background:#22c55e"></div></div>
+          <div class="tema-label">Escuro</div>
+        </div>
+        <div class="tema-option" data-tema-option="meta-claro" onclick="selecionarTema('meta-claro')">
+          <div class="tema-preview" style="background:#f5f7fb;"><div class="tema-preview-top" style="background:#3b82f6"></div><div class="tema-preview-card" style="background:#1db954"></div></div>
+          <div class="tema-label">Claro</div>
+        </div>
+      </div>
+    </div>
+    <div class="tema-card">
+      <div class="tema-card-title">Preto Profissional</div>
+      <div class="tema-card-desc">Minimalista, denso e sofisticado, bem próximo da sensação visual de apps executivos escuros.</div>
+      <div class="tema-options">
+        <div class="tema-option" data-tema-option="preto-escuro" onclick="selecionarTema('preto-escuro')">
+          <div class="tema-preview" style="background:#000"><div class="tema-preview-top" style="background:#fff"></div><div class="tema-preview-card" style="background:#1c1c1e;border:1px solid rgba(255,255,255,.10)"></div></div>
+          <div class="tema-label">Escuro</div>
+        </div>
+        <div class="tema-option" data-tema-option="preto-claro" onclick="selecionarTema('preto-claro')">
+          <div class="tema-preview" style="background:#f2f2f2;"><div class="tema-preview-top" style="background:#111"></div><div class="tema-preview-card" style="background:#fff;border:1px solid rgba(0,0,0,.08)"></div></div>
+          <div class="tema-label">Claro</div>
+        </div>
+      </div>
+    </div>
+    <div class="tema-card">
+      <div class="tema-card-title">Amarelo Dinâmico</div>
+      <div class="tema-card-desc">Vibrante, rápido de ler e com alto destaque visual para uso na rua.</div>
+      <div class="tema-options">
+        <div class="tema-option" data-tema-option="amarelo-escuro" onclick="selecionarTema('amarelo-escuro')">
+          <div class="tema-preview" style="background:#161100;"><div class="tema-preview-top" style="background:#ffd400"></div><div class="tema-preview-card" style="background:#241c00"></div></div>
+          <div class="tema-label">Escuro</div>
+        </div>
+        <div class="tema-option" data-tema-option="amarelo-claro" onclick="selecionarTema('amarelo-claro')">
+          <div class="tema-preview" style="background:#fff8d9;"><div class="tema-preview-top" style="background:#ffcc00"></div><div class="tema-preview-card" style="background:#fff1a6"></div></div>
+          <div class="tema-label">Claro</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="temas-actions"><button class="secondary" onclick="fecharTemas()">Fechar</button></div>
+</div>
+
 <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importarBackup(event)">
 
 
@@ -2304,8 +2544,7 @@ let dados = loadDados() || {
   ganhoHoraSessoes: [],
   ganhoHoraHistorico: [],
   ganhoHoraHistoricoAberto: false,
-    ganhoHoraHistoricoDetalhes: {},
-  ganhoHoraHistoricoDetalhes: {},
+  ganhoHoraHistoricoExpandidos: {},
   ganhoHoraDiaRef: dataUberISO(),
   ganhoHoraSessaoDiaRef: "",
   combustivelModo: "fixo",
@@ -2324,7 +2563,7 @@ if(!dados.saldoAtualButtonPos || typeof dados.saldoAtualButtonPos !== "object"){
 if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
 if(!Array.isArray(dados.ganhoHoraHistorico)) dados.ganhoHoraHistorico = [];
 if(typeof dados.ganhoHoraHistoricoAberto !== "boolean") dados.ganhoHoraHistoricoAberto = false;
-if(!dados.ganhoHoraHistoricoDetalhes || typeof dados.ganhoHoraHistoricoDetalhes !== "object") dados.ganhoHoraHistoricoDetalhes = {};
+if(!dados.ganhoHoraHistoricoExpandidos || typeof dados.ganhoHoraHistoricoExpandidos !== "object") dados.ganhoHoraHistoricoExpandidos = {};
 if(!dados.ganhoHoraDiaRef) dados.ganhoHoraDiaRef = dataUberISO();
 if(typeof dados.ganhoHoraSessaoDiaRef !== "string") dados.ganhoHoraSessaoDiaRef = "";
 try{
@@ -3080,7 +3319,7 @@ function importarBackup(ev){
         ganhoHoraSessoes: Array.isArray(novoDados.ganhoHoraSessoes) ? novoDados.ganhoHoraSessoes : [],
         ganhoHoraHistorico: Array.isArray(novoDados.ganhoHoraHistorico) ? novoDados.ganhoHoraHistorico : [],
         ganhoHoraHistoricoAberto: typeof novoDados.ganhoHoraHistoricoAberto === "boolean" ? novoDados.ganhoHoraHistoricoAberto : false,
-        ganhoHoraHistoricoDetalhes: novoDados.ganhoHoraHistoricoDetalhes && typeof novoDados.ganhoHoraHistoricoDetalhes === 'object' ? novoDados.ganhoHoraHistoricoDetalhes : {},
+        ganhoHoraHistoricoExpandidos: (novoDados.ganhoHoraHistoricoExpandidos && typeof novoDados.ganhoHoraHistoricoExpandidos === "object") ? novoDados.ganhoHoraHistoricoExpandidos : {},
         ganhoHoraDiaRef: (novoDados.ganhoHoraDiaRef && String(novoDados.ganhoHoraDiaRef)) || dataUberISO(),
         ganhoHoraSessaoDiaRef: (novoDados.ganhoHoraSessaoDiaRef && String(novoDados.ganhoHoraSessaoDiaRef)) || "",
         combustivelModo: (String(novoDados.combustivelModo || "fixo") === "real" ? "real" : "fixo"),
@@ -3183,6 +3422,7 @@ function zerarTudo(){
     ganhoHoraSessoes: [],
     ganhoHoraHistorico: [],
     ganhoHoraHistoricoAberto: false,
+    ganhoHoraHistoricoExpandidos: {},
     ganhoHoraDiaRef: dataUberISO(),
     ganhoHoraSessaoDiaRef: "",
     combustivelModo: "fixo",
@@ -3229,19 +3469,32 @@ function getResumoDiaGanhoHora(diaRef){
   const dia = String(diaRef || '').trim();
   if(!dia) return null;
   const sessoes = Array.isArray(dados.ganhoHoraSessoes) ? dados.ganhoHoraSessoes : [];
-  const sessoesDia = sessoes.filter(function(s){
-    return String((s && s.diaRef) || '').trim() === dia || (!String((s && s.diaRef) || '').trim() && dia === String(dados.ganhoHoraDiaRef || ''));
+  const sessoesDia = sessoes.map(function(s, idx){
+    return { s: s, idx: idx };
+  }).filter(function(item){
+    return String((item.s && item.s.diaRef) || '').trim() === dia || (!String((item.s && item.s.diaRef) || '').trim() && dia === String(dados.ganhoHoraDiaRef || ''));
   });
   if(!sessoesDia.length) return null;
-  const totalSaldoBase = sessoesDia.reduce(function(acc, s){ return acc + Number((s && s.ganhoSessao) || 0); }, 0);
-  const totalHoras = sessoesDia.reduce(function(acc, s){ return acc + Number((s && s.tempoDecorrido) || 0); }, 0);
+  const sessoesResumo = sessoesDia.map(function(item){
+    const recalculada = recalcularSessaoGanhoHora(Object.assign({}, item.s), item.idx);
+    return {
+      inicio: String(recalculada.inicio || ''),
+      fim: String(recalculada.fim || ''),
+      valorTotal: Number(recalculada.valorTotal || 0),
+      ganhoHora: Number(recalculada.ganhoHora || 0),
+      tempoDecorrido: Number(recalculada.tempoDecorrido || 0),
+      diaRef: dia
+    };
+  });
+  const totalSaldoBase = sessoesResumo.reduce(function(acc, s){ return acc + Number((s && s.valorTotal) || 0); }, 0);
+  const totalHoras = sessoesResumo.reduce(function(acc, s){ return acc + Number((s && s.tempoDecorrido) || 0); }, 0);
   const totalGanhoHora = totalHoras > 0 ? (totalSaldoBase / totalHoras) : 0;
   return {
     diaUber: dia,
     totalSaldoBase: totalSaldoBase,
     totalHoras: totalHoras,
     totalGanhoHora: totalGanhoHora,
-    sessoes: sessoesDia.map(function(s){ return { inicio: s.inicio || '', fim: s.fim || '', valorTotal: Number(s.valorTotal || 0), ganhoHora: Number(s.ganhoHora || 0), tempoDecorrido: Number(s.tempoDecorrido || 0) }; })
+    sessoes: sessoesResumo
   };
 }
 
@@ -3263,87 +3516,47 @@ function salvarResumoDiaGanhoHora(diaRef){
   return true;
 }
 
-
-function formatHorasMinutos(horasDecimal){
-  const totalMin=Math.max(0,Math.round(Number(horasDecimal||0)*60));
-  const h=Math.floor(totalMin/60);
-  const m=totalMin%60;
-  return `${h}h ${String(m).padStart(2,'0')}min`;
+function reprocessarResumoHistoricoGanhoHora(diaUber){
+  const dia = String(diaUber || '').trim();
+  if(!dia || !Array.isArray(dados.ganhoHoraHistorico)) return false;
+  const item = dados.ganhoHoraHistorico.find(function(h){
+    return String((h && h.diaUber) || '').trim() === dia;
+  });
+  if(!item) return false;
+  const sessoes = Array.isArray(item.sessoes) ? item.sessoes : [];
+  item.totalSaldoBase = sessoes.reduce(function(acc, s){ return acc + Number((s && s.valorTotal) || 0); }, 0);
+  item.totalHoras = sessoes.reduce(function(acc, s){ return acc + Number((s && s.tempoDecorrido) || 0); }, 0);
+  item.totalGanhoHora = Number(item.totalHoras || 0) > 0 ? (Number(item.totalSaldoBase || 0) / Number(item.totalHoras || 0)) : 0;
+  return true;
 }
 
+function toggleHistoricoDiaGanhoHora(diaUber){
+  const dia = String(diaUber || '').trim();
+  if(!dia) return;
+  if(!dados.ganhoHoraHistoricoExpandidos || typeof dados.ganhoHoraHistoricoExpandidos !== 'object') dados.ganhoHoraHistoricoExpandidos = {};
+  dados.ganhoHoraHistoricoExpandidos[dia] = !dados.ganhoHoraHistoricoExpandidos[dia];
+  salvar();
+  atualizar();
+}
 
-function atualizarTemaAtivoUI(){try{const atual=localStorage.getItem('metadriver_tema')||'meta-escuro';document.querySelectorAll('.theme-option').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-theme')===atual);});}catch(e){}}
-function aplicarTema(tema){try{document.body.setAttribute('data-tema',tema);localStorage.setItem('metadriver_tema',tema);atualizarTemaAtivoUI();}catch(e){}}
-function abrirTemas(){try{const el=document.getElementById('themesModal');if(el)el.classList.add('show');atualizarTemaAtivoUI();}catch(e){}}
-function fecharTemas(){try{const el=document.getElementById('themesModal');if(el)el.classList.remove('show');}catch(e){}}
-(function(){try{const salvo=localStorage.getItem('metadriver_tema')||'meta-escuro';document.body.setAttribute('data-tema',salvo);}catch(e){}})();
+function editarValorSessaoHistorico(diaUber, indice){
+  window.__editValorCtx = { tipo: 'ganhoHoraSessaoHistorico', diaUber: String(diaUber || '').trim(), index: Number(indice || 0) };
+  const item = (dados.ganhoHoraHistorico || []).find(function(h){ return String((h && h.diaUber) || '').trim() === String(diaUber || '').trim(); });
+  const sessao = item && Array.isArray(item.sessoes) ? item.sessoes[Number(indice || 0)] : null;
+  const atual = sessao ? Number(sessao.valorTotal || 0) : 0;
+  const ov = document.getElementById("editValorOverlay");
+  const inp = document.getElementById("editValorInput");
+  if(!ov || !inp) return;
+  inp.value = (atual ?? 0);
+  ov.classList.add("show");
+  try{ closeAllMenus(); }catch(e){}
+  setTimeout(()=>{ try{ inp.focus(); inp.select(); }catch(e){} }, 50);
+}
 
 function toggleHistoricoGanhoHora(){
   dados.ganhoHoraHistoricoAberto = !dados.ganhoHoraHistoricoAberto;
   salvar();
   atualizar();
-}
-
-
-function toggleHistoricoDiaGanhoHora(dia){
-  try{
-    if(!dados.ganhoHoraHistoricoDetalhes||typeof dados.ganhoHoraHistoricoDetalhes!=='object') dados.ganhoHoraHistoricoDetalhes={};
-    dados.ganhoHoraHistoricoDetalhes[dia]=!dados.ganhoHoraHistoricoDetalhes[dia];
-    salvar(); atualizar();
-  }catch(e){}
-}
-function editarValorSessaoHistorico(dia, indice){
-  try{
-    if(!Array.isArray(dados.ganhoHoraHistorico)) return;
-    const item=dados.ganhoHoraHistorico.find(function(x){return String((x&&x.diaUber)||'').trim()===String(dia).trim();});
-    if(!item||!Array.isArray(item.sessoes)||!item.sessoes[indice]) return;
-    const atual=Number(item.sessoes[indice].valorTotal||0);
-    const novo=prompt('Editar valor da sessão:', atual.toFixed(2));
-    if(novo==null) return;
-    const valor=Number(String(novo).replace(',','.'));
-    if(!isFinite(valor)){toast('Valor inválido.');return;}
-    item.sessoes[indice].valorTotal=valor;
-    item.sessoes[indice].ganhoSessao=valor;
-    const horas=Number(item.sessoes[indice].tempoDecorrido||0);
-    item.sessoes[indice].ganhoHora=horas>0?(valor/horas):0;
-    item.totalSaldoBase=item.sessoes.reduce(function(acc,s){return acc+Number((s&&s.valorTotal)||0);},0);
-    item.totalHoras=item.sessoes.reduce(function(acc,s){return acc+Number((s&&s.tempoDecorrido)||0);},0);
-    item.totalGanhoHora=item.totalHoras>0?(item.totalSaldoBase/item.totalHoras):0;
-    salvar(); atualizar(); toast('✅ Sessão atualizada.');
-  }catch(e){}
-}
-function renderHistoricoGanhoHora(){
-  try{
-    const btnHistorico=document.getElementById("btnHistoricoGanhoHora");
-    const historicoWrap=document.getElementById("historicoGanhoHoraWrap");
-    if(btnHistorico) btnHistorico.textContent="Histórico";
-    if(!historicoWrap) return;
-    if(!dados.ganhoHoraHistoricoDetalhes||typeof dados.ganhoHoraHistoricoDetalhes!=='object') dados.ganhoHoraHistoricoDetalhes={};
-    const historico=(Array.isArray(dados.ganhoHoraHistorico)?dados.ganhoHoraHistorico:[]).filter(function(item){
-      const dia=String((item&&item.diaUber)||'').trim();
-      return dia && dia!==String(dados.ganhoHoraDiaRef||dataUberISO()) && diaUberEhAteDataLimite(dia);
-    }).sort(function(a,b){const da=String((a&&a.diaUber)||'');const db=String((b&&b.diaUber)||'');return da<db?1:da>db?-1:0;});
-    historicoWrap.style.display=dados.ganhoHoraHistoricoAberto?"block":"none";
-    if(!historico.length){historicoWrap.innerHTML=dados.ganhoHoraHistoricoAberto?"<div style='padding-top:6px'>Sem histórico.</div>":"";return;}
-    historicoWrap.innerHTML=historico.map(function(item){
-      const dia=String(item.diaUber||"-");
-      const total=Number(item.totalSaldoBase||0);
-      const horasItem=Number(item.totalHoras||0);
-      const ganhoHoraItem=Number(item.totalGanhoHora||0);
-      const totalClass=total<0?"dangerText":"warning";
-      const ghClass=ganhoHoraItem<0?"dangerText":"warning";
-      const aberto=!!dados.ganhoHoraHistoricoDetalhes[dia];
-      const sessoes=Array.isArray(item.sessoes)?item.sessoes:[];
-      const detalhes=aberto?sessoes.map(function(s,idx){
-        s=s||{};
-        const valorClass=Number(s.valorTotal||0)<0?"dangerText":"warning";
-        const horaClass=Number(s.ganhoHora||0)<0?"dangerText":"warning";
-        const menuId="menu_hist_"+dia.replace(/[^0-9]/g,'')+"_"+idx;
-        return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);position:relative;padding-right:40px"><div class="action-menu" style="position:absolute;top:8px;right:0"><button class="kebab-btn" type="button" onclick="event.stopPropagation(); toggleItemMenu('${menuId}', this)">≡</button><div class="menu-pop" id="${menuId}"><button type="button" onclick="editarValorSessaoHistorico('${dia}', ${idx})">Editar valor</button></div></div><b>${getNomeSessao(idx+1)} sessão</b><br>Hora de início: ${s.inicio||"-"}<br>Hora de término: ${s.fim||"-"}<br>Valor total: <span class="${valorClass}">R$ ${Number(s.valorTotal||0).toFixed(2)}</span><br>Ganho por hora: <span class="${horaClass}">R$ ${Number(s.ganhoHora||0).toFixed(2)}</span><br>Tempo decorrido: <span class="warning">${formatHorasMinutos(Number(s.tempoDecorrido||0))}</span></div>`;
-      }).join(''):'';
-      return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)"><button type="button" class="btn-historico-link" onclick="toggleHistoricoDiaGanhoHora('${dia}')">${dia}</button><br>Total: <span class="${totalClass}">R$ ${total.toFixed(2)}</span> | <span class="warning">${formatHorasMinutos(horasItem)}</span> | <span class="${ghClass}">R$ ${ganhoHoraItem.toFixed(2)}/h</span><div style="display:${aberto?'block':'none'}">${detalhes}</div></div>`;
-    }).join("");
-  }catch(e){}
 }
 
 function getViradaOperacional(refDate){
@@ -3554,6 +3767,12 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
     if(horarioInicioEl) horarioInicioEl.value = deveIniciarProxima ? horaFim : "";
   }catch(e){}
 
+  if(deveIniciarProxima){
+    iniciarTimerGanhoHoraTempoReal();
+  }else{
+    pararTimerGanhoHoraTempoReal();
+  }
+
   if(!opts.skipSave){ salvar(); }
   if(!opts.skipUpdate){ atualizar(); }
   if(!opts.silent){ toast("✅ Sessão finalizada."); }
@@ -3656,6 +3875,12 @@ function salvarGanhosForaTempoReal(){
     dados.ganhoHoraAtualFora = 0;
   }
 
+  if(horario){
+    iniciarTimerGanhoHoraTempoReal();
+  }else{
+    pararTimerGanhoHoraTempoReal();
+  }
+
   salvar();
   atualizar();
 }
@@ -3663,6 +3888,68 @@ function salvarGanhosForaTempoReal(){
 function finalizarSessaoGanhoHora(){
   ensureGanhoHoraDiaAtual();
   finalizarSessaoGanhoHoraInterno();
+}
+
+let ganhoHoraTempoRealTimer = null;
+
+function pararTimerGanhoHoraTempoReal(){
+  if(ganhoHoraTempoRealTimer){
+    clearInterval(ganhoHoraTempoRealTimer);
+    ganhoHoraTempoRealTimer = null;
+  }
+}
+
+function recalcularGanhoHoraSessaoEmTempoReal(renderizar){
+  try{ ensureGanhoHoraDiaAtual(); }catch(e){}
+
+  const horarioEl = document.getElementById("horarioInicioFora");
+  const saldoEl = document.getElementById("saldoAtualFora");
+  const horario = String((horarioEl && horarioEl.value) || dados.horarioInicioFora || "").trim();
+
+  if(!horario){
+    dados.horasDecorridasFora = 0;
+    dados.ganhoHoraAtualFora = 0;
+    if(renderizar !== false) atualizar();
+    pararTimerGanhoHoraTempoReal();
+    return;
+  }
+
+  const saldoAtualLido = Number((saldoEl && saldoEl.value) || dados.saldoAtualFora || 0);
+  dados.saldoAtualFora = saldoAtualLido;
+  dados.ganhoDiarioAtual = saldoAtualLido;
+  dados.horarioInicioFora = horario;
+  dados.ganhoHoraSessaoDiaRef = String(dados.ganhoHoraDiaRef || dataUberISO());
+
+  const saldoAnterior = syncSaldoAnteriorSessaoAtual();
+  const saldoBase = saldoAtualLido - saldoAnterior;
+
+  const agora = new Date();
+  const partes = horario.split(":");
+  const hIni = Number(partes[0] || 0);
+  const mIni = Number(partes[1] || 0);
+
+  let inicio = new Date(agora.getTime());
+  inicio.setHours(hIni, mIni, 0, 0);
+
+  let diffMs = agora.getTime() - inicio.getTime();
+  if(diffMs < 0){
+    inicio.setDate(inicio.getDate() - 1);
+    diffMs = agora.getTime() - inicio.getTime();
+  }
+
+  const horas = Math.max(0, diffMs / 3600000);
+  dados.horasDecorridasFora = horas;
+  dados.ganhoHoraAtualFora = horas > 0 ? (saldoBase / horas) : 0;
+
+  if(renderizar !== false) atualizar();
+}
+
+function iniciarTimerGanhoHoraTempoReal(){
+  pararTimerGanhoHoraTempoReal();
+  recalcularGanhoHoraSessaoEmTempoReal(true);
+  ganhoHoraTempoRealTimer = setInterval(function(){
+    recalcularGanhoHoraSessaoEmTempoReal(true);
+  }, 1000);
 }
 
 
@@ -3948,7 +4235,7 @@ function atualizar(){
           "Hora de término: -<br>" +
           "Valor total: <span class='" + valorClass + "'>R$ " + valorSessaoAtual.toFixed(2) + "</span><br>" +
           "Ganho por hora: <span class='" + horaClass + "'>R$ " + ganhoHora.toFixed(2) + "</span><br>" +
-          "Tempo decorrido: <span class='warning'>" + formatHorasMinutos(horas) + "</span></div>";
+          "Tempo decorrido: <span class='warning'>" + horas.toFixed(2) + "h</span></div>";
       }else{
         resumoEl.innerHTML = "";
       }
@@ -3972,13 +4259,47 @@ function atualizar(){
             const valorClass = Number(s.valorTotal || 0) < 0 ? "dangerText" : "warning";
             const horaClass = Number(s.ganhoHora || 0) < 0 ? "dangerText" : "warning";
             const tempoDecorrido = Number(s.tempoDecorrido || 0);
-            return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);position:relative;padding-right:40px"><div class="action-menu" style="position:absolute;top:8px;right:0"><button class="kebab-btn" type="button" onclick="event.stopPropagation(); toggleItemMenu('menu_sessao_${item.originalIdx}', this)">≡</button><div class="menu-pop" id="menu_sessao_${item.originalIdx}"><button type="button" onclick="editarHorarioSessaoFinalizada(${item.originalIdx}, 'inicio')">Editar hora de início</button><button type="button" onclick="editarHorarioSessaoFinalizada(${item.originalIdx}, 'fim')">Editar hora de término</button><button type="button" onclick="editarValorSessaoFinalizada(${item.originalIdx})">Editar valor</button><button type="button" onclick="fecharMenuSessaoFinalizada(${item.originalIdx})">Excluir sessão</button></div></div><b>${getNomeSessao(idx + 1)} sessão</b><br>Hora de início: ${s.inicio || "-"}<br>Hora de término: ${s.fim || "-"}<br>Valor total: <span class="${valorClass}">R$ ${Number(s.valorTotal || 0).toFixed(2)}</span><br>Ganho por hora: <span class="${horaClass}">R$ ${Number(s.ganhoHora || 0).toFixed(2)}</span><br>Tempo decorrido: <span class="warning">${formatHorasMinutos(tempoDecorrido)}</span></div>`;
+            return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);position:relative;padding-right:40px"><div class="action-menu" style="position:absolute;top:8px;right:0"><button class="kebab-btn" type="button" onclick="event.stopPropagation(); toggleItemMenu('menu_sessao_${item.originalIdx}', this)">≡</button><div class="menu-pop" id="menu_sessao_${item.originalIdx}"><button type="button" onclick="editarHorarioSessaoFinalizada(${item.originalIdx}, 'inicio')">Editar hora de início</button><button type="button" onclick="editarHorarioSessaoFinalizada(${item.originalIdx}, 'fim')">Editar hora de término</button><button type="button" onclick="editarValorSessaoFinalizada(${item.originalIdx})">Editar valor</button><button type="button" onclick="fecharMenuSessaoFinalizada(${item.originalIdx})">Excluir sessão</button></div></div><b>${getNomeSessao(idx + 1)} sessão</b><br>Hora de início: ${s.inicio || "-"}<br>Hora de término: ${s.fim || "-"}<br>Valor total: <span class="${valorClass}">R$ ${Number(s.valorTotal || 0).toFixed(2)}</span><br>Ganho por hora: <span class="${horaClass}">R$ ${Number(s.ganhoHora || 0).toFixed(2)}</span><br>Tempo decorrido: <span class="warning">${tempoDecorrido.toFixed(2)}h</span></div>`;
           }).join("");
         }
       }
     }
 
-    renderHistoricoGanhoHora();
+    const btnHistorico = document.getElementById("btnHistoricoGanhoHora");
+    const historicoWrap = document.getElementById("historicoGanhoHoraWrap");
+    if(btnHistorico) btnHistorico.textContent = "Histórico";
+    if(historicoWrap){
+      const historico = (Array.isArray(dados.ganhoHoraHistorico) ? dados.ganhoHoraHistorico : []).filter(function(item){
+        const dia = String((item && item.diaUber) || '').trim();
+        return dia && dia !== String(dados.ganhoHoraDiaRef || dataUberISO()) && diaUberEhAteDataLimite(dia);
+      }).sort(function(a,b){
+        const da = String((a && a.diaUber) || '');
+        const db = String((b && b.diaUber) || '');
+        return da < db ? 1 : da > db ? -1 : 0;
+      });
+      historicoWrap.style.display = dados.ganhoHoraHistoricoAberto ? "block" : "none";
+      if(!historico.length){
+        historicoWrap.innerHTML = dados.ganhoHoraHistoricoAberto ? "<div style='padding-top:6px'>Sem histórico.</div>" : "";
+      }else{
+        historicoWrap.innerHTML = historico.map(function(item){
+          const total = Number(item.totalSaldoBase || 0);
+          const horasItem = Number(item.totalHoras || 0);
+          const ganhoHoraItem = Number(item.totalGanhoHora || 0);
+          const totalClass = total < 0 ? "dangerText" : "warning";
+          const ghClass = ganhoHoraItem < 0 ? "dangerText" : "warning";
+          const dia = String(item.diaUber || '-');
+          const aberto = !!(dados.ganhoHoraHistoricoExpandidos && dados.ganhoHoraHistoricoExpandidos[dia]);
+          const sessoesHist = Array.isArray(item.sessoes) ? item.sessoes : [];
+          const detalhes = aberto ? (sessoesHist.length ? sessoesHist.map(function(s, idxSess){
+            const valorSessClass = Number(s.valorTotal || 0) < 0 ? "dangerText" : "warning";
+            const ghSessClass = Number(s.ganhoHora || 0) < 0 ? "dangerText" : "warning";
+            const tempoSess = Number(s.tempoDecorrido || 0);
+            return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);position:relative;padding-right:40px"><div class="action-menu" style="position:absolute;top:8px;right:0"><button class="kebab-btn" type="button" onclick="event.stopPropagation(); toggleItemMenu('menu_hist_sessao_${dia}_${idxSess}', this)">≡</button><div class="menu-pop" id="menu_hist_sessao_${dia}_${idxSess}"><button type="button" onclick="editarValorSessaoHistorico('${dia}', ${idxSess})">Editar valor</button></div></div><b>${getNomeSessao(idxSess + 1)} sessão</b><br>Hora de início: ${s.inicio || '-'}<br>Hora de término: ${s.fim || '-'}<br>Valor total: <span class="${valorSessClass}">R$ ${Number(s.valorTotal || 0).toFixed(2)}</span><br>Ganho por hora: <span class="${ghSessClass}">R$ ${Number(s.ganhoHora || 0).toFixed(2)}</span><br>Tempo decorrido: <span class="warning">${tempoSess.toFixed(2)}h</span></div>`;
+          }).join('') : "<div style='padding-top:6px'>Sem sessões salvas nesse dia.</div>") : '';
+          return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)"><button type="button" class="btn-historico-link" onclick="toggleHistoricoDiaGanhoHora('${dia}')">${dia}</button><br>Total: <span class="${totalClass}">R$ ${total.toFixed(2)}</span> | <span class="warning">${horasItem.toFixed(2)}h</span> | <span class="${ghClass}">R$ ${ganhoHoraItem.toFixed(2)}/h</span>${aberto ? `<div style="margin-top:8px">${detalhes}</div>` : ''}</div>`;
+        }).join("");
+      }
+    }
   }catch(e){}
 
 
@@ -5671,6 +5992,17 @@ function forceLogout(){
 function logoutApp(){
   forceLogout();
 }
+
+window.addEventListener("load", function(){
+  try{
+    if(String(dados.horarioInicioFora || '').trim()){
+      iniciarTimerGanhoHoraTempoReal();
+    }else{
+      pararTimerGanhoHoraTempoReal();
+    }
+  }catch(e){}
+});
+
 </script>
 
 <button type="button" id="quickBalanceFab" class="quick-balance-fab" onclick="toggleQuickBalancePanel(true)" aria-label="Atualizar saldo atual rápido"><span class="quick-balance-fab-inner"><span class="quick-balance-fab-icon">$</span><span id="quickBalanceFabValue" class="quick-balance-fab-value">R$ 0</span></span></button>
