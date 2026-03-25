@@ -3861,6 +3861,12 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
     if(horarioInicioEl) horarioInicioEl.value = deveIniciarProxima ? horaFim : "";
   }catch(e){}
 
+  if(deveIniciarProxima){
+    iniciarTimerGanhoHoraTempoReal();
+  }else{
+    pararTimerGanhoHoraTempoReal();
+  }
+
   if(!opts.skipSave){ salvar(); }
   if(!opts.skipUpdate){ atualizar(); }
   if(!opts.silent){ toast("✅ Sessão finalizada."); }
@@ -3963,6 +3969,12 @@ function salvarGanhosForaTempoReal(){
     dados.ganhoHoraAtualFora = 0;
   }
 
+  if(horario){
+    iniciarTimerGanhoHoraTempoReal();
+  }else{
+    pararTimerGanhoHoraTempoReal();
+  }
+
   salvar();
   atualizar();
 }
@@ -3970,6 +3982,68 @@ function salvarGanhosForaTempoReal(){
 function finalizarSessaoGanhoHora(){
   ensureGanhoHoraDiaAtual();
   finalizarSessaoGanhoHoraInterno();
+}
+
+let ganhoHoraTempoRealTimer = null;
+
+function pararTimerGanhoHoraTempoReal(){
+  if(ganhoHoraTempoRealTimer){
+    clearInterval(ganhoHoraTempoRealTimer);
+    ganhoHoraTempoRealTimer = null;
+  }
+}
+
+function recalcularGanhoHoraSessaoEmTempoReal(renderizar){
+  try{ ensureGanhoHoraDiaAtual(); }catch(e){}
+
+  const horarioEl = document.getElementById("horarioInicioFora");
+  const saldoEl = document.getElementById("saldoAtualFora");
+  const horario = String((horarioEl && horarioEl.value) || dados.horarioInicioFora || "").trim();
+
+  if(!horario){
+    dados.horasDecorridasFora = 0;
+    dados.ganhoHoraAtualFora = 0;
+    if(renderizar !== false) atualizar();
+    pararTimerGanhoHoraTempoReal();
+    return;
+  }
+
+  const saldoAtualLido = Number((saldoEl && saldoEl.value) || dados.saldoAtualFora || 0);
+  dados.saldoAtualFora = saldoAtualLido;
+  dados.ganhoDiarioAtual = saldoAtualLido;
+  dados.horarioInicioFora = horario;
+  dados.ganhoHoraSessaoDiaRef = String(dados.ganhoHoraDiaRef || dataUberISO());
+
+  const saldoAnterior = syncSaldoAnteriorSessaoAtual();
+  const saldoBase = saldoAtualLido - saldoAnterior;
+
+  const agora = new Date();
+  const partes = horario.split(":");
+  const hIni = Number(partes[0] || 0);
+  const mIni = Number(partes[1] || 0);
+
+  let inicio = new Date(agora.getTime());
+  inicio.setHours(hIni, mIni, 0, 0);
+
+  let diffMs = agora.getTime() - inicio.getTime();
+  if(diffMs < 0){
+    inicio.setDate(inicio.getDate() - 1);
+    diffMs = agora.getTime() - inicio.getTime();
+  }
+
+  const horas = Math.max(0, diffMs / 3600000);
+  dados.horasDecorridasFora = horas;
+  dados.ganhoHoraAtualFora = horas > 0 ? (saldoBase / horas) : 0;
+
+  if(renderizar !== false) atualizar();
+}
+
+function iniciarTimerGanhoHoraTempoReal(){
+  pararTimerGanhoHoraTempoReal();
+  recalcularGanhoHoraSessaoEmTempoReal(true);
+  ganhoHoraTempoRealTimer = setInterval(function(){
+    recalcularGanhoHoraSessaoEmTempoReal(true);
+  }, 1000);
 }
 
 
@@ -6012,6 +6086,17 @@ function forceLogout(){
 function logoutApp(){
   forceLogout();
 }
+
+window.addEventListener("load", function(){
+  try{
+    if(String(dados.horarioInicioFora || '').trim()){
+      iniciarTimerGanhoHoraTempoReal();
+    }else{
+      pararTimerGanhoHoraTempoReal();
+    }
+  }catch(e){}
+});
+
 </script>
 
 <button type="button" id="quickBalanceFab" class="quick-balance-fab" onclick="toggleQuickBalancePanel(true)" aria-label="Atualizar saldo atual rápido"><span class="quick-balance-fab-inner"><span class="quick-balance-fab-icon">$</span><span id="quickBalanceFabValue" class="quick-balance-fab-value">R$ 0</span></span></button>
