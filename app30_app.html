@@ -3872,6 +3872,16 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
     iniciarTimerGanhoHoraTempoReal();
   }else{
     pararTimerGanhoHoraTempoReal();
+    dados.horarioInicioFora = "";
+    dados.ganhoHoraSessaoDiaRef = "";
+    dados.horasDecorridasFora = 0;
+    dados.ganhoHoraAtualFora = 0;
+    try{
+      const saldoAnteriorEl = document.getElementById("saldoAnteriorFora");
+      const horarioInicioEl = document.getElementById("horarioInicioFora");
+      if(saldoAnteriorEl) saldoAnteriorEl.value = String(dados.saldoAnteriorFora || 0);
+      if(horarioInicioEl) horarioInicioEl.value = "";
+    }catch(e){}
   }
 
   if(!opts.skipSave){ salvar(); }
@@ -3988,7 +3998,7 @@ function salvarGanhosForaTempoReal(){
 
 function finalizarSessaoGanhoHora(){
   ensureGanhoHoraDiaAtual();
-  finalizarSessaoGanhoHoraInterno();
+  finalizarSessaoGanhoHoraInterno({ naoIniciarProxima: true });
 }
 
 let ganhoHoraTempoRealTimer = null;
