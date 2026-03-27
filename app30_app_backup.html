@@ -1937,75 +1937,90 @@ body[data-tema="amarelo-claro"] .menu-btn{
 
 <script id="auth-guard">
 (function(){
-  try{
-    var token = localStorage.getItem("sb_token") || "";
-    if(!token){
+  const AUTH_SKEW_MS = 60000;
+
+  function readStoredSession(){
+    try{
+      return {
+        access_token: localStorage.getItem("sb_token") || "",
+        refresh_token: localStorage.getItem("sb_refresh_token") || "",
+        expires_at: Number(localStorage.getItem("sb_expires_at") || 0)
+      };
+    }catch(e){
+      return { access_token:"", refresh_token:"", expires_at:0 };
+    }
+  }
+
+  function saveStoredSession(data){
+    try{
+      if(data && data.access_token) localStorage.setItem("sb_token", data.access_token || "");
+      if(data && data.refresh_token) localStorage.setItem("sb_refresh_token", data.refresh_token || "");
+      if(data && data.expires_at) localStorage.setItem("sb_expires_at", String(data.expires_at || 0));
+    }catch(e){}
+  }
+
+  function hasUsableToken(sess){
+    try{
+      return !!(sess && sess.access_token && Number(sess.expires_at || 0) * 1000 > (Date.now() + AUTH_SKEW_MS));
+    }catch(e){ return false; }
+  }
+
+  async function refreshAccessTokenIfNeeded(force){
+    const sess = readStoredSession();
+    if(!force && hasUsableToken(sess)) return sess.access_token || "";
+    if(!sess.refresh_token) return sess.access_token || "";
+
+    try{
+      const res = await fetch("https://xoqlgwjpmdkiazwpwhmn.supabase.co/auth/v1/token?grant_type=refresh_token", {
+        method: "POST",
+        headers: {
+          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ refresh_token: sess.refresh_token })
+      });
+      const raw = await res.text();
+      let data = null;
+      try{ data = raw ? JSON.parse(raw) : null; }catch(e){ data = null; }
+      if(res.ok && data && data.access_token){
+        saveStoredSession(data);
+        return data.access_token || "";
+      }
+    }catch(e){}
+    return sess.access_token || "";
+  }
+
+  window.mdEnsureActiveSession = refreshAccessTokenIfNeeded;
+
+  (async function(){
+    try{
+      const sess = readStoredSession();
+      if(!sess.access_token && !sess.refresh_token){
+        location.replace("login.html");
+        return;
+      }
+      const token = await refreshAccessTokenIfNeeded(false);
+      if(!token){
+        location.replace("login.html");
+        return;
+      }
+    }catch(e){
       location.replace("login.html");
-      return;
     }
-  }catch(e){
-    location.replace("login.html");
-  }
+  })();
+
+  document.addEventListener("DOMContentLoaded", function(){
+    const hiddenQuickInput = document.getElementById("quickSaldoAtual");
+    if(hiddenQuickInput){
+      hiddenQuickInput.addEventListener("focus", function(){
+        try{ this.blur(); }catch(e){}
+      });
+      hiddenQuickInput.addEventListener("touchstart", function(e){
+        e.preventDefault();
+      }, {passive:false});
+    }
+  });
 })();
-
-document.addEventListener("DOMContentLoaded", function(){
-  const hiddenQuickInput = document.getElementById("quickSaldoAtual");
-  if(hiddenQuickInput){
-    hiddenQuickInput.addEventListener("focus", function(){
-      try{ this.blur(); }catch(e){}
-    });
-    hiddenQuickInput.addEventListener("touchstart", function(e){
-      e.preventDefault();
-    }, {passive:false});
-  }
-});
-
-
-
-const META_TEMA_STORAGE_KEY = "md_tema_premium";
-function temaPadraoMetaDriver(){
-  return "meta-escuro";
-}
-function aplicarTemaPremium(tema){
-  const temaSeguro = tema || temaPadraoMetaDriver();
-  document.body.setAttribute("data-tema", temaSeguro);
-  try{ localStorage.setItem(META_TEMA_STORAGE_KEY, temaSeguro); }catch(e){}
-  try{
-    const metaTheme = document.querySelector('meta[name="theme-color"]');
-    if(metaTheme){
-      const corAtual = getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#0f172a';
-      metaTheme.setAttribute('content', corAtual);
-    }
-  }catch(e){}
-  atualizarEstadoTemaUI();
-}
-function obterTemaPremium(){
-  try{ return localStorage.getItem(META_TEMA_STORAGE_KEY) || temaPadraoMetaDriver(); }catch(e){ return temaPadraoMetaDriver(); }
-}
-function atualizarEstadoTemaUI(){
-  try{
-    const atual = document.body.getAttribute('data-tema') || temaPadraoMetaDriver();
-    document.querySelectorAll('[data-tema-option]').forEach(function(el){
-      el.classList.toggle('active', el.getAttribute('data-tema-option') === atual);
-    });
-  }catch(e){}
-}
-function abrirTemas(){
-  try{ document.getElementById('temasOverlay').classList.add('show'); }catch(e){}
-  try{ document.getElementById('temasPanel').classList.add('show'); }catch(e){}
-  atualizarEstadoTemaUI();
-}
-function fecharTemas(){
-  try{ document.getElementById('temasOverlay').classList.remove('show'); }catch(e){}
-  try{ document.getElementById('temasPanel').classList.remove('show'); }catch(e){}
-}
-function selecionarTema(tema){
-  aplicarTemaPremium(tema);
-}
-window.addEventListener('load', function(){
-  try{ aplicarTemaPremium(obterTemaPremium()); }catch(e){}
-});
-
 </script>
 
 </head>
@@ -2441,6 +2456,8 @@ const CLOUD_SUPABASE_URL = "https://xoqlgwjpmdkiazwpwhmn.supabase.co";
 const CLOUD_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA";
 const FIRST_INSTALL_COLLAPSED_KEY = "metadriver_first_install_collapsed_v1";
 const FAB_PREF_KEY = "metadriver_quick_balance_fab_enabled";
+const CLOUD_PENDING_KEY = STORAGE_KEY + "__cloud_pending_v1";
+const CLOUD_LAST_OK_KEY = STORAGE_KEY + "__cloud_last_ok_v1";
 let __cloudSaveTimer = null;
 let __cloudBootStarted = false;
 
@@ -2599,13 +2616,60 @@ salvar = function(){
     }
   }catch(e){}
   const r = window.__salvarLocalOriginal.apply(this, arguments);
+  try{
+    if(typeof dados === "object" && dados){
+      cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
+    }
+  }catch(e){}
   try{ cloudScheduleSave(); }catch(e){}
   return r;
 }
 
 
 async function cloudGetToken(){
-  try{ return localStorage.getItem("sb_token") || ""; }catch(e){ return ""; }
+  try{
+    if(typeof window.mdEnsureActiveSession === "function"){
+      const renewed = await window.mdEnsureActiveSession(false);
+      if(renewed) return renewed;
+    }
+    return localStorage.getItem("sb_token") || "";
+  }catch(e){
+    try{ return localStorage.getItem("sb_token") || ""; }catch(_){ return ""; }
+  }
+}
+
+function cloudReadPendingSnapshot(){
+  try{
+    const raw = localStorage.getItem(CLOUD_PENDING_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+
+function cloudWritePendingSnapshot(snapshot){
+  try{
+    if(!snapshot || typeof snapshot !== "object") return false;
+    localStorage.setItem(CLOUD_PENDING_KEY, JSON.stringify({
+      updated_at: snapshot.__cloud_updated_at || new Date().toISOString(),
+      payload: snapshot
+    }));
+    return true;
+  }catch(e){ return false; }
+}
+
+function cloudClearPendingSnapshot(expectedTs){
+  try{
+    const cur = cloudReadPendingSnapshot();
+    if(!cur) return;
+    if(!expectedTs || String(cur.updated_at || "") === String(expectedTs || "")){
+      localStorage.removeItem(CLOUD_PENDING_KEY);
+    }
+  }catch(e){}
+}
+
+function cloudMarkLastOk(ts){
+  try{
+    localStorage.setItem(CLOUD_LAST_OK_KEY, String(ts || new Date().toISOString()));
+  }catch(e){}
 }
 
 async function cloudGetUser(token){
@@ -2668,17 +2732,23 @@ function cloudApplyRemoteData(remoteData){
   }catch(e){}
 }
 
-async function cloudPushNow(){
+async function cloudPushNow(snapshotOverride){
   try{
     const token = await cloudGetToken();
     if(!token) return false;
     const user = await cloudGetUser(token);
-    if(!user || !user.id || !cloudHasUsefulData(dados)) return false;
+    if(!user || !user.id) return false;
+
+    const pending = snapshotOverride || cloudReadPendingSnapshot();
+    const payload = pending && pending.payload ? pending.payload : dados;
+    const updatedAt = (pending && pending.updated_at) || (payload && payload.__cloud_updated_at) || new Date().toISOString();
+
+    if(!cloudHasUsefulData(payload)) return false;
 
     const body = [{
       user_id: user.id,
-      payload: dados,
-      updated_at: new Date().toISOString()
+      payload: payload,
+      updated_at: updatedAt
     }];
 
     const res = await fetch(
@@ -2694,13 +2764,19 @@ async function cloudPushNow(){
         body: JSON.stringify(body)
       }
     );
-    return res.ok;
+
+    if(res.ok){
+      cloudClearPendingSnapshot(updatedAt);
+      cloudMarkLastOk(updatedAt);
+      return true;
+    }
+    return false;
   }catch(e){ return false; }
 }
 
 function cloudScheduleSave(){
   clearTimeout(__cloudSaveTimer);
-  __cloudSaveTimer = setTimeout(function(){ cloudPushNow(); }, 1200);
+  __cloudSaveTimer = setTimeout(function(){ cloudPushNow(); }, 250);
 }
 
 async function cloudBoot(){
@@ -2712,29 +2788,53 @@ async function cloudBoot(){
     const user = await cloudGetUser(token);
     if(!user || !user.id) return;
 
+    const pending = cloudReadPendingSnapshot();
+    const pendingTs = pending && pending.updated_at ? new Date(pending.updated_at).getTime() : 0;
+    const localTs = dados && dados.__cloud_updated_at ? new Date(dados.__cloud_updated_at).getTime() : 0;
+
+    // Primeiro tenta empurrar o que ainda está pendente localmente
+    if(pending && pending.payload && cloudHasUsefulData(pending.payload)){
+      await cloudPushNow(pending);
+    }
+
     const remoteRow = await cloudFetchRow(token, user.id);
     const remoteData = remoteRow && remoteRow.payload ? remoteRow.payload : null;
     const remoteTs = remoteRow && remoteRow.updated_at ? new Date(remoteRow.updated_at).getTime() : 0;
-    const localTs = dados && dados.__cloud_updated_at ? new Date(dados.__cloud_updated_at).getTime() : 0;
 
-    if(remoteData && (remoteTs > localTs || !cloudHasUsefulData(dados))){
+    // Se a nuvem tiver algo mais novo, restaura
+    if(remoteData && (remoteTs > Math.max(localTs, pendingTs) || !cloudHasUsefulData(dados))){
       cloudApplyRemoteData(remoteData);
       try{ toast("☁️ Dados restaurados da nuvem."); }catch(e){}
       return;
     }
 
+    // Se o local ainda for o mais novo, agenda envio
     if(cloudHasUsefulData(dados)){
-      cloudPushNow();
+      cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
+      cloudScheduleSave();
     }
   }catch(e){}
 }
 
 window.addEventListener("pagehide", function(){ try{ cloudPushNow(); }catch(e){} });
+window.addEventListener("beforeunload", function(){ try{ cloudPushNow(); }catch(e){} });
+window.addEventListener("online", function(){ try{ cloudPushNow(); }catch(e){} });
 document.addEventListener("visibilitychange", function(){
   try{
     if(document.visibilityState === "hidden") cloudPushNow();
+    if(document.visibilityState === "visible") cloudBoot();
   }catch(e){}
 });
+setInterval(function(){
+  try{
+    if(document.visibilityState === "visible"){
+      const pending = cloudReadPendingSnapshot();
+      if((pending && pending.payload && cloudHasUsefulData(pending.payload)) || cloudHasUsefulData(dados)){
+        cloudPushNow();
+      }
+    }
+  }catch(e){}
+}, 15000);
 
 
 function toast(msg){

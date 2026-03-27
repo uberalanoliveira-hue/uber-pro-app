@@ -61,7 +61,38 @@ button.secondary { background:rgba(255,255,255,.06); color:#fff; border:1px soli
     } catch(e) {}
   }
   function logout() { clearSession(); location.replace(LOGIN_PAGE); }
-  function getToken() { try { return localStorage.getItem("sb_token") || ""; } catch(e) { return ""; } }
+
+  async function refreshSession() {
+    var refreshToken = "";
+    try { refreshToken = localStorage.getItem("sb_refresh_token") || ""; } catch(e) {}
+    if (!refreshToken) return "";
+    var res = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=refresh_token", {
+      method: "POST",
+      headers: { "apikey": SUPABASE_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+    var txt = await res.text();
+    var data = null; try { data = txt ? JSON.parse(txt) : null; } catch(e) { data = null; }
+    if (res.ok && data && data.access_token) {
+      try {
+        localStorage.setItem("sb_token", data.access_token || "");
+        localStorage.setItem("sb_refresh_token", data.refresh_token || refreshToken);
+        localStorage.setItem("sb_expires_at", String(data.expires_at || 0));
+      } catch(e) {}
+      return data.access_token || "";
+    }
+    return "";
+  }
+
+  async function getToken() {
+    try {
+      var token = localStorage.getItem("sb_token") || "";
+      var expiresAt = Number(localStorage.getItem("sb_expires_at") || 0);
+      if (token && expiresAt * 1000 > Date.now() + 60000) return token;
+      var renewed = await refreshSession();
+      return renewed || token || "";
+    } catch(e) { return ""; }
+  }
   function api(path, method, body, token, extraHeaders) {
     var headers = {"apikey": SUPABASE_KEY, "Content-Type": "application/json", "Authorization": "Bearer " + SUPABASE_KEY};
     if(token) headers["Authorization"] = "Bearer " + token;
@@ -91,7 +122,7 @@ button.secondary { background:rgba(255,255,255,.06); color:#fff; border:1px soli
   function updateAccess(userId, token, patch) { return api("/rest/v1/user_access?user_id=eq." + encodeURIComponent(userId), "PATCH", patch, token, {"Prefer":"return=representation","Accept":"application/json"}); }
   async function loadPanel() {
     hideMsg();
-    var token = getToken();
+    var token = await getToken();
     if(!token) { location.replace(LOGIN_PAGE); return; }
     setTechStatus("carregando");
     try {
