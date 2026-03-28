@@ -113,23 +113,27 @@ h1{text-align:center;margin:8px 0 14px;letter-spacing:0.2px;}
   border-bottom:1px solid rgba(255,255,255,0.05);
 }
 .menu-item:last-child{border-bottom:none;}
+/* v8 - fix: forçar override do estilo global de button para menu não ficar com fundo colorido */
 .menu-item button{
   width:100%;
   padding:6px 8px;
   margin:0;
   border-radius:7px;
-  border:none;
-  font-size:13px;
-  font-weight:500;
-  background:transparent;
-  color:var(--text);
+  border:none !important;
+  font-size:13px !important;
+  font-weight:500 !important;
+  background:transparent !important;
+  color:var(--text) !important;
   text-align:left;
   opacity:0.85;
+  cursor:pointer;
+  font-family:inherit;
+  transition:background 0.12s, opacity 0.12s;
 }
-.menu-item button:hover{background:rgba(255,255,255,0.07); opacity:1;}
-.menu-item button.primary{color:var(--accent); font-weight:600;}
-.menu-item button.secondary{color:var(--accent2);}
-.menu-item button.danger{color:var(--danger);}
+.menu-item button:hover{background:rgba(255,255,255,0.08) !important; opacity:1;}
+.menu-item button.primary{color:var(--accent) !important; font-weight:600 !important;}
+.menu-item button.secondary{color:var(--accent2) !important; background:transparent !important;}
+.menu-item button.danger{color:var(--danger) !important;}
 .menu-note{padding:5px 12px 7px; font-size:10px; opacity:0.5; line-height:1.3;}
 
 .card{
@@ -1295,6 +1299,54 @@ input.negative-value, input.negative-value::placeholder{
 
 
 /* ===== Modal editar valor (teclado numérico) ===== */
+
+/* v8 - modal exportar backup */
+.export-backup-overlay{
+  position:fixed; inset:0; z-index:300;
+  background:rgba(0,0,0,0.55);
+  display:none;
+}
+.export-backup-overlay.show{ display:flex; align-items:center; justify-content:center; padding:16px; }
+.export-backup-modal{
+  width:min(420px, 100%);
+  background:rgba(30,41,59,0.98);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:18px;
+  box-shadow:0 18px 40px rgba(0,0,0,0.45);
+  padding:18px;
+}
+.export-backup-title{ font-weight:900; margin:0 0 4px; font-size:15px; }
+.export-backup-subtitle{ font-size:12px; opacity:0.6; margin:0 0 14px; }
+.export-backup-field label{ display:block; font-size:12px; opacity:0.7; margin-bottom:4px; }
+.export-backup-field input{
+  width:100%;
+  background:var(--input);
+  color:var(--text);
+  border-radius:10px;
+  border:none;
+  padding:10px;
+  font-size:14px;
+  font-family:inherit;
+}
+.export-backup-warning{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:10px;
+  background:rgba(251,113,133,0.10);
+  border:1px solid rgba(251,113,133,0.25);
+  color:#ffb3b3;
+  font-size:12px;
+  line-height:1.45;
+  display:none;
+}
+.export-backup-warning.show{ display:block; }
+.export-backup-actions{ display:flex; gap:10px; margin-top:14px; flex-direction:column; }
+.export-backup-actions button{ height:44px; border-radius:12px; font-size:14px; font-weight:700; border:none; cursor:pointer; font-family:inherit; }
+.export-backup-actions .btn-pasta{ background:var(--accent); color:#0b1220; }
+.export-backup-actions .btn-downloads{ background:rgba(255,255,255,0.10); color:var(--text); border:1px solid rgba(255,255,255,0.12) !important; }
+.export-backup-actions .btn-cancelar{ background:transparent !important; color:var(--text); opacity:0.55; font-weight:500 !important; font-size:13px !important; height:32px !important; }
+.export-backup-actions .btn-cancelar:hover{ opacity:1; }
+
 .editvalor-overlay{
   position:fixed; inset:0; z-index:300;
   background:rgba(0,0,0,0.55);
@@ -2075,7 +2127,7 @@ body[data-tema="amarelo-claro"] .menu-btn{
 <div id="overlay" class="overlay" onclick="closeMenu()"></div>
 <div id="menuPanel" class="menu-panel">
   <div class="menu-header">Menu</div>
-  <div class="menu-item"><button class="primary" onclick="exportarBackup(); closeMenu();">Exportar / Backup</button></div>
+  <div class="menu-item"><button class="primary" onclick="abrirExportBackup(); closeMenu();">Exportar / Backup</button></div>
   <div class="menu-item"><button class="secondary" onclick="document.getElementById('importFile').click()">Importar backup</button></div>
   <div class="menu-item"><button class="secondary" onclick="exportarRelatorioPDF(); closeMenu();">Exportar relatório (PDF)</button></div>
   <div class="menu-item"><button class="danger" onclick="openZerar(); closeMenu();">Zerar dados (cuidado)</button></div>
@@ -2387,6 +2439,27 @@ body[data-tema="amarelo-claro"] .menu-btn{
 </div>
 
 
+
+
+<!-- v8 - modal exportar backup -->
+<div id="exportBackupOverlay" class="export-backup-overlay" onclick="if(event.target.id==='exportBackupOverlay')fecharExportBackup()">
+  <div class="export-backup-modal" onclick="event.stopPropagation()">
+    <div class="export-backup-title">Exportar Backup</div>
+    <div class="export-backup-subtitle">Escolha o nome do arquivo e onde salvar.</div>
+    <div class="export-backup-field">
+      <label for="exportBackupNome">Nome do arquivo</label>
+      <input id="exportBackupNome" type="text" placeholder="Ex.: MetaDriver_Backup" />
+    </div>
+    <div id="exportBackupAviso" class="export-backup-warning">
+      Seu navegador não suporta seleção de pasta. Use a opção de Downloads.
+    </div>
+    <div class="export-backup-actions">
+      <button class="btn-pasta" type="button" onclick="exportarBackupComPasta()">📁 Escolher pasta e salvar</button>
+      <button class="btn-downloads" type="button" onclick="exportarBackupDownloads()">⬇️ Salvar em Downloads</button>
+      <button class="btn-cancelar" type="button" onclick="fecharExportBackup()">Cancelar</button>
+    </div>
+  </div>
+</div>
 
 <div id="fullscreenBar" class="fullscreen-bar" role="dialog" aria-live="polite">
   <div class="txt">📲 Para ficar em <b>tela cheia</b> (sem abas), toque em <b>Tela cheia</b>. Alguns celulares exigem 1 toque.</div>
@@ -3417,33 +3490,74 @@ function excluirItem(tipo, index){
   atualizar();
 }
 
-function exportarBackup(){
+// v8 - exportar backup agora abre modal com opção de nome e escolha de pasta
+function getExportBackupBlob(){
+  const payload = {
+    app: "MetaDriver",
+    version: "8",
+    exported_at: new Date().toISOString(),
+    storage_key: STORAGE_KEY,
+    dados
+  };
+  return new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+}
+function getExportBackupNome(){
+  const val = (document.getElementById("exportBackupNome")?.value || "").trim().replace(/\.json$/i,"");
+  return (val || "MetaDriver_Backup") + ".json";
+}
+function abrirExportBackup(){
+  const now = new Date();
+  const pad = n => String(n).padStart(2,"0");
+  const stamp = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
+  const el = document.getElementById("exportBackupNome");
+  if(el) el.value = `MetaDriver_Backup_${stamp}`;
+  const aviso = document.getElementById("exportBackupAviso");
+  if(aviso) aviso.classList.remove("show");
+  const ov = document.getElementById("exportBackupOverlay");
+  if(ov) ov.classList.add("show");
+}
+function fecharExportBackup(){
+  const ov = document.getElementById("exportBackupOverlay");
+  if(ov) ov.classList.remove("show");
+}
+async function exportarBackupComPasta(){
+  if(!window.showSaveFilePicker){
+    const aviso = document.getElementById("exportBackupAviso");
+    if(aviso) aviso.classList.add("show");
+    return;
+  }
   try{
-    const payload = {
-      app: "MetaDriver",
-      version: "6.3",
-      exported_at: new Date().toISOString(),
-      storage_key: STORAGE_KEY,
-      dados
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+    const handle = await window.showSaveFilePicker({
+      suggestedName: getExportBackupNome(),
+      types:[{description:"Arquivo JSON", accept:{"application/json":[".json"]}}]
+    });
+    const writable = await handle.createWritable();
+    await writable.write(getExportBackupBlob());
+    await writable.close();
+    fecharExportBackup();
+    toast("✅ Backup salvo na pasta escolhida.");
+  }catch(e){
+    if(e.name !== "AbortError") toast("❌ Não foi possível salvar: " + e.message);
+  }
+}
+function exportarBackupDownloads(){
+  try{
+    const blob = getExportBackupBlob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    const stamp = new Date();
-    const y = stamp.getFullYear();
-    const m = String(stamp.getMonth()+1).padStart(2,"0");
-    const d = String(stamp.getDate()).padStart(2,"0");
     a.href = url;
-    a.download = `backup_controle_uber_${y}-${m}-${d}.json`;
+    a.download = getExportBackupNome();
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    toast("✅ Backup exportado com sucesso.");
+    fecharExportBackup();
+    toast("✅ Backup exportado para Downloads.");
   }catch(e){
     toast("❌ Não consegui exportar o backup.");
   }
 }
+function exportarBackup(){ abrirExportBackup(); }
 
 function importarBackup(ev){
   const file = ev.target.files && ev.target.files[0];
