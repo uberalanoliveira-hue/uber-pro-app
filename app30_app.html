@@ -57,10 +57,32 @@ h1{text-align:center;margin:8px 0 14px;letter-spacing:0.2px;}
   justify-content:space-between;
   gap:10px;
 }
-.app-title{
+.app-title-wrap{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.app-title-text{
+  display:flex;
+  flex-direction:column;
+  line-height:1.2;
+}
+.app-title-name{
   font-weight:800;
-  font-size:17px;
+  font-size:16px;
   letter-spacing:0.3px;
+  color:var(--text);
+}
+.app-title-accent{
+  color:#22c55e;
+}
+.app-title-tag{
+  font-size:10px;
+  letter-spacing:0.8px;
+  text-transform:uppercase;
+  opacity:0.38;
+  font-weight:400;
+  color:var(--text);
 }
 /* v9 - botão menu tamanho ajustado */
 .menu-btn{
@@ -197,6 +219,9 @@ button:active{transform:scale(0.99);}
   min-height:auto !important;
   border-radius:0 !important;
   box-shadow:none !important;
+  width:auto !important;
+  text-align:left !important;
+  display:inline !important;
 }
 .btn-historico-link:active{transform:none !important;}
 
@@ -447,20 +472,6 @@ button[onclick="salvarMeta()"]{
   margin-right: auto !important;
 }
 
-
-/* Relógio Uber (dia vira às 04:00) */
-/* Relógio Uber (dia vira às 04:00) */
-.uber-clock{
-  width:100%;
-  text-align:center;
-  font-weight:800;
-  letter-spacing:0.5px;
-  opacity:0.95;
-  margin: 12px 0 16px;
-  padding: 6px 0;
-  font-size: 18px;
-  line-height: 1.4;
-}
 
 
 /* Seções recolhíveis + persistência */
@@ -2373,10 +2384,24 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 </head>
 <body>
 
-<div id="uberClock" class="uber-clock">--/--/---- --:--:--</div>
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="app-title">🚗 MetaDriver</div>
+    <div class="app-title-wrap">
+      <svg width="32" height="32" viewBox="0 0 28 28" style="flex:0 0 auto;border-radius:7px;">
+        <rect width="28" height="28" rx="7" fill="#0d1b2e"/>
+        <rect width="28" height="28" rx="7" fill="none" stroke="#2563eb" stroke-width="1.5"/>
+        <circle cx="14" cy="13" r="7" fill="none" stroke="#22c55e" stroke-width="2"/>
+        <line x1="14" y1="6" x2="14" y2="20" stroke="#22c55e" stroke-width="2"/>
+        <line x1="7" y1="13" x2="21" y2="13" stroke="#22c55e" stroke-width="2"/>
+        <circle cx="14" cy="13" r="2.5" fill="#22c55e"/>
+        <rect x="6" y="21" width="16" height="4" rx="2" fill="#2563eb"/>
+        <rect x="11" y="22.5" width="6" height="1" rx="0.5" fill="#fff" opacity="0.9"/>
+      </svg>
+      <div class="app-title-text">
+        <div class="app-title-name">Meta<span class="app-title-accent">Driver</span></div>
+        <div class="app-title-tag">controle de ganhos</div>
+      </div>
+    </div>
     <button class="menu-btn" onclick="toggleMenu()" aria-label="Menu">☰</button>
   </div>
 </div>
