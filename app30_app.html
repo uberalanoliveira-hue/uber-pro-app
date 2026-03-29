@@ -2283,22 +2283,57 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 .temas-actions button{ margin-top:0; }
 
 
-/* Itens lançados em Dias não trabalhados: compactos e alinhados ao card Meta */
-#listaNaoTrabalhados .list-item.nao-trabalhado-item{
+/* Dias não trabalhados: formulário centralizado e ação discreta */
+#formNaoTrabalhado{
   width: calc(100% - 24px);
-  margin: 8px auto 0;
-  padding: 8px 10px;
-  min-height: 44px;
+  margin: 10px auto 10px !important;
+}
+#formNaoTrabalhado input{
+  width: 100%;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+#formNaoTrabalhado .dias-link-add{
+  display:block;
+  width:auto !important;
+  margin: 2px auto 0 !important;
+  padding:0 !important;
+  background:transparent !important;
+  border:none !important;
+  color:var(--accent) !important;
+  text-decoration:underline;
+  font-weight:700;
+  font-size:14px;
+  min-height:auto !important;
+  height:auto !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+#formNaoTrabalhado .dias-link-add:active{
+  transform:none !important;
+}
+#listaNaoTrabalhados .list-item{
+  width: calc(100% - 24px);
+  margin: 8px auto 0 !important;
+  padding: 6px 10px !important;
+  min-height: 0 !important;
   border-radius: 10px;
   font-size: 13px;
+  line-height: 1.15;
   align-items: center;
 }
-#listaNaoTrabalhados .list-item.nao-trabalhado-item .list-left{
+#listaNaoTrabalhados .list-left{
   gap: 6px;
+  align-items: center;
 }
-#listaNaoTrabalhados .list-item.nao-trabalhado-item .li-date,
-#listaNaoTrabalhados .list-item.nao-trabalhado-item .li-desc{
-  line-height: 1.2;
+#listaNaoTrabalhados .li-date,
+#listaNaoTrabalhados .li-desc{
+  line-height: 1.15;
+}
+#listaNaoTrabalhados .small-btn{
+  padding: 4px 7px;
+  font-size: 11px;
+  border-radius: 8px;
 }
 
 </style>
@@ -2309,25 +2344,6 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   padding:10px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.18);
   background:rgba(0,0,0,.55); color:#fff; font:600 14px system-ui, Arial, sans-serif;
 }
-
-/* Itens lançados em Dias não trabalhados: compactos e alinhados ao card Meta */
-#listaNaoTrabalhados .list-item.nao-trabalhado-item{
-  width: calc(100% - 24px);
-  margin: 8px auto 0;
-  padding: 8px 10px;
-  min-height: 44px;
-  border-radius: 10px;
-  font-size: 13px;
-  align-items: center;
-}
-#listaNaoTrabalhados .list-item.nao-trabalhado-item .list-left{
-  gap: 6px;
-}
-#listaNaoTrabalhados .list-item.nao-trabalhado-item .li-date,
-#listaNaoTrabalhados .list-item.nao-trabalhado-item .li-desc{
-  line-height: 1.2;
-}
-
 </style>
 
 
@@ -2569,7 +2585,7 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
     <div id="formNaoTrabalhado" class="collapsible">
       <input type="date" id="dataNaoTrabalhado">
       <input type="text" id="motivoNaoTrabalhado" placeholder="Motivo (ex: folga, manutenção, médico)">
-      <button onclick="addNaoTrabalhado()">Adicionar</button>
+      <button onclick="addNaoTrabalhado()" class="dias-link-add">Adicionar</button>
     </div>
     <div id="wrapListaNaoTrab" style="margin-top:10px;;display:none;">
       <div id="listaNaoTrabalhados" style="margin-top:10px;"></div>
@@ -2900,43 +2916,6 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 })();
 
 const STORAGE_KEY = "controleUberProDados";
-
-const META_DRAFT_KEY = STORAGE_KEY + "__metaDraft";
-function getMetaDraft(){
-  try{
-    const raw = localStorage.getItem(META_DRAFT_KEY);
-    return raw ? JSON.parse(raw) : { metaTotal: "", dataLimite: "" };
-  }catch(e){
-    return { metaTotal: "", dataLimite: "" };
-  }
-}
-function saveMetaDraftFromInputs(){
-  try{
-    const metaEl = document.getElementById("metaTotal");
-    const dataEl = document.getElementById("dataLimite");
-    localStorage.setItem(META_DRAFT_KEY, JSON.stringify({
-      metaTotal: metaEl ? String(metaEl.value || "") : "",
-      dataLimite: dataEl ? String(dataEl.value || "") : ""
-    }));
-  }catch(e){}
-}
-function syncMetaDraftListeners(){
-  try{
-    const metaEl = document.getElementById("metaTotal");
-    const dataEl = document.getElementById("dataLimite");
-    if(metaEl && !metaEl.__metaDraftBound){
-      metaEl.addEventListener("input", saveMetaDraftFromInputs);
-      metaEl.addEventListener("change", saveMetaDraftFromInputs);
-      metaEl.__metaDraftBound = true;
-    }
-    if(dataEl && !dataEl.__metaDraftBound){
-      dataEl.addEventListener("input", saveMetaDraftFromInputs);
-      dataEl.addEventListener("change", saveMetaDraftFromInputs);
-      dataEl.__metaDraftBound = true;
-    }
-  }catch(e){}
-}
-
 const CLOUD_TABLE = "app_cloud_data";
 const CLOUD_SUPABASE_URL = "https://xoqlgwjpmdkiazwpwhmn.supabase.co";
 const CLOUD_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA";
@@ -3744,10 +3723,10 @@ function toggleForm(id){
 function salvarMeta(){
   dados.metaTotal = parseFloat(document.getElementById("metaTotal").value) || 0;
   dados.dataLimite = document.getElementById("dataLimite").value || "";
-  try{ saveMetaDraftFromInputs(); }catch(e){}
   salvar();
   atualizar();
-  try{ atualizarCarro(); }catch(e){}
+      try{ atualizarCarro(); }catch(e){}
+
 }
 
 function salvarHoras(){
@@ -3853,8 +3832,9 @@ function addNaoTrabalhado(){
   const motivo = (document.getElementById("motivoNaoTrabalhado").value || "").trim();
   if(!data) return;
 
-  // preserva apenas o que foi digitado no formulário de Meta, sem aplicar cálculo antes do Salvar Meta
-  try{ saveMetaDraftFromInputs(); }catch(e){}
+  // preserva campos já digitados em Meta antes de salvar dias não trabalhados
+  dados.metaTotal = parseFloat(document.getElementById("metaTotal")?.value) || 0;
+  dados.dataLimite = document.getElementById("dataLimite")?.value || "";
 
   dados.naoTrabalhados.push({data, motivo: motivo || "Dia não trabalhado"});
 
@@ -4233,7 +4213,6 @@ function zerarTudo(){
   try{
     localStorage.removeItem(CLOUD_PENDING_KEY);
     localStorage.removeItem(CLOUD_LAST_OK_KEY);
-    localStorage.removeItem(META_DRAFT_KEY);
   }catch(e){}
   dados = {
     ganhos: [],
@@ -4259,20 +4238,8 @@ function zerarTudo(){
     combustivelPercentual: 0.30,
     combustivelReal: { kmRodados: 0, consumoMedio: 0, precoLitro: 0 }
   };
-  try{
-    const quickInput = document.getElementById("quickSaldoAtual");
-    const quickValue = document.getElementById("quickBalanceValue");
-    const quickMini = document.getElementById("quickBalanceFabValue");
-    const saldoAtualEl = document.getElementById("saldoAtualFora");
-    if(quickInput) quickInput.value = "";
-    if(quickValue) quickValue.textContent = "R$ 0,00";
-    if(quickMini) quickMini.textContent = "R$ 0";
-    if(saldoAtualEl) saldoAtualEl.value = "0";
-  }catch(e){}
   salvar();
   atualizar();
-  try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){}
-  try{ updateQuickBalanceFabUI(); }catch(e){}
   toast("✅ Dados zerados.");
 }
 
@@ -4296,11 +4263,7 @@ function limparDadosGanhoHora(manterSaldoAtual){
   dados.horasDecorridasFora = 0;
   dados.ganhoHoraAtualFora = 0;
   dados.ganhoHoraSessoes = [];
-  dados.ganhoHoraHistorico = [];
-  dados.ganhoHoraHistoricoAberto = false;
-  dados.ganhoHoraHistoricoExpandidos = {};
   dados.ganhoHoraSessaoDiaRef = "";
-  try{ pararTimerGanhoHoraTempoReal(); }catch(e){}
 }
 
 function diaUberEhAteDataLimite(diaUber){
@@ -5111,26 +5074,7 @@ function exportarRelatorioPDF(){
         @media print{
           body{margin:0.8cm}
         }
-      
-/* Itens lançados em Dias não trabalhados: compactos e alinhados ao card Meta */
-#listaNaoTrabalhados .list-item.nao-trabalhado-item{
-  width: calc(100% - 24px);
-  margin: 8px auto 0;
-  padding: 8px 10px;
-  min-height: 44px;
-  border-radius: 10px;
-  font-size: 13px;
-  align-items: center;
-}
-#listaNaoTrabalhados .list-item.nao-trabalhado-item .list-left{
-  gap: 6px;
-}
-#listaNaoTrabalhados .list-item.nao-trabalhado-item .li-date,
-#listaNaoTrabalhados .list-item.nao-trabalhado-item .li-desc{
-  line-height: 1.2;
-}
-
-</style>
+      </style>
     </head>
     <body>
       <h1>Relatório - MetaDriver</h1>
@@ -5311,12 +5255,8 @@ function atualizar(){
 
   if(!Array.isArray(dados.naoTrabalhados)) dados.naoTrabalhados = [];
 
-  const __metaDraft = getMetaDraft();
-  const __metaDraftValor = (__metaDraft && typeof __metaDraft.metaTotal !== "undefined") ? String(__metaDraft.metaTotal || "") : "";
-  const __dataDraftValor = (__metaDraft && typeof __metaDraft.dataLimite !== "undefined") ? String(__metaDraft.dataLimite || "") : "";
-  document.getElementById("metaTotal").value = (__metaDraftValor !== "" || dados.metaTotal === 0) ? (__metaDraftValor !== "" ? __metaDraftValor : (dados.metaTotal || "")) : (dados.metaTotal || "");
-  document.getElementById("dataLimite").value = (__dataDraftValor !== "" || dados.dataLimite) ? (__dataDraftValor !== "" ? __dataDraftValor : (dados.dataLimite || "")) : (dados.dataLimite || "");
-  try{ syncMetaDraftListeners(); }catch(e){}
+  document.getElementById("metaTotal").value = dados.metaTotal || "";
+  document.getElementById("dataLimite").value = dados.dataLimite || "";
 document.getElementById("metaDiariaManual").value = (dados.metaDiariaManual || dados.metaDiariaManual === 0) ? dados.metaDiariaManual : "";
   document.getElementById("ganhoDiarioAtual").value = (dados.ganhoDiarioAtual ?? "");
 
@@ -5521,7 +5461,7 @@ document.getElementById("listaGastos").innerHTML =
         const idx = dados.naoTrabalhados.indexOf(item);
         const motivo = item.motivo ? (" • " + item.motivo) : "";
         return `
-          <div class="list-item nao-trabalhado-item">
+          <div class="list-item">
             <div class="list-left">
               <span class="li-date">${item.data}</span>
               <span class="li-desc">${motivo}</span>
