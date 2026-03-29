@@ -47,7 +47,7 @@ h1{text-align:center;margin:8px 0 14px;letter-spacing:0.2px;}
   position:sticky; top:0; z-index:50;
   background:linear-gradient(to bottom, rgba(15,23,42,0.92), rgba(15,23,42,0.78));
   backdrop-filter: blur(8px);
-  padding:10px 12px;
+  padding:14px 12px;
   margin:-15px -15px 12px;
   border-bottom:1px solid rgba(255,255,255,0.08);
 }
@@ -3255,6 +3255,10 @@ function addNaoTrabalhado(){
   const motivo = (document.getElementById("motivoNaoTrabalhado").value || "").trim();
   if(!data) return;
 
+  // preserva campos já digitados em Meta antes de salvar dias não trabalhados
+  dados.metaTotal = parseFloat(document.getElementById("metaTotal")?.value) || 0;
+  dados.dataLimite = document.getElementById("dataLimite")?.value || "";
+
   dados.naoTrabalhados.push({data, motivo: motivo || "Dia não trabalhado"});
 
   salvar();
@@ -3505,6 +3509,11 @@ safe.naoTrabalhados = (safe.naoTrabalhados || []).map(n => ({
 function zerarTudo(){
   const ok = confirm("Tem certeza? Isso vai apagar TODOS os dados deste aparelho.");
   if(!ok) return;
+  try{ pararTimerGanhoHoraTempoReal(); }catch(e){}
+  try{
+    localStorage.removeItem(CLOUD_PENDING_KEY);
+    localStorage.removeItem(CLOUD_LAST_OK_KEY);
+  }catch(e){}
   dados = {
     ganhos: [],
     gastos: [],
@@ -4116,6 +4125,11 @@ function updateFuelModeUI(){
   const fuelPercentFields = document.getElementById("fuelPercentFields");
   if(fuelRealFields) fuelRealFields.style.display = modo === "real" ? "grid" : "none";
   if(fuelPercentFields) fuelPercentFields.style.display = modo === "fixo" ? "block" : "none";
+  // impede voltar sozinho para % do bruto ao atualizar a tela
+  if(dados && dados.combustivelModo !== modo){
+    dados.combustivelModo = modo;
+    try{ salvar(); }catch(e){}
+  }
 }
 
 function setFuelConfigCollapsed(collapsed){
@@ -5213,8 +5227,10 @@ function salvarKmAtual(){
   }
 
   dados.carro.kmAtual = { km: kmNum, data: data };
+  dados.carro.snooze = {};
   salvar();
   atualizarCarro();
+  forceMaintenancePopupCheck();
   try{ toggleKmAtualForm(true); }catch(e){}
 }
 
@@ -5273,10 +5289,12 @@ function addManutencao(){
 
   dados.carro.manut = (dados.carro.manut||[]);
   dados.carro.manut.push(item);
+  dados.carro.snooze = {};
   salvar();
   atualizarCarro();
+  forceMaintenancePopupCheck();
   // recolhe form se existir
-  try{ toggleManutForm(false); }catch(e){}
+  try{ toggleManutForm(true); }catch(e){}
 }
 
 
@@ -5309,7 +5327,9 @@ function editManut(id){
   const plan = confirm("Essa é uma PRÓXIMA manutenção (avisar ao atingir o KM)?\nOK = Sim / Cancelar = Não");
   m.planejada = !!plan;
 
+  dados.carro.snooze = {};
   salvar(); atualizarCarro();
+  forceMaintenancePopupCheck();
 }
 
 function delManut(id){
@@ -5317,6 +5337,7 @@ function delManut(id){
   dados.carro.manut = dados.carro.manut.filter(x=>x.id!==id);
   delete dados.carro.snooze[id];
   salvar(); atualizarCarro();
+  forceMaintenancePopupCheck();
 }
 
 
@@ -5351,6 +5372,7 @@ function toggleManutConcluida(id, checked){
 
   salvar();
   atualizarCarro();
+  forceMaintenancePopupCheck();
 }
 
 
@@ -5378,6 +5400,7 @@ function markDone(id){
   delete dados.carro.snooze[id];
   salvar(); atualizarCarro();
   dismissCarPopup();
+  forceMaintenancePopupCheck();
   toast("✅ Marcado como feito!");
 }
 
@@ -5493,6 +5516,19 @@ function maybeCarPopup(){
 
 
 
+
+function forceMaintenancePopupCheck(){
+  try{
+    ensureCarro();
+    // alterações de KM/manutenção devem voltar a disparar alerta visual e popup
+    if(!dados.carro || typeof dados.carro !== "object") return;
+    dados.carro.snooze = {};
+    setTimeout(function(){
+      try{ maybeCarPopup(); }catch(e){}
+      try{ atualizarIndicadorAbaManutencao(); }catch(e){}
+    }, 80);
+  }catch(e){}
+}
 
 function showCarPopup(list, kmAtual){
   kmAtual = parseKm(kmAtual);
@@ -5892,6 +5928,7 @@ function atualizarIndicadorAbaManutencao(){
   document.addEventListener("DOMContentLoaded", ()=>{
     setTimeout(_apply, 150);
     setTimeout(_apply, 600);
+    setTimeout(function(){ try{ maybeCarPopup(); }catch(e){} }, 900);
   });
   window.addEventListener("load", ()=>{
     setTimeout(_apply, 200);
@@ -5982,9 +6019,25 @@ function zerarControleUber(){
   dados.dataLimite = "";
   dados.metaDiariaManual = 0;
   dados.ganhoDiarioAtual = 0;
+  dados.saldoAtualFora = 0;
+  dados.horarioInicioFora = "";
+  dados.horasDecorridasFora = 0;
+  dados.ganhoHoraAtualFora = 0;
+  dados.saldoAnteriorFora = 0;
+  dados.ganhoHoraSessoes = [];
+  dados.ganhoHoraHistorico = [];
+  dados.ganhoHoraHistoricoAberto = false;
+  dados.ganhoHoraHistoricoExpandidos = {};
+  dados.ganhoHoraDiaRef = dataUberISO();
+  dados.ganhoHoraSessaoDiaRef = "";
   dados.combustivelModo = "fixo";
   dados.combustivelPercentual = 0.30;
   dados.combustivelReal = { kmRodados: 0, consumoMedio: 0, precoLitro: 0 };
+  try{ pararTimerGanhoHoraTempoReal(); }catch(e){}
+  try{
+    localStorage.removeItem(CLOUD_PENDING_KEY);
+    localStorage.removeItem(CLOUD_LAST_OK_KEY);
+  }catch(e){}
 }
 
 function zerarManutencaoCarro(){
