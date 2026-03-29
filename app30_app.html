@@ -5134,6 +5134,7 @@ function atualizar(){
         return da < db ? 1 : da > db ? -1 : 0;
       });
       historicoWrap.style.display = dados.ganhoHoraHistoricoAberto ? "block" : "none";
+      historicoWrap.style.textAlign = "left";
       if(!historico.length){
         historicoWrap.innerHTML = dados.ganhoHoraHistoricoAberto ? "<div style='padding-top:6px'>Sem histórico.</div>" : "";
       }else{
