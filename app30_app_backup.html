@@ -47,7 +47,7 @@ h1{text-align:center;margin:8px 0 14px;letter-spacing:0.2px;}
   position:sticky; top:0; z-index:50;
   background:linear-gradient(to bottom, rgba(15,23,42,0.92), rgba(15,23,42,0.78));
   backdrop-filter: blur(8px);
-  padding:10px 12px;
+  padding:14px 12px;
   margin:-15px -15px 12px;
   border-bottom:1px solid rgba(255,255,255,0.08);
 }
@@ -1924,6 +1924,25 @@ body[data-tema="amarelo-claro"] .menu-btn{
 .temas-actions{ padding:0 14px 14px; }
 .temas-actions button{ margin-top:0; }
 
+
+/* Itens lançados em Dias não trabalhados: compactos e alinhados ao card Meta */
+#listaNaoTrabalhados .list-item.nao-trabalhado-item{
+  width: calc(100% - 24px);
+  margin: 8px auto 0;
+  padding: 8px 10px;
+  min-height: 44px;
+  border-radius: 10px;
+  font-size: 13px;
+  align-items: center;
+}
+#listaNaoTrabalhados .list-item.nao-trabalhado-item .list-left{
+  gap: 6px;
+}
+#listaNaoTrabalhados .list-item.nao-trabalhado-item .li-date,
+#listaNaoTrabalhados .list-item.nao-trabalhado-item .li-desc{
+  line-height: 1.2;
+}
+
 </style>
 
 <style id="app30-auth-guard-style">
@@ -1932,6 +1951,25 @@ body[data-tema="amarelo-claro"] .menu-btn{
   padding:10px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.18);
   background:rgba(0,0,0,.55); color:#fff; font:600 14px system-ui, Arial, sans-serif;
 }
+
+/* Itens lançados em Dias não trabalhados: compactos e alinhados ao card Meta */
+#listaNaoTrabalhados .list-item.nao-trabalhado-item{
+  width: calc(100% - 24px);
+  margin: 8px auto 0;
+  padding: 8px 10px;
+  min-height: 44px;
+  border-radius: 10px;
+  font-size: 13px;
+  align-items: center;
+}
+#listaNaoTrabalhados .list-item.nao-trabalhado-item .list-left{
+  gap: 6px;
+}
+#listaNaoTrabalhados .list-item.nao-trabalhado-item .li-date,
+#listaNaoTrabalhados .list-item.nao-trabalhado-item .li-desc{
+  line-height: 1.2;
+}
+
 </style>
 
 
@@ -2022,18 +2060,6 @@ body[data-tema="amarelo-claro"] .menu-btn{
   });
 })();
 </script>
-
-
-<style>
-.dia-item.compact{
-  padding:6px 10px;
-  margin:4px auto;
-  max-width:90%;
-  border-radius:8px;
-  font-size:13px;
-  line-height:1.2;
-}
-</style>
 
 </head>
 <body>
@@ -2207,7 +2233,7 @@ body[data-tema="amarelo-claro"] .menu-btn{
 <input type="time" id="horarioInicioFora">
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-<button onclick="salvarGanhosForaTempoReal()">Adicionar</button>
+<button onclick="salvarGanhosForaTempoReal()">Salvar</button>
 <button onclick="finalizarSessaoGanhoHora()">Finalizar sessão</button>
 </div>
 <div id="ganhosForaResumo" class="muted" style="margin-top:10px;"></div>
@@ -2237,7 +2263,7 @@ body[data-tema="amarelo-claro"] .menu-btn{
         <label>Ganho por hora (R$)</label>
         <input type="number" id="ganhoHoraManual" inputmode="decimal" placeholder="Ex: 40">
       </div>
-    <button onclick="salvarHoras()">Adicionar</button>
+    <button onclick="salvarHoras()">Salvar</button>
     <div id="horasResumo" class="muted" style="margin-top:10px;"></div>
   </div>
 </div>
@@ -2362,7 +2388,7 @@ body[data-tema="amarelo-claro"] .menu-btn{
     <input type="number" id="editValorInput" inputmode="decimal" pattern="[0-9]*" step="0.01" placeholder="0,00">
     <div class="editvalor-actions">
       <button type="button" class="cancel" onclick="closeEditValor()">Cancelar</button>
-      <button type="button" onclick="confirmEditValor()">Adicionar</button>
+      <button type="button" onclick="confirmEditValor()">Salvar</button>
     </div>
   </div>
 </div>
@@ -2391,7 +2417,7 @@ body[data-tema="amarelo-claro"] .menu-btn{
           <input type="date" id="kmAtualData" />
           <input type="number" id="kmAtualValor" inputmode="numeric" placeholder="KM atual" />
         </div>
-        <button type="button" onclick="salvarKmAtual()">Adicionar</button>
+        <button type="button" onclick="salvarKmAtual()">Salvar</button>
       </div>
 
       <div class="divider"></div>
@@ -2428,7 +2454,7 @@ body[data-tema="amarelo-claro"] .menu-btn{
           <input type="checkbox" id="manutPlanejada" />
           Próxima manutenção (avisar ao atingir o KM)
         </label>
-        <button type="button" onclick="addManutencao()">Adicionar</button>
+        <button type="button" onclick="addManutencao()">Salvar</button>
       </div>
 
       <div class="divider"></div>
@@ -2463,6 +2489,43 @@ body[data-tema="amarelo-claro"] .menu-btn{
 })();
 
 const STORAGE_KEY = "controleUberProDados";
+
+const META_DRAFT_KEY = STORAGE_KEY + "__metaDraft";
+function getMetaDraft(){
+  try{
+    const raw = localStorage.getItem(META_DRAFT_KEY);
+    return raw ? JSON.parse(raw) : { metaTotal: "", dataLimite: "" };
+  }catch(e){
+    return { metaTotal: "", dataLimite: "" };
+  }
+}
+function saveMetaDraftFromInputs(){
+  try{
+    const metaEl = document.getElementById("metaTotal");
+    const dataEl = document.getElementById("dataLimite");
+    localStorage.setItem(META_DRAFT_KEY, JSON.stringify({
+      metaTotal: metaEl ? String(metaEl.value || "") : "",
+      dataLimite: dataEl ? String(dataEl.value || "") : ""
+    }));
+  }catch(e){}
+}
+function syncMetaDraftListeners(){
+  try{
+    const metaEl = document.getElementById("metaTotal");
+    const dataEl = document.getElementById("dataLimite");
+    if(metaEl && !metaEl.__metaDraftBound){
+      metaEl.addEventListener("input", saveMetaDraftFromInputs);
+      metaEl.addEventListener("change", saveMetaDraftFromInputs);
+      metaEl.__metaDraftBound = true;
+    }
+    if(dataEl && !dataEl.__metaDraftBound){
+      dataEl.addEventListener("input", saveMetaDraftFromInputs);
+      dataEl.addEventListener("change", saveMetaDraftFromInputs);
+      dataEl.__metaDraftBound = true;
+    }
+  }catch(e){}
+}
+
 const CLOUD_TABLE = "app_cloud_data";
 const CLOUD_SUPABASE_URL = "https://xoqlgwjpmdkiazwpwhmn.supabase.co";
 const CLOUD_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA";
@@ -3157,7 +3220,34 @@ function toggleForm(id){
 
 function salvarMeta(){
   dados.metaTotal = parseFloat(document.getElementById("metaTotal").value) || 0;
-  dados.dataLimite = 
+  dados.dataLimite = document.getElementById("dataLimite").value || "";
+  try{ saveMetaDraftFromInputs(); }catch(e){}
+  salvar();
+  atualizar();
+  try{ atualizarCarro(); }catch(e){}
+}
+
+function salvarHoras(){
+  dados.ganhoHoraManual = parseFloat(document.getElementById("ganhoHoraManual").value) || 40;
+  salvar();
+  atualizar();
+}
+
+
+function addGanho(){
+  const valor = parseFloat(document.getElementById("valorGanho").value);
+  const app = document.getElementById("descricaoGanho").value.trim() || "Sem descrição";
+  let data = document.getElementById("dataGanho").value;
+
+  if(data === hojeISO()){
+    data = dataUberISO();
+  }
+
+  if(!isNaN(valor) && data){
+    dados.ganhos.push({data, app, valor});
+    salvar();
+    atualizar();
+    document.getElementById("valorGanho").value="";
     document.getElementById("formGanho").classList.remove("open");
   }
 }
@@ -3239,6 +3329,9 @@ function addNaoTrabalhado(){
   const data = document.getElementById("dataNaoTrabalhado").value;
   const motivo = (document.getElementById("motivoNaoTrabalhado").value || "").trim();
   if(!data) return;
+
+  // preserva apenas o que foi digitado no formulário de Meta, sem aplicar cálculo antes do Salvar Meta
+  try{ saveMetaDraftFromInputs(); }catch(e){}
 
   dados.naoTrabalhados.push({data, motivo: motivo || "Dia não trabalhado"});
 
@@ -3490,6 +3583,12 @@ safe.naoTrabalhados = (safe.naoTrabalhados || []).map(n => ({
 function zerarTudo(){
   const ok = confirm("Tem certeza? Isso vai apagar TODOS os dados deste aparelho.");
   if(!ok) return;
+  try{ pararTimerGanhoHoraTempoReal(); }catch(e){}
+  try{
+    localStorage.removeItem(CLOUD_PENDING_KEY);
+    localStorage.removeItem(CLOUD_LAST_OK_KEY);
+    localStorage.removeItem(META_DRAFT_KEY);
+  }catch(e){}
   dados = {
     ganhos: [],
     gastos: [],
@@ -3514,8 +3613,20 @@ function zerarTudo(){
     combustivelPercentual: 0.30,
     combustivelReal: { kmRodados: 0, consumoMedio: 0, precoLitro: 0 }
   };
+  try{
+    const quickInput = document.getElementById("quickSaldoAtual");
+    const quickValue = document.getElementById("quickBalanceValue");
+    const quickMini = document.getElementById("quickBalanceFabValue");
+    const saldoAtualEl = document.getElementById("saldoAtualFora");
+    if(quickInput) quickInput.value = "";
+    if(quickValue) quickValue.textContent = "R$ 0,00";
+    if(quickMini) quickMini.textContent = "R$ 0";
+    if(saldoAtualEl) saldoAtualEl.value = "0";
+  }catch(e){}
   salvar();
   atualizar();
+  try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){}
+  try{ updateQuickBalanceFabUI(); }catch(e){}
   toast("✅ Dados zerados.");
 }
 
@@ -3539,7 +3650,11 @@ function limparDadosGanhoHora(manterSaldoAtual){
   dados.horasDecorridasFora = 0;
   dados.ganhoHoraAtualFora = 0;
   dados.ganhoHoraSessoes = [];
+  dados.ganhoHoraHistorico = [];
+  dados.ganhoHoraHistoricoAberto = false;
+  dados.ganhoHoraHistoricoExpandidos = {};
   dados.ganhoHoraSessaoDiaRef = "";
+  try{ pararTimerGanhoHoraTempoReal(); }catch(e){}
 }
 
 function diaUberEhAteDataLimite(diaUber){
@@ -4101,6 +4216,11 @@ function updateFuelModeUI(){
   const fuelPercentFields = document.getElementById("fuelPercentFields");
   if(fuelRealFields) fuelRealFields.style.display = modo === "real" ? "grid" : "none";
   if(fuelPercentFields) fuelPercentFields.style.display = modo === "fixo" ? "block" : "none";
+  // impede voltar sozinho para % do bruto ao atualizar a tela
+  if(dados && dados.combustivelModo !== modo){
+    dados.combustivelModo = modo;
+    try{ salvar(); }catch(e){}
+  }
 }
 
 function setFuelConfigCollapsed(collapsed){
@@ -4229,20 +4349,27 @@ function exportarRelatorioPDF(){
         @media print{
           body{margin:0.8cm}
         }
-      </style>
-    
-<style>
-.dia-item.compact{
-  padding:6px 10px;
-  margin:4px auto;
-  max-width:90%;
-  border-radius:8px;
-  font-size:13px;
-  line-height:1.2;
+      
+/* Itens lançados em Dias não trabalhados: compactos e alinhados ao card Meta */
+#listaNaoTrabalhados .list-item.nao-trabalhado-item{
+  width: calc(100% - 24px);
+  margin: 8px auto 0;
+  padding: 8px 10px;
+  min-height: 44px;
+  border-radius: 10px;
+  font-size: 13px;
+  align-items: center;
 }
-</style>
+#listaNaoTrabalhados .list-item.nao-trabalhado-item .list-left{
+  gap: 6px;
+}
+#listaNaoTrabalhados .list-item.nao-trabalhado-item .li-date,
+#listaNaoTrabalhados .list-item.nao-trabalhado-item .li-desc{
+  line-height: 1.2;
+}
 
-</head>
+</style>
+    </head>
     <body>
       <h1>Relatório - MetaDriver</h1>
       <p class="sub">Gerado em ${d}/${m}/${y}</p>
@@ -4419,8 +4546,299 @@ function atualizar(){
 
   if(!Array.isArray(dados.naoTrabalhados)) dados.naoTrabalhados = [];
 
-  document.getElementById("metaTotal").value = dados.metaTotal || "";
+  const __metaDraft = getMetaDraft();
+  const __metaDraftValor = (__metaDraft && typeof __metaDraft.metaTotal !== "undefined") ? String(__metaDraft.metaTotal || "") : "";
+  const __dataDraftValor = (__metaDraft && typeof __metaDraft.dataLimite !== "undefined") ? String(__metaDraft.dataLimite || "") : "";
+  document.getElementById("metaTotal").value = (__metaDraftValor !== "" || dados.metaTotal === 0) ? (__metaDraftValor !== "" ? __metaDraftValor : (dados.metaTotal || "")) : (dados.metaTotal || "");
+  document.getElementById("dataLimite").value = (__dataDraftValor !== "" || dados.dataLimite) ? (__dataDraftValor !== "" ? __dataDraftValor : (dados.dataLimite || "")) : (dados.dataLimite || "");
+  try{ syncMetaDraftListeners(); }catch(e){}
+document.getElementById("metaDiariaManual").value = (dados.metaDiariaManual || dados.metaDiariaManual === 0) ? dados.metaDiariaManual : "";
+  document.getElementById("ganhoDiarioAtual").value = (dados.ganhoDiarioAtual ?? "");
+
+  const modoCombustivel = (dados.combustivelModo === "real") ? "real" : "fixo";
+  const radioFixo = document.getElementById("combustivelModoFixo");
+  const radioReal = document.getElementById("combustivelModoReal");
+  if(radioFixo) radioFixo.checked = modoCombustivel === "fixo";
+  if(radioReal) radioReal.checked = modoCombustivel === "real";
+
+  const percentualCombustivelEl = document.getElementById("percentualCombustivel");
+  const percentualSalvo = [0.30,0.35,0.40,0.45,0.50].includes(Number(dados.combustivelPercentual))
+    ? Number(dados.combustivelPercentual)
+    : 0.30;
+  if(percentualCombustivelEl && document.activeElement !== percentualCombustivelEl){
+    percentualCombustivelEl.value = percentualSalvo.toFixed(2);
+  }
+
+  updateFuelModeUI();
+  try{ applyQuickBalanceFabStateHard(); }catch(e){}
+  try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){}
+  if(!window.__fuelConfigInitialized){
+    setFuelConfigCollapsed(true);
+    window.__fuelConfigInitialized = true;
+  }
+
+  const fuelKmRodados = document.getElementById("fuelKmRodados");
+  const fuelConsumoMedio = document.getElementById("fuelConsumoMedio");
+  const fuelPrecoLitro = document.getElementById("fuelPrecoLitro");
+  if(fuelKmRodados && document.activeElement !== fuelKmRodados) fuelKmRodados.value = Number(dados?.combustivelReal?.kmRodados || 0) || "";
+  if(fuelConsumoMedio && document.activeElement !== fuelConsumoMedio) fuelConsumoMedio.value = Number(dados?.combustivelReal?.consumoMedio || 0) || "";
+  if(fuelPrecoLitro && document.activeElement !== fuelPrecoLitro) fuelPrecoLitro.value = Number(dados?.combustivelReal?.precoLitro || 0) || "";
+
+  const bruto = dados.ganhos.reduce((s,g)=>s+g.valor,0);
+  const gastosExtras = dados.gastos.reduce((s,g)=>s+g.valor,0);
+
   
+  // Dias restantes: de hoje até data limite (inclui hoje), menos dias não trabalhados no período
+  const hoje = uberHojeMidnight();
+let diasCalendario = 0;
+  let diasNaoTrabalhadosNoPeriodo = 0;
+  if(dados.dataLimite){
+    const limite = new Date(dados.dataLimite + "T00:00:00");
+    const diffMs = limite.getTime() - hoje.getTime();
+    if(diffMs >= 0){
+      diasCalendario = Math.floor(diffMs / (24*60*60*1000)) + 1;
+    }
+    diasNaoTrabalhadosNoPeriodo = (dados.naoTrabalhados || []).filter(n => {
+      if(!n || !n.data) return false;
+      const dt = new Date(n.data + "T00:00:00");
+      return dt.getTime() >= hoje.getTime() && dt.getTime() <= limite.getTime();
+    }).length;
+  }
+  const diasRestantes = Math.max(0, diasCalendario - diasNaoTrabalhadosNoPeriodo);
+  const box = document.getElementById("diasRestantesBox");
+  if(box){
+    box.textContent = diasNaoTrabalhadosNoPeriodo > 0 ? (diasRestantes + " (−" + diasNaoTrabalhadosNoPeriodo + ")") : String(diasRestantes);
+  }
+const fuelCfg = getCombustivelConfig(bruto);
+  const combustivelDisponivel = fuelCfg.combustivelEstimado;
+  const totalAbastecido = dados.abastecimentos.reduce((s,a)=>s+a.valor,0);
+  const saldoCombustivel = combustivelDisponivel - totalAbastecido;
+
+  const liquido = bruto - combustivelDisponivel - gastosExtras;
+
+  // Regra correta:
+  // líquido = bruto * 0,70 - gastosExtras
+  // então o bruto necessário para atingir a meta e repor gastos é:
+  // (meta líquida desejada + gastos extras) / 0,70
+  const divisorMeta = Math.max(0.05, 1 - Number(fuelCfg.taxaCombustivel || 0));
+  const metaBrutaComGastos = ((dados.metaTotal || 0) + gastosExtras) > 0
+    ? (((dados.metaTotal || 0) + gastosExtras) / divisorMeta)
+    : 0;
+
+  // Meta bruta restante:
+  // quanto ainda falta em bruto para completar a meta total necessária
+  const metaRestante = Math.max(0, metaBrutaComGastos - bruto);
+
+  const ganhosHoje = (dados.ganhos || [])
+    .filter(g => isHojeRegistro(g && g.data))
+    .reduce((s, g) => s + Number(g.valor || 0), 0);
+
+  const brutoSemHoje = Math.max(0, bruto - ganhosHoje);
+  const combustivelSemHoje = brutoSemHoje * Number(fuelCfg.taxaCombustivel || 0);
+  const liquidoSemHoje = brutoSemHoje - combustivelSemHoje - gastosExtras;
+  const faltanteLiquidoSemHoje = Math.max(0, (dados.metaTotal || 0) - liquidoSemHoje);
+  const metaRestanteSemHoje = (faltanteLiquidoSemHoje > 0) ? (faltanteLiquidoSemHoje / divisorMeta) : 0;
+  const metaDiariaAuto = (diasRestantes > 0) ? (metaRestanteSemHoje / diasRestantes) : 0;
+
+  try{
+    const metaDiaInput = document.getElementById("metaDiariaManual");
+    if(metaDiaInput){
+      metaDiaInput.value = metaDiariaAuto.toFixed(2);
+      metaDiaInput.readOnly = true;
+    }
+  }catch(e){}
+
+  const metaDia = Math.max(0, metaDiariaAuto || 0);
+  const ganhoDia = Math.max(0, dados.ganhoDiarioAtual || 0);
+  const ganhoHoraRef = Math.max(0, Number(dados.ganhoHoraManual || 40));
+  const horasNecessarias = (ganhoHoraRef > 0) ? (metaDia / ganhoHoraRef) : 0;
+  const horasRestantes = (ganhoHoraRef > 0) ? (Math.max(0, metaDia - ganhoDia) / ganhoHoraRef) : 0;
+
+      
+  document.getElementById("statusMeta").innerHTML =
+    "Dias restantes: <span class='" + (diasRestantes < 0 ? "dangerText" : "warning") + "'>" + diasRestantes + "</span><br>" +
+    "Meta bruta necessária total (" + (fuelCfg.modo === "real" ? "combustível real" : "30% combustível") + "): <span class='" + (metaBrutaComGastos < 0 ? "dangerText" : "warning") + "'>R$ " + metaBrutaComGastos.toFixed(2) + "</span><br>" +
+    "Meta bruta restante: <span class='" + (metaRestante < 0 ? "dangerText" : "warning") + "'>R$ " + metaRestante.toFixed(2) + "</span><br>" +
+    "Meta diária (automática): <span class='" + (metaDiariaAuto < 0 ? "dangerText" : "warning") + "'>R$ " + metaDiariaAuto.toFixed(2) + "</span>";
+  const valorRestanteHoras = (metaDia - ganhoDia);
+  document.getElementById("horasResumo").innerHTML =
+    "Tempo para atingir a meta diária: <span class='" + (horasNecessarias < 0 ? "dangerText" : "warning") + "'>" + formatHorasMinutos(horasNecessarias) + "</span><br>" +
+    "Valor restante: <span class='" + (valorRestanteHoras < 0 ? "dangerText" : "warning") + "'>R$ " + valorRestanteHoras.toFixed(2) + "</span><br>" +
+    "Tempo restante: <span class='" + (horasRestantes < 0 ? "dangerText" : "warning") + "'>" + formatHorasMinutos(horasRestantes) + "</span>";
+
+  document.getElementById("fuelResumo").innerHTML =
+    "Modo combustível: <span class='warning'>" + (fuelCfg.modo === "real" ? "Real" : (Math.round(fuelCfg.percentualSelecionado * 100) + "% do bruto")) + "</span><br>" +
+    (fuelCfg.modo === "real"
+      ? ("Combustível previsto real: <span class='" + (combustivelDisponivel < 0 ? "dangerText" : "warning") + "'>R$ " + combustivelDisponivel.toFixed(2) + "</span><br>" +
+         "Base do cálculo: <span class='warning'>" + fuelCfg.kmRodados.toFixed(2) + " km ÷ " + fuelCfg.consumoMedio.toFixed(2) + " km/l × R$ " + fuelCfg.precoLitro.toFixed(2) + "/l</span><br>")
+      : ("")
+    ) +
+    "Total abastecido: <span class='" + (totalAbastecido < 0 ? "dangerText" : "warning") + "'>R$ " + totalAbastecido.toFixed(2) + "</span><br>" +
+    "Saldo disponível p/ abastecer: " +
+    "<span class='" + (saldoCombustivel < 0 ? "dangerText" : "highlight") + "'>" +
+    "R$ " + saldoCombustivel.toFixed(2) +
+    "</span>";
+
+  document.getElementById("resumo").innerHTML =
+    "Bruto total: <span class='" + (bruto < 0 ? "dangerText" : "warning") + "'>R$ " + bruto.toFixed(2) + "</span><br>" +
+    "Gastos extras: <span class='" + (gastosExtras < 0 ? "dangerText" : "warning") + "'>R$ " + gastosExtras.toFixed(2) + "</span><br>" +
+    
+    "<span class='" + (liquido < 0 ? "dangerText" : "highlight") + "'>Lucro líquido: R$ " + liquido.toFixed(2) + "</span><br>" +
+    "Saldo disponível p/ abastecer: <span class='" + (saldoCombustivel < 0 ? "dangerText" : "highlight") + "'>R$ " + saldoCombustivel.toFixed(2) + "</span><br>" +
+    "<span style=\"white-space:nowrap;\">Saldo total 💰+⛽: <span class='" + ((liquido + saldoCombustivel) < 0 ? "dangerText" : "highlight") + "'>R$ " + (liquido + saldoCombustivel).toFixed(2) + "</span></span>"
+
+  document.getElementById("listaGanhos").innerHTML =
+    dados.ganhos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0)).map(item=>{
+      const idx = dados.ganhos.indexOf(item);
+      return `
+        <div class="list-item">
+          <div class="list-left">
+            <span class="li-date">${item.data}</span>
+            <span class="li-app">• ${item.app}</span>
+            <span class="li-value ${Number(item.valor) < 0 ? 'dangerText' : ''}">• R$ ${Number(item.valor).toFixed(2)}</span>
+          </div>
+          <div class="action-menu">
+            <button class="kebab-btn" onclick="event.stopPropagation(); toggleItemMenu('menu_listaGanhos_${idx}', this)">≡</button>
+            <div class="menu-pop" id="menu_listaGanhos_${idx}">
+              <button onclick="editarData('ganhos', ${idx})">Editar data</button>
+              <button onclick="editarValor('ganhos', ${idx})">Editar valor</button>
+              <button class="danger" onclick="excluirItem('ganhos', ${idx})">Excluir</button>
+            </div>
+          </div>
+        </div>`;
+    }).join("");
+document.getElementById("listaGastos").innerHTML =
+    dados.gastos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0)).map(item=>{
+      const idx = dados.gastos.indexOf(item);
+      return `
+        <div class="list-item">
+          <div class="list-left">
+            <span class="li-date">${item.data}</span>
+            <span class="li-desc">• ${item.desc}</span>
+            <span class="li-value ${Number(item.valor) < 0 ? 'dangerText' : ''}">• R$ ${Number(item.valor).toFixed(2)}</span>
+          </div>
+          <div class="action-menu">
+            <button class="kebab-btn" onclick="event.stopPropagation(); toggleItemMenu('menu_gastos_${idx}', this)">≡</button>
+            <div class="menu-pop" id="menu_gastos_${idx}">
+              <button onclick="editarData('gastos', ${idx})">Editar data</button>
+              <button onclick="editarValor('gastos', ${idx})">Editar valor</button>
+              <button class="danger" onclick="excluirItem('gastos', ${idx})">Excluir</button>
+            </div>
+          </div>
+        </div>`;
+    }).join("");
+
+  document.getElementById("listaAbastecimentos").innerHTML =
+    dados.abastecimentos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0)).map(item=>{
+      const idx = dados.abastecimentos.indexOf(item);
+      return `
+        <div class="list-item">
+          <div class="list-left">
+            <span class="li-date">${item.data}</span>
+            <span class="li-value ${Number(item.valor) < 0 ? 'dangerText' : ''}">• R$ ${Number(item.valor).toFixed(2)}</span>
+          </div>
+          <div class="action-menu">
+            <button class="kebab-btn" onclick="event.stopPropagation(); toggleItemMenu('menu_ab_${idx}', this)">≡</button>
+            <div class="menu-pop" id="menu_ab_${idx}">
+              <button onclick="editarData('abastecimentos', ${idx})">Editar data</button>
+              <button onclick="editarValor('abastecimentos', ${idx})">Editar valor</button>
+              <button class="danger" onclick="excluirItem('abastecimentos', ${idx})">Excluir</button>
+            </div>
+          </div>
+        </div>`;
+    }).join("");
+
+  document.getElementById("listaNaoTrabalhados").innerHTML =
+    (dados.naoTrabalhados || [])
+      .slice()
+      .sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0))
+      .map(item=>{
+        const idx = dados.naoTrabalhados.indexOf(item);
+        const motivo = item.motivo ? (" • " + item.motivo) : "";
+        return `
+          <div class="list-item nao-trabalhado-item">
+            <div class="list-left">
+              <span class="li-date">${item.data}</span>
+              <span class="li-desc">${motivo}</span>
+            </div>
+            <div class="action-menu">
+              <button class="kebab-btn" onclick="event.stopPropagation(); toggleItemMenu('menu_nao_${idx}', this)">≡</button>
+              <div class="menu-pop" id="menu_nao_${idx}">
+                <button onclick="editarData('naoTrabalhados', ${idx})">Editar data</button>
+                <button onclick="editarMotivoNaoTrabalhado(${idx})">Editar motivo</button>
+                <button class="danger" onclick="excluirItem('naoTrabalhados', ${idx})">Excluir</button>
+              </div>
+            </div>
+          </div>`;
+      }).join("");
+
+  refreshNegativeInputs();
+}
+
+
+
+
+function formatQuickBalanceDisplay(valueStr){
+  const n = parseFloat(String(valueStr || "").replace(",", ".")) || 0;
+  return "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function refreshQuickBalanceDisplay(){
+  const input = document.getElementById("quickSaldoAtual");
+  const view = document.getElementById("quickBalanceValue");
+  if(input && view){
+    view.textContent = formatQuickBalanceDisplay(input.value);
+  }
+}
+
+function refreshQuickBalanceFabMiniDisplay(){
+  const mini = document.getElementById("quickBalanceFabValue");
+  if(!mini) return;
+
+  let n = 0;
+
+  try{
+    const saldoInput = document.getElementById("saldoAtualFora");
+    if(saldoInput && saldoInput.value !== ""){
+      n = Number(String(saldoInput.value).replace(",", ".")) || 0;
+    }else if(window.dados){
+      n = Number(dados.saldoAtualFora || 0);
+    }
+  }catch(e){
+    n = Number((window.dados && dados.saldoAtualFora) || 0);
+  }
+
+  mini.textContent = "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+let quickBalanceReplaceOnNextInput = false;
+
+function appendQuickBalanceKey(key){
+  const input = document.getElementById("quickSaldoAtual");
+  if(!input) return;
+
+  let current = String(input.value || "");
+
+  if(quickBalanceReplaceOnNextInput){
+    current = "";
+    quickBalanceReplaceOnNextInput = false;
+  }
+
+  if(key === "."){
+    if(current.includes(".")) return;
+    if(!current) current = "0";
+  }
+
+  input.value = current + key;
+  refreshQuickBalanceDisplay();
+}
+
+function backspaceQuickBalance(){
+  const input = document.getElementById("quickSaldoAtual");
+  if(!input) return;
+
+  if(quickBalanceReplaceOnNextInput){
+    input.value = "";
     quickBalanceReplaceOnNextInput = false;
   }else{
     input.value = String(input.value || "").slice(0, -1);
@@ -4923,8 +5341,10 @@ function salvarKmAtual(){
   }
 
   dados.carro.kmAtual = { km: kmNum, data: data };
+  dados.carro.snooze = {};
   salvar();
   atualizarCarro();
+  forceMaintenancePopupCheck();
   try{ toggleKmAtualForm(true); }catch(e){}
 }
 
@@ -4983,10 +5403,12 @@ function addManutencao(){
 
   dados.carro.manut = (dados.carro.manut||[]);
   dados.carro.manut.push(item);
+  dados.carro.snooze = {};
   salvar();
   atualizarCarro();
+  forceMaintenancePopupCheck();
   // recolhe form se existir
-  try{ toggleManutForm(false); }catch(e){}
+  try{ toggleManutForm(true); }catch(e){}
 }
 
 
@@ -5019,7 +5441,9 @@ function editManut(id){
   const plan = confirm("Essa é uma PRÓXIMA manutenção (avisar ao atingir o KM)?\nOK = Sim / Cancelar = Não");
   m.planejada = !!plan;
 
+  dados.carro.snooze = {};
   salvar(); atualizarCarro();
+  forceMaintenancePopupCheck();
 }
 
 function delManut(id){
@@ -5027,6 +5451,7 @@ function delManut(id){
   dados.carro.manut = dados.carro.manut.filter(x=>x.id!==id);
   delete dados.carro.snooze[id];
   salvar(); atualizarCarro();
+  forceMaintenancePopupCheck();
 }
 
 
@@ -5061,6 +5486,7 @@ function toggleManutConcluida(id, checked){
 
   salvar();
   atualizarCarro();
+  forceMaintenancePopupCheck();
 }
 
 
@@ -5088,6 +5514,7 @@ function markDone(id){
   delete dados.carro.snooze[id];
   salvar(); atualizarCarro();
   dismissCarPopup();
+  forceMaintenancePopupCheck();
   toast("✅ Marcado como feito!");
 }
 
@@ -5203,6 +5630,19 @@ function maybeCarPopup(){
 
 
 
+
+function forceMaintenancePopupCheck(){
+  try{
+    ensureCarro();
+    // alterações de KM/manutenção devem voltar a disparar alerta visual e popup
+    if(!dados.carro || typeof dados.carro !== "object") return;
+    dados.carro.snooze = {};
+    setTimeout(function(){
+      try{ maybeCarPopup(); }catch(e){}
+      try{ atualizarIndicadorAbaManutencao(); }catch(e){}
+    }, 80);
+  }catch(e){}
+}
 
 function showCarPopup(list, kmAtual){
   kmAtual = parseKm(kmAtual);
@@ -5602,6 +6042,7 @@ function atualizarIndicadorAbaManutencao(){
   document.addEventListener("DOMContentLoaded", ()=>{
     setTimeout(_apply, 150);
     setTimeout(_apply, 600);
+    setTimeout(function(){ try{ maybeCarPopup(); }catch(e){} }, 900);
   });
   window.addEventListener("load", ()=>{
     setTimeout(_apply, 200);
@@ -5692,9 +6133,25 @@ function zerarControleUber(){
   dados.dataLimite = "";
   dados.metaDiariaManual = 0;
   dados.ganhoDiarioAtual = 0;
+  dados.saldoAtualFora = 0;
+  dados.horarioInicioFora = "";
+  dados.horasDecorridasFora = 0;
+  dados.ganhoHoraAtualFora = 0;
+  dados.saldoAnteriorFora = 0;
+  dados.ganhoHoraSessoes = [];
+  dados.ganhoHoraHistorico = [];
+  dados.ganhoHoraHistoricoAberto = false;
+  dados.ganhoHoraHistoricoExpandidos = {};
+  dados.ganhoHoraDiaRef = dataUberISO();
+  dados.ganhoHoraSessaoDiaRef = "";
   dados.combustivelModo = "fixo";
   dados.combustivelPercentual = 0.30;
   dados.combustivelReal = { kmRodados: 0, consumoMedio: 0, precoLitro: 0 };
+  try{ pararTimerGanhoHoraTempoReal(); }catch(e){}
+  try{
+    localStorage.removeItem(CLOUD_PENDING_KEY);
+    localStorage.removeItem(CLOUD_LAST_OK_KEY);
+  }catch(e){}
 }
 
 function zerarManutencaoCarro(){
@@ -5860,7 +6317,7 @@ window.addEventListener("load", function(){
     <button type="button" class="quick-balance-key" onclick="backspaceQuickBalance()">⌫</button>
   </div>
   <div class="quick-balance-actions">
-    <button type="button" onclick="salvarSaldoAtualRapido()">Adicionar</button>
+    <button type="button" onclick="salvarSaldoAtualRapido()">Salvar</button>
     <button type="button" class="secondary quick-balance-home-btn" onclick="toggleQuickBalancePanel(false)" aria-label="Fechar painel">
       <span class="quick-balance-home-icon" aria-hidden="true"></span>
     </button>
@@ -5878,7 +6335,7 @@ window.addEventListener("load", function(){
     <span>Ativar botão flutuante</span>
   </label>
   <div class="quick-balance-actions" style="margin-top:12px;">
-    <button type="button" id="btnSalvarSaldoAtualMenu" onclick="salvarPreferenciaSaldoAtualButton(); return false;">Adicionar</button>
+    <button type="button" id="btnSalvarSaldoAtualMenu" onclick="salvarPreferenciaSaldoAtualButton(); return false;">Salvar</button>
     <button type="button" class="secondary" onclick="fecharSaldoAtualButtonMenu()">Fechar</button>
   </div>
 </div>
