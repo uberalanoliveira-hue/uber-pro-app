@@ -15,7 +15,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v7.0.6</title>
+<title>MetaDriver v8.4</title>
 
 <style>
 :root{
@@ -30,8 +30,125 @@
   --warn:#facc15;
   --danger:#fb7185;
 }
+
+/* ===== Sistema de temas ===== */
+body[data-theme="metadriver-dark"]{
+  --bg:#0f172a;
+  --card:#1e293b;
+  --input:#334155;
+  --accent:#22c55e;
+  --accent2:#60a5fa;
+  --text:#ffffff;
+  --muted:rgba(255,255,255,0.88);
+  --line:rgba(255,255,255,0.10);
+  --warn:#facc15;
+  --danger:#fb7185;
+  --theme-header:linear-gradient(135deg, rgba(96,165,250,0.25), rgba(34,197,94,0.18));
+  --theme-topbar:linear-gradient(to bottom, rgba(15,23,42,0.92), rgba(15,23,42,0.78));
+  --theme-menu:rgba(30,41,59,0.98);
+  --theme-menu-header:linear-gradient(135deg, rgba(96,165,250,0.22), rgba(34,197,94,0.16));
+  --theme-shadow:0 8px 20px rgba(0,0,0,0.25);
+  --theme-radius:16px;
+  --theme-font:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+body[data-theme="metadriver-light"]{
+  --bg:#eef3fb;
+  --card:#ffffff;
+  --input:#e6edf7;
+  --accent:#1fbf67;
+  --accent2:#4f8df7;
+  --text:#0f172a;
+  --muted:rgba(15,23,42,0.78);
+  --line:rgba(15,23,42,0.10);
+  --warn:#d4a900;
+  --danger:#e11d48;
+  --theme-header:linear-gradient(135deg, rgba(79,141,247,0.18), rgba(31,191,103,0.16));
+  --theme-topbar:linear-gradient(to bottom, rgba(238,243,251,0.95), rgba(238,243,251,0.88));
+  --theme-menu:rgba(255,255,255,0.98);
+  --theme-menu-header:linear-gradient(135deg, rgba(79,141,247,0.14), rgba(31,191,103,0.14));
+  --theme-shadow:0 8px 20px rgba(15,23,42,0.10);
+  --theme-radius:16px;
+  --theme-font:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+body[data-theme="executivo-dark"]{
+  --bg:#000000;
+  --card:#121212;
+  --input:#1c1c1c;
+  --accent:#ffffff;
+  --accent2:#b5b5b5;
+  --text:#f5f5f5;
+  --muted:rgba(255,255,255,0.72);
+  --line:rgba(255,255,255,0.08);
+  --warn:#f4b400;
+  --danger:#ff6b6b;
+  --theme-header:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  --theme-topbar:linear-gradient(to bottom, rgba(0,0,0,0.96), rgba(0,0,0,0.90));
+  --theme-menu:rgba(14,14,14,0.98);
+  --theme-menu-header:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  --theme-shadow:0 10px 26px rgba(0,0,0,0.45);
+  --theme-radius:18px;
+  --theme-font:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+body[data-theme="executivo-light"]{
+  --bg:#f7f7f7;
+  --card:#ffffff;
+  --input:#f0f0f0;
+  --accent:#111111;
+  --accent2:#444444;
+  --text:#111111;
+  --muted:rgba(17,17,17,0.70);
+  --line:rgba(17,17,17,0.08);
+  --warn:#d99a00;
+  --danger:#d64545;
+  --theme-header:linear-gradient(180deg, rgba(17,17,17,0.06), rgba(17,17,17,0.02));
+  --theme-topbar:linear-gradient(to bottom, rgba(247,247,247,0.96), rgba(247,247,247,0.90));
+  --theme-menu:rgba(255,255,255,0.98);
+  --theme-menu-header:linear-gradient(180deg, rgba(17,17,17,0.07), rgba(17,17,17,0.02));
+  --theme-shadow:0 8px 20px rgba(17,17,17,0.08);
+  --theme-radius:18px;
+  --theme-font:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+body[data-theme="energia-dark"]{
+  --bg:#161300;
+  --card:#241f00;
+  --input:#332b00;
+  --accent:#ffd400;
+  --accent2:#ffec80;
+  --text:#fff7cc;
+  --muted:rgba(255,247,204,0.78);
+  --line:rgba(255,212,0,0.14);
+  --warn:#ffe066;
+  --danger:#ff7f50;
+  --theme-header:linear-gradient(135deg, rgba(255,212,0,0.24), rgba(255,236,128,0.10));
+  --theme-topbar:linear-gradient(to bottom, rgba(22,19,0,0.96), rgba(22,19,0,0.90));
+  --theme-menu:rgba(36,31,0,0.98);
+  --theme-menu-header:linear-gradient(135deg, rgba(255,212,0,0.24), rgba(255,236,128,0.10));
+  --theme-shadow:0 10px 24px rgba(0,0,0,0.32);
+  --theme-radius:18px;
+  --theme-font:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+body[data-theme="energia-light"]{
+  --bg:#fff9db;
+  --card:#fff4b8;
+  --input:#ffe98a;
+  --accent:#f4c400;
+  --accent2:#ffe066;
+  --text:#2b2200;
+  --muted:rgba(43,34,0,0.76);
+  --line:rgba(43,34,0,0.10);
+  --warn:#b58900;
+  --danger:#d94841;
+  --theme-header:linear-gradient(135deg, rgba(244,196,0,0.28), rgba(255,224,102,0.16));
+  --theme-topbar:linear-gradient(to bottom, rgba(255,249,219,0.96), rgba(255,249,219,0.90));
+  --theme-menu:rgba(255,248,214,0.99);
+  --theme-menu-header:linear-gradient(135deg, rgba(244,196,0,0.24), rgba(255,224,102,0.14));
+  --theme-shadow:0 8px 20px rgba(120,98,0,0.12);
+  --theme-radius:18px;
+  --theme-font:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 body{
-  font-family:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:var(--theme-font,'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
   background:var(--bg);
   color:var(--text);
   margin:0;
@@ -45,9 +162,9 @@ h1{text-align:center;margin:8px 0 14px;letter-spacing:0.2px;}
 /* Top bar */
 .topbar{
   position:sticky; top:0; z-index:50;
-  background:linear-gradient(to bottom, rgba(15,23,42,0.92), rgba(15,23,42,0.78));
+  background:var(--theme-topbar, linear-gradient(to bottom, rgba(15,23,42,0.92), rgba(15,23,42,0.78)));
   backdrop-filter: blur(8px);
-  padding:14px 12px;
+  padding:10px 12px;
   margin:-15px -15px 12px;
   border-bottom:1px solid rgba(255,255,255,0.08);
 }
@@ -57,133 +174,81 @@ h1{text-align:center;margin:8px 0 14px;letter-spacing:0.2px;}
   justify-content:space-between;
   gap:10px;
 }
-.app-title-wrap{
-  display:flex;
-  align-items:center;
-  gap:9px;
-}
-.app-title-text{
-  display:flex;
-  flex-direction:column;
-  line-height:1.2;
-}
-.app-title-name{
+.app-title{
   font-weight:800;
-  font-size:16px;
+  font-size:17px;
   letter-spacing:0.3px;
-  color:var(--text);
 }
-.app-title-accent{
-  color:#22c55e;
-}
-.app-title-tag{
-  font-size:10px;
-  letter-spacing:0.8px;
-  text-transform:uppercase;
-  opacity:0.38;
-  font-weight:400;
-  color:var(--text);
-}
-/* v9 - botão menu tamanho ajustado */
 .menu-btn{
-  width:36px;
-  height:36px;
-  border-radius:9px;
-  border:1px solid rgba(255,255,255,0.10);
-  background:rgba(255,255,255,0.07);
+  width:40px;
+  height:40px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.08);
   color:var(--text);
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:18px;
+  font-size:22px;
   flex:0 0 auto;
-  opacity:0.80;
-  transition:opacity 0.15s, background 0.15s;
 }
-.menu-btn:hover{opacity:1; background:rgba(255,255,255,0.12);}
-.menu-btn:active{transform:scale(0.97);}
+.menu-btn:active{transform:scale(0.98);}
 
 
-/* v9 - menu tamanho ajustado */
 /* Menu overlay */
 .overlay{
   position:fixed; inset:0; z-index:90;
-  background:rgba(0,0,0,0.35);
+  background:rgba(0,0,0,0.55);
   display:none;
 }
 .overlay.show{display:block;}
 .menu-panel{
-  position:fixed; top:58px; right:10px; z-index:100;
-  width:min(250px, calc(100% - 20px));
-  background:rgba(18,28,44,0.98);
+  position:fixed; top:64px; right:12px; z-index:100;
+  width:min(320px, calc(100% - 24px));
+  background:var(--theme-menu, rgba(30,41,59,0.98));
   border:1px solid rgba(255,255,255,0.10);
-  border-radius:14px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.45);
+  border-radius:16px;
+  box-shadow:0 18px 40px rgba(0,0,0,0.45);
   overflow:hidden;
   display:none;
 }
 .menu-panel.show{display:block;}
 .menu-header{
-  padding:9px 14px;
-  background:rgba(255,255,255,0.04);
-  border-bottom:1px solid rgba(255,255,255,0.07);
-  font-weight:600;
-  font-size:11px;
-  letter-spacing:0.6px;
-  text-transform:uppercase;
-  opacity:0.5;
+  padding:12px 14px;
+  background:var(--theme-menu-header, linear-gradient(135deg, rgba(96,165,250,0.22), rgba(34,197,94,0.16)));
+  border-bottom:1px solid rgba(255,255,255,0.10);
+  font-weight:bold;
 }
 .menu-item{
-  padding:2px 8px;
-  border-bottom:1px solid rgba(255,255,255,0.05);
+  padding:12px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
 }
 .menu-item:last-child{border-bottom:none;}
-/* v9 - menu: tamanho ajustado e botões com diferenciação visual agradável */
 .menu-item button{
   width:100%;
-  padding:8px 10px;
+  padding:10px;
   margin:0;
-  border-radius:8px;
-  border:none !important;
-  font-size:14px !important;
-  font-weight:500 !important;
-  background:transparent !important;
-  color:var(--text) !important;
-  text-align:left;
-  opacity:0.90;
-  cursor:pointer;
-  font-family:inherit;
-  transition:background 0.12s, opacity 0.12s;
-  display:flex;
-  align-items:center;
-  gap:8px;
+  border-radius:12px;
+  border:none;
+  font-size:15px;
+  font-weight:bold;
+  background:rgba(255,255,255,0.10);
+  color:var(--text);
 }
-.menu-item button:hover{background:rgba(255,255,255,0.07) !important; opacity:1;}
-.menu-item button.primary{
-  color:var(--accent) !important;
-  font-weight:700 !important;
-}
-.menu-item button.secondary{
-  color:var(--accent2) !important;
-  background:transparent !important;
-  font-weight:500 !important;
-}
-.menu-item button.danger{
-  color:var(--danger) !important;
-  opacity:0.80;
-}
-.menu-item button.danger:hover{ opacity:1; }
-.menu-note{padding:5px 12px 7px; font-size:10px; opacity:0.5; line-height:1.3;}
+.menu-item button.primary{background:var(--accent);color:#0b1220;}
+.menu-item button.secondary{background:var(--accent2);color:#0b1220;}
+.menu-item button.danger{background:var(--danger);color:#0b1220;}
+.menu-note{padding:10px 14px; font-size:12px; opacity:0.85; line-height:1.35;}
 
 .card{
   background:var(--card);
-  border-radius:16px;
+  border-radius:var(--theme-radius,16px);
   margin-bottom:16px;
   overflow:visible;
-  box-shadow:0 8px 20px rgba(0,0,0,0.25);
+  box-shadow:var(--theme-shadow,0 8px 20px rgba(0,0,0,0.25));
 }
 .card-header{
-  background:linear-gradient(135deg, rgba(96,165,250,0.25), rgba(34,197,94,0.18));
+  background:var(--theme-header, linear-gradient(135deg, rgba(96,165,250,0.25), rgba(34,197,94,0.18)));
   padding:12px 14px;
   border-bottom:1px solid var(--line);
 }
@@ -219,12 +284,19 @@ button:active{transform:scale(0.99);}
   min-height:auto !important;
   border-radius:0 !important;
   box-shadow:none !important;
-  width:auto !important;
-  text-align:left !important;
-  display:inline !important;
 }
 .btn-historico-link:active{transform:none !important;}
 
+
+
+.theme-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:6px;}
+.theme-card{background:rgba(255,255,255,0.06);border:1px solid var(--line);border-radius:14px;padding:12px;}
+.theme-card-title{font-weight:800;font-size:14px;margin-bottom:4px;}
+.theme-card-sub{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.35;}
+.theme-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.theme-option{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--input);color:var(--text);font-weight:700;font-size:13px;}
+.theme-option.active{outline:2px solid var(--accent);background:rgba(255,255,255,0.12);}
+#themeOverlay .editvalor-modal{max-width:420px;width:min(92vw,420px);}
 
 .list-item{
   background:rgba(255,255,255,0.06);
@@ -473,6 +545,20 @@ button[onclick="salvarMeta()"]{
 }
 
 
+/* Relógio Uber (dia vira às 04:00) */
+/* Relógio Uber (dia vira às 04:00) */
+.uber-clock{
+  width:100%;
+  text-align:center;
+  font-weight:800;
+  letter-spacing:0.5px;
+  opacity:0.95;
+  margin: 12px 0 16px;
+  padding: 6px 0;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
 
 /* Seções recolhíveis + persistência */
 .collapsible-header{
@@ -691,7 +777,7 @@ input.negative-value, input.negative-value::placeholder{
   display:flex;
   align-items:center;
   justify-content:center;
-  height:24vh;
+  height:40vh;
   border-radius:22px;
   border:2px solid rgba(255,255,255,.38);
   background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
@@ -767,28 +853,9 @@ input.negative-value, input.negative-value::placeholder{
 }
 .quick-balance-actions{
   display:grid;
-  grid-template-columns:1fr 1fr 1fr;
+  grid-template-columns:1fr 1fr;
   gap:10px;
   margin-top:12px;
-}
-.quick-balance-actions button{
-  min-height:64px;
-  font-size:20px;
-  font-weight:900;
-  border-radius:18px;
-}
-.quick-balance-home-btn{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.quick-balance-home-icon{
-  width:26px;
-  height:26px;
-  border:3px solid currentColor;
-  border-radius:8px;
-  display:inline-block;
-  box-sizing:border-box;
 }
 .quick-balance-hidden-input{
   position:absolute !important;
@@ -1327,86 +1394,6 @@ input.negative-value, input.negative-value::placeholder{
 
 
 /* ===== Modal editar valor (teclado numérico) ===== */
-
-
-/* v9 - modal editar data/motivo (substitui prompt nativo que falha no Android) */
-.edit-data-overlay{
-  position:fixed; inset:0; z-index:400;
-  background:rgba(0,0,0,0.55);
-  display:none;
-}
-.edit-data-overlay.show{ display:flex; align-items:center; justify-content:center; padding:16px; }
-.edit-data-modal{
-  width:min(380px, 100%);
-  background:rgba(30,41,59,0.98);
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:18px;
-  box-shadow:0 18px 40px rgba(0,0,0,0.45);
-  padding:18px;
-}
-.edit-data-title{ font-weight:900; margin:0 0 12px; font-size:15px; }
-.edit-data-modal input{
-  width:100%;
-  background:var(--input);
-  color:var(--text);
-  border-radius:10px;
-  border:none;
-  padding:10px;
-  font-size:15px;
-  font-family:inherit;
-  margin-bottom:10px;
-}
-.edit-data-actions{ display:flex; gap:10px; margin-top:4px; }
-.edit-data-actions button{ flex:1; height:44px; border-radius:12px; font-size:14px; font-weight:700; border:none; cursor:pointer; font-family:inherit; }
-.edit-data-actions .btn-cancelar{ background:rgba(255,255,255,0.10); color:var(--text); }
-
-/* v8 - modal exportar backup */
-.export-backup-overlay{
-  position:fixed; inset:0; z-index:300;
-  background:rgba(0,0,0,0.55);
-  display:none;
-}
-.export-backup-overlay.show{ display:flex; align-items:center; justify-content:center; padding:16px; }
-.export-backup-modal{
-  width:min(420px, 100%);
-  background:rgba(30,41,59,0.98);
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:18px;
-  box-shadow:0 18px 40px rgba(0,0,0,0.45);
-  padding:18px;
-}
-.export-backup-title{ font-weight:900; margin:0 0 4px; font-size:15px; }
-.export-backup-subtitle{ font-size:12px; opacity:0.6; margin:0 0 14px; }
-.export-backup-field label{ display:block; font-size:12px; opacity:0.7; margin-bottom:4px; }
-.export-backup-field input{
-  width:100%;
-  background:var(--input);
-  color:var(--text);
-  border-radius:10px;
-  border:none;
-  padding:10px;
-  font-size:14px;
-  font-family:inherit;
-}
-.export-backup-warning{
-  margin-top:10px;
-  padding:10px 12px;
-  border-radius:10px;
-  background:rgba(251,113,133,0.10);
-  border:1px solid rgba(251,113,133,0.25);
-  color:#ffb3b3;
-  font-size:12px;
-  line-height:1.45;
-  display:none;
-}
-.export-backup-warning.show{ display:block; }
-.export-backup-actions{ display:flex; gap:10px; margin-top:14px; flex-direction:column; }
-.export-backup-actions button{ height:44px; border-radius:12px; font-size:14px; font-weight:700; border:none; cursor:pointer; font-family:inherit; }
-.export-backup-actions .btn-pasta{ background:var(--accent); color:#0b1220; }
-.export-backup-actions .btn-downloads{ background:rgba(255,255,255,0.10); color:var(--text); border:1px solid rgba(255,255,255,0.12) !important; }
-.export-backup-actions .btn-cancelar{ background:transparent !important; color:var(--text); opacity:0.55; font-weight:500 !important; font-size:13px !important; height:32px !important; }
-.export-backup-actions .btn-cancelar:hover{ opacity:1; }
-
 .editvalor-overlay{
   position:fixed; inset:0; z-index:300;
   background:rgba(0,0,0,0.55);
@@ -1856,525 +1843,6 @@ input.negative-value, input.negative-value::placeholder{
 
 .gh-actions{display:flex;gap:8px;flex-wrap:nowrap;align-items:center;}
 .gh-actions button{flex:1 1 0;min-width:0;padding:10px 8px;font-size:14px;}
-/* PATCH_V86_TEMPO_META */
-.tempo-meta-stack{display:block;}
-.tempo-meta-stack > div{margin-bottom:0;}
-.tempo-meta-stack label{margin-top:8px;}
-.tempo-meta-stack input{width:100%; margin-top:8px;}
-#cardTempoMeta button[onclick="salvarHoras()"]{width:100%; margin-top:8px;}
-/* remove setas visuais de data/hora */
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="time"]::-webkit-calendar-picker-indicator{opacity:0;display:none;-webkit-appearance:none;}
-input[type="date"],input[type="time"]{-webkit-appearance:none;appearance:none;background-image:none;}
-/* neutraliza ajustes antigos que deixavam campos despadronizados */
-#metaDiariaManual,#ganhoDiarioAtual,#ganhoHoraManual,#metaTotal,#dataLimite{width:100%;margin-right:0;margin-left:0;}
-/* END_PATCH_V86_TEMPO_META */
-
-
-
-
-/* ===== META THEMES (additive only) ===== */
-body{
-  transition: background .28s ease, color .28s ease;
-}
-body[data-tema="meta-escuro"]{
-  --bg:#0f172a;
-  --card:#1e293b;
-  --input:#334155;
-  --accent:#22c55e;
-  --accent2:#60a5fa;
-  --text:#ffffff;
-  --muted:rgba(255,255,255,0.88);
-  --line:rgba(255,255,255,0.10);
-  --warn:#facc15;
-  --danger:#fb7185;
-}
-body[data-tema="meta-claro"]{
-  --bg:#f5f7fb;
-  --card:#ffffff;
-  --input:#e6ebf2;
-  --accent:#1db954;
-  --accent2:#3b82f6;
-  --text:#0f172a;
-  --muted:rgba(15,23,42,0.72);
-  --line:rgba(15,23,42,0.10);
-  --warn:#ca8a04;
-  --danger:#e11d48;
-}
-/* v9 - preto: identidade Uber (preto total + branco puro) */
-body[data-tema="preto-escuro"]{
-  --bg:#000000;
-  --card:#111111;
-  --input:#1a1a1a;
-  --accent:#ffffff;
-  --accent2:#999999;
-  --text:#ffffff;
-  --muted:rgba(255,255,255,0.70);
-  --line:rgba(255,255,255,0.08);
-  --warn:#ffffff;
-  --danger:#ff3b30;
-}
-body[data-tema="preto-claro"]{
-  --bg:#f5f5f5;
-  --card:#ffffff;
-  --input:#ebebeb;
-  --accent:#000000;
-  --accent2:#555555;
-  --text:#000000;
-  --muted:rgba(0,0,0,0.60);
-  --line:rgba(0,0,0,0.08);
-  --warn:#000000;
-  --danger:#ff3b30;
-}
-/* v9 - amarelo: identidade 99 (preto + amarelo vibrante) */
-body[data-tema="amarelo-escuro"]{
-  --bg:#0d0d0d;
-  --card:#1a1a00;
-  --input:#2a2a00;
-  --accent:#ffcc00;
-  --accent2:#ffdd44;
-  --text:#ffffff;
-  --muted:rgba(255,255,255,0.75);
-  --line:rgba(255,204,0,0.15);
-  --warn:#ffcc00;
-  --danger:#ff453a;
-}
-body[data-tema="amarelo-claro"]{
-  --bg:#fffbe6;
-  --card:#ffffff;
-  --input:#fff3b0;
-  --accent:#ffcc00;
-  --accent2:#e6a800;
-  --text:#1a1400;
-  --muted:rgba(26,20,0,0.65);
-  --line:rgba(26,20,0,0.10);
-  --warn:#c68a00;
-  --danger:#dc2626;
-}
-/* v9 - color-scheme por modo */
-body[data-tema="meta-claro"],
-body[data-tema="preto-claro"],
-body[data-tema="amarelo-claro"]{ color-scheme:light; }
-body[data-tema="meta-escuro"],
-body[data-tema="preto-escuro"],
-body[data-tema="amarelo-escuro"]{ color-scheme:dark; }
-
-/* ── TOPBAR por tema ── */
-body[data-tema$="claro"] .topbar{
-  background:linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.84));
-  border-bottom:1px solid var(--line);
-}
-body[data-tema$="claro"] .menu-panel{
-  background:rgba(255,255,255,0.98);
-}
-body[data-tema$="claro"] .menu-item button{ color:var(--text) !important; }
-body[data-tema$="claro"] .menu-item button.primary{ color:var(--accent) !important; }
-body[data-tema$="claro"] .menu-item button.secondary{ color:var(--accent2) !important; }
-body[data-tema$="claro"] .menu-item button.danger{ color:var(--danger) !important; }
-
-/* ── menu-btn por tema claro ── */
-body[data-tema$="claro"] .menu-btn{
-  background:rgba(0,0,0,0.06);
-  color:var(--text);
-  border-color:var(--line);
-}
-
-/* ════════════════════════════════════════════
-   TEMA: META ESCURO (padrão, nenhum override
-   necessário — o CSS base já é otimizado)
-   ════════════════════════════════════════════ */
-
-/* ════════════════════════════════════════════
-   TEMA: META CLARO
-   ════════════════════════════════════════════ */
-body[data-tema="meta-claro"] .card-header{
-  background:linear-gradient(135deg, rgba(59,130,246,0.18), rgba(29,185,84,0.12));
-}
-/* botões globais no claro: texto escuro sobre accent claro */
-body[data-tema="meta-claro"] button{ color:#0f172a; }
-body[data-tema="meta-claro"] button.secondary{ background:var(--accent2); color:#ffffff; }
-/* abas */
-body[data-tema="meta-claro"] .tab-btn{
-  background:rgba(15,23,42,0.06);
-  border-color:rgba(15,23,42,0.14);
-  color:var(--text);
-}
-body[data-tema="meta-claro"] .tab-btn.active{
-  background:rgba(59,130,246,0.18);
-  border-color:rgba(59,130,246,0.40);
-  color:var(--text);
-}
-body[data-tema="meta-claro"] .subtab-btn{
-  background:rgba(15,23,42,0.06);
-  border-color:rgba(15,23,42,0.12);
-  color:var(--text);
-}
-body[data-tema="meta-claro"] .list-item{
-  background:rgba(15,23,42,0.04);
-  border-color:rgba(15,23,42,0.10);
-}
-body[data-tema="meta-claro"] .quick-balance-panel{ background:#ffffff; }
-
-/* ════════════════════════════════════════════
-   TEMA: PRETO ESCURO (identidade Uber)
-   ════════════════════════════════════════════ */
-body[data-tema="preto-escuro"] .card-header{
-  background:rgba(255,255,255,0.05);
-  border-bottom:1px solid rgba(255,255,255,0.07);
-}
-/* botões primários: branco com texto preto */
-body[data-tema="preto-escuro"] button{
-  background:#ffffff;
-  color:#000000;
-}
-body[data-tema="preto-escuro"] button.secondary{
-  background:rgba(255,255,255,0.12);
-  color:#ffffff;
-}
-/* abas principais */
-body[data-tema="preto-escuro"] .tab-btn{
-  background:rgba(255,255,255,0.05);
-  border-color:rgba(255,255,255,0.10);
-  color:#ffffff;
-}
-body[data-tema="preto-escuro"] .tab-btn.active{
-  background:rgba(255,255,255,0.14);
-  border-color:rgba(255,255,255,0.30);
-  color:#ffffff;
-}
-/* sub-abas ganhos/gastos */
-body[data-tema="preto-escuro"] .subtab-btn{
-  background:rgba(255,255,255,0.06);
-  border-color:rgba(255,255,255,0.10);
-  color:#ffffff;
-}
-body[data-tema="preto-escuro"] #btnSubGanhos.active{
-  background:rgba(255,255,255,0.18);
-  color:#ffffff;
-  border-color:rgba(255,255,255,0.30);
-}
-body[data-tema="preto-escuro"] #btnSubGastos.active{
-  background:rgba(255,80,80,0.25);
-  color:#ff8888;
-  border-color:rgba(255,80,80,0.30);
-}
-/* list items */
-body[data-tema="preto-escuro"] .list-item{
-  background:rgba(255,255,255,0.04);
-  border-color:rgba(255,255,255,0.07);
-}
-/* quick balance */
-body[data-tema="preto-escuro"] .quick-balance-panel,
-body[data-tema="preto-escuro"] .quick-balance-display{
-  background-color:#0a0a0a;
-}
-/* inputs */
-body[data-tema="preto-escuro"] input,
-body[data-tema="preto-escuro"] select{
-  background:#1a1a1a;
-  color:#ffffff;
-  border:1px solid rgba(255,255,255,0.10);
-}
-
-/* ════════════════════════════════════════════
-   TEMA: PRETO CLARO (identidade Uber Claro)
-   ════════════════════════════════════════════ */
-body[data-tema="preto-claro"] .card-header{
-  background:rgba(0,0,0,0.06);
-  border-bottom:1px solid rgba(0,0,0,0.08);
-}
-body[data-tema="preto-claro"] button{
-  background:#000000;
-  color:#ffffff;
-}
-body[data-tema="preto-claro"] button.secondary{
-  background:rgba(0,0,0,0.10);
-  color:#000000;
-}
-body[data-tema="preto-claro"] .tab-btn{
-  background:rgba(0,0,0,0.05);
-  border-color:rgba(0,0,0,0.12);
-  color:#000000;
-}
-body[data-tema="preto-claro"] .tab-btn.active{
-  background:rgba(0,0,0,0.14);
-  border-color:rgba(0,0,0,0.30);
-  color:#000000;
-}
-body[data-tema="preto-claro"] .subtab-btn{
-  background:rgba(0,0,0,0.05);
-  border-color:rgba(0,0,0,0.10);
-  color:#000000;
-}
-body[data-tema="preto-claro"] #btnSubGanhos.active{
-  background:rgba(0,0,0,0.16);
-  color:#000000;
-  border-color:rgba(0,0,0,0.28);
-}
-body[data-tema="preto-claro"] #btnSubGastos.active{
-  background:rgba(200,40,40,0.15);
-  color:#c00000;
-  border-color:rgba(200,40,40,0.25);
-}
-body[data-tema="preto-claro"] .list-item{
-  background:rgba(0,0,0,0.03);
-  border-color:rgba(0,0,0,0.08);
-}
-body[data-tema="preto-claro"] .quick-balance-panel{ background:#ffffff; }
-
-/* ════════════════════════════════════════════
-   TEMA: AMARELO ESCURO (identidade 99)
-   ════════════════════════════════════════════ */
-body[data-tema="amarelo-escuro"] .card-header{
-  background:rgba(255,204,0,0.10);
-  border-bottom:1px solid rgba(255,204,0,0.12);
-}
-/* botões primários: amarelo com texto preto */
-body[data-tema="amarelo-escuro"] button{
-  background:#ffcc00;
-  color:#000000;
-}
-body[data-tema="amarelo-escuro"] button.secondary{
-  background:rgba(255,204,0,0.15);
-  color:#ffcc00;
-}
-/* abas */
-body[data-tema="amarelo-escuro"] .tab-btn{
-  background:rgba(255,255,255,0.05);
-  border-color:rgba(255,204,0,0.15);
-  color:#ffffff;
-}
-body[data-tema="amarelo-escuro"] .tab-btn.active{
-  background:rgba(255,204,0,0.18);
-  border-color:rgba(255,204,0,0.40);
-  color:#ffcc00;
-}
-/* sub-abas */
-body[data-tema="amarelo-escuro"] .subtab-btn{
-  background:rgba(255,255,255,0.05);
-  border-color:rgba(255,204,0,0.12);
-  color:#ffffff;
-}
-body[data-tema="amarelo-escuro"] #btnSubGanhos.active{
-  background:rgba(255,204,0,0.22);
-  color:#ffcc00;
-  border-color:rgba(255,204,0,0.35);
-}
-body[data-tema="amarelo-escuro"] #btnSubGastos.active{
-  background:rgba(255,80,80,0.22);
-  color:#ff8888;
-  border-color:rgba(255,80,80,0.30);
-}
-/* list items */
-body[data-tema="amarelo-escuro"] .list-item{
-  background:rgba(255,204,0,0.05);
-  border-color:rgba(255,204,0,0.10);
-}
-/* quick balance */
-body[data-tema="amarelo-escuro"] .quick-balance-panel{
-  background:#0d0d00;
-}
-/* inputs */
-body[data-tema="amarelo-escuro"] input,
-body[data-tema="amarelo-escuro"] select{
-  background:#222200;
-  color:#ffffff;
-  border:1px solid rgba(255,204,0,0.15);
-}
-
-/* ════════════════════════════════════════════
-   TEMA: AMARELO CLARO (identidade 99 Claro)
-   ════════════════════════════════════════════ */
-body[data-tema="amarelo-claro"] .card-header{
-  background:rgba(255,204,0,0.20);
-  border-bottom:1px solid rgba(255,204,0,0.20);
-}
-body[data-tema="amarelo-claro"] button{
-  background:#ffcc00;
-  color:#000000;
-}
-body[data-tema="amarelo-claro"] button.secondary{
-  background:rgba(0,0,0,0.08);
-  color:#1a1400;
-}
-body[data-tema="amarelo-claro"] .tab-btn{
-  background:rgba(0,0,0,0.05);
-  border-color:rgba(0,0,0,0.12);
-  color:#1a1400;
-}
-body[data-tema="amarelo-claro"] .tab-btn.active{
-  background:rgba(255,204,0,0.35);
-  border-color:rgba(200,150,0,0.45);
-  color:#000000;
-}
-body[data-tema="amarelo-claro"] .subtab-btn{
-  background:rgba(0,0,0,0.05);
-  border-color:rgba(0,0,0,0.10);
-  color:#1a1400;
-}
-body[data-tema="amarelo-claro"] #btnSubGanhos.active{
-  background:rgba(255,204,0,0.40);
-  color:#000000;
-  border-color:rgba(180,130,0,0.35);
-}
-body[data-tema="amarelo-claro"] #btnSubGastos.active{
-  background:rgba(200,40,40,0.15);
-  color:#aa0000;
-  border-color:rgba(200,40,40,0.20);
-}
-body[data-tema="amarelo-claro"] .list-item{
-  background:rgba(0,0,0,0.03);
-  border-color:rgba(0,0,0,0.08);
-}
-body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
-
-.temas-overlay{
-  position:fixed; inset:0; z-index:1500;
-  background:rgba(0,0,0,0.62);
-  display:none;
-}
-.temas-overlay.show{ display:block; }
-.temas-panel{
-  position:fixed; left:12px; right:12px; bottom:18px; z-index:1501;
-  max-width:520px; margin:0 auto;
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:22px;
-  box-shadow:0 30px 70px rgba(0,0,0,.50);
-  display:none;
-  overflow:hidden;
-}
-.temas-panel.show{ display:block; }
-.temas-head{
-  padding:16px 16px 10px;
-  background:linear-gradient(135deg, rgba(96,165,250,0.18), rgba(34,197,94,0.12));
-  border-bottom:1px solid var(--line);
-}
-.temas-title{ font-size:18px; font-weight:800; letter-spacing:.2px; }
-.temas-sub{ font-size:12px; opacity:.86; line-height:1.35; margin-top:4px; }
-.temas-body{ padding:14px; display:grid; gap:12px; max-height:68vh; overflow:auto; }
-.tema-card{
-  border:1px solid var(--line);
-  border-radius:16px;
-  background:rgba(255,255,255,.03);
-  padding:12px;
-}
-.tema-card-title{ font-size:14px; font-weight:800; }
-.tema-card-desc{ font-size:12px; opacity:.8; line-height:1.35; margin-top:4px; }
-.tema-options{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
-.tema-option{
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:10px;
-  cursor:pointer;
-  background:rgba(255,255,255,.04);
-}
-.tema-option.active{ outline:2px solid var(--accent2); outline-offset:1px; }
-.tema-preview{
-  height:68px; border-radius:12px; overflow:hidden; position:relative;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.06);
-}
-.tema-preview-top{ height:14px; width:100%; opacity:.94; }
-.tema-preview-card{
-  position:absolute; left:10px; right:10px; bottom:10px; height:24px; border-radius:10px;
-}
-.tema-label{ margin-top:8px; font-size:12px; font-weight:800; text-align:center; }
-.temas-actions{ padding:0 14px 14px; }
-.temas-actions button{ margin-top:0; }
-
-
-/* Dias não trabalhados: formulário centralizado e ação discreta */
-#formNaoTrabalhado{
-  width: calc(100% - 24px);
-  margin: 10px auto 10px !important;
-}
-#formNaoTrabalhado input{
-  width: 100%;
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-#formNaoTrabalhado .dias-link-add{
-  display:block;
-  width:auto !important;
-  margin: 2px auto 0 !important;
-  padding:0 !important;
-  background:transparent !important;
-  border:none !important;
-  color:var(--accent) !important;
-  text-decoration:underline;
-  font-weight:700;
-  font-size:14px;
-  min-height:auto !important;
-  height:auto !important;
-  border-radius:0 !important;
-  box-shadow:none !important;
-}
-#formNaoTrabalhado .dias-link-add:active{
-  transform:none !important;
-}
-#listaNaoTrabalhados .list-item{
-  width: calc(100% - 24px);
-  margin: 8px auto 0 !important;
-  padding: 6px 10px !important;
-  min-height: 0 !important;
-  border-radius: 10px;
-  font-size: 13px;
-  line-height: 1.15;
-  align-items: center;
-}
-#listaNaoTrabalhados .list-left{
-  gap: 6px;
-  align-items: center;
-}
-#listaNaoTrabalhados .li-date,
-#listaNaoTrabalhados .li-desc{
-  line-height: 1.15;
-}
-#listaNaoTrabalhados .small-btn{
-  padding: 4px 7px;
-  font-size: 11px;
-  border-radius: 8px;
-}
-
-
-/* Dias não trabalhados: o + controla tudo */
-#btnMaisNaoTrab{
-  display:block !important;
-  margin:8px auto !important;
-}
-
-
-/* Dias não trabalhados — refinamento visual sem mexer na lógica da Meta */
-#dataNaoTrabalhado[type="text"]{
-  color: rgba(255,255,255,0.68);
-}
-#listaNaoTrabalhados .list-item,
-#listaNaoTrabalhados .nao-trabalhado-item{
-  width: calc(100% - 24px);
-  margin: 8px auto 0 !important;
-  padding: 6px 10px !important;
-  min-height: 44px !important;
-  height: auto !important;
-  border-radius: 10px;
-  font-size: 13px;
-  line-height: 1.15;
-  align-items: center;
-}
-#listaNaoTrabalhados .list-left{
-  gap: 6px;
-  align-items: center;
-}
-#listaNaoTrabalhados .li-date,
-#listaNaoTrabalhados .li-desc{
-  line-height: 1.15;
-}
-#listaNaoTrabalhados .action-menu{
-  margin-left: 6px;
-}
-#listaNaoTrabalhados .kebab-btn{
-  padding: 2px 5px;
-  font-size: 16px;
-}
 
 </style>
 
@@ -2389,113 +1857,38 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 
 <script id="auth-guard">
 (function(){
-  const AUTH_SKEW_MS = 60000;
-
-  function readStoredSession(){
-    try{
-      return {
-        access_token: localStorage.getItem("sb_token") || "",
-        refresh_token: localStorage.getItem("sb_refresh_token") || "",
-        expires_at: Number(localStorage.getItem("sb_expires_at") || 0)
-      };
-    }catch(e){
-      return { access_token:"", refresh_token:"", expires_at:0 };
-    }
-  }
-
-  function saveStoredSession(data){
-    try{
-      if(data && data.access_token) localStorage.setItem("sb_token", data.access_token || "");
-      if(data && data.refresh_token) localStorage.setItem("sb_refresh_token", data.refresh_token || "");
-      if(data && data.expires_at) localStorage.setItem("sb_expires_at", String(data.expires_at || 0));
-    }catch(e){}
-  }
-
-  function hasUsableToken(sess){
-    try{
-      return !!(sess && sess.access_token && Number(sess.expires_at || 0) * 1000 > (Date.now() + AUTH_SKEW_MS));
-    }catch(e){ return false; }
-  }
-
-  async function refreshAccessTokenIfNeeded(force){
-    const sess = readStoredSession();
-    if(!force && hasUsableToken(sess)) return sess.access_token || "";
-    if(!sess.refresh_token) return sess.access_token || "";
-
-    try{
-      const res = await fetch("https://xoqlgwjpmdkiazwpwhmn.supabase.co/auth/v1/token?grant_type=refresh_token", {
-        method: "POST",
-        headers: {
-          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ refresh_token: sess.refresh_token })
-      });
-      const raw = await res.text();
-      let data = null;
-      try{ data = raw ? JSON.parse(raw) : null; }catch(e){ data = null; }
-      if(res.ok && data && data.access_token){
-        saveStoredSession(data);
-        return data.access_token || "";
-      }
-    }catch(e){}
-    return sess.access_token || "";
-  }
-
-  window.mdEnsureActiveSession = refreshAccessTokenIfNeeded;
-
-  (async function(){
-    try{
-      const sess = readStoredSession();
-      if(!sess.access_token && !sess.refresh_token){
-        location.replace("login.html");
-        return;
-      }
-      const token = await refreshAccessTokenIfNeeded(false);
-      if(!token){
-        location.replace("login.html");
-        return;
-      }
-    }catch(e){
+  try{
+    var token = localStorage.getItem("sb_token") || "";
+    if(!token){
       location.replace("login.html");
+      return;
     }
-  })();
-
-  document.addEventListener("DOMContentLoaded", function(){
-    const hiddenQuickInput = document.getElementById("quickSaldoAtual");
-    if(hiddenQuickInput){
-      hiddenQuickInput.addEventListener("focus", function(){
-        try{ this.blur(); }catch(e){}
-      });
-      hiddenQuickInput.addEventListener("touchstart", function(e){
-        e.preventDefault();
-      }, {passive:false});
-    }
-  });
+  }catch(e){
+    location.replace("login.html");
+  }
 })();
+
+document.addEventListener("DOMContentLoaded", function(){
+  const hiddenQuickInput = document.getElementById("quickSaldoAtual");
+  if(hiddenQuickInput){
+    hiddenQuickInput.addEventListener("focus", function(){
+      try{ this.blur(); }catch(e){}
+    });
+    hiddenQuickInput.addEventListener("touchstart", function(e){
+      e.preventDefault();
+    }, {passive:false});
+  }
+});
+
 </script>
 
 </head>
 <body>
 
+<div id="uberClock" class="uber-clock">--/--/---- --:--:--</div>
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="app-title-wrap">
-      <svg width="32" height="32" viewBox="0 0 28 28" style="flex:0 0 auto;border-radius:7px;">
-        <rect width="28" height="28" rx="7" fill="#0d1b2e"/>
-        <rect width="28" height="28" rx="7" fill="none" stroke="#2563eb" stroke-width="1.5"/>
-        <circle cx="14" cy="13" r="7" fill="none" stroke="#22c55e" stroke-width="2"/>
-        <line x1="14" y1="6" x2="14" y2="20" stroke="#22c55e" stroke-width="2"/>
-        <line x1="7" y1="13" x2="21" y2="13" stroke="#22c55e" stroke-width="2"/>
-        <circle cx="14" cy="13" r="2.5" fill="#22c55e"/>
-        <rect x="6" y="21" width="16" height="4" rx="2" fill="#2563eb"/>
-        <rect x="11" y="22.5" width="6" height="1" rx="0.5" fill="#fff" opacity="0.9"/>
-      </svg>
-      <div class="app-title-text">
-        <div class="app-title-name">Meta<span class="app-title-accent">Driver</span></div>
-        <div class="app-title-tag">controle de ganhos</div>
-      </div>
-    </div>
+    <div class="app-title">🚗 MetaDriver</div>
     <button class="menu-btn" onclick="toggleMenu()" aria-label="Menu">☰</button>
   </div>
 </div>
@@ -2514,13 +1907,13 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 <div id="overlay" class="overlay" onclick="closeMenu()"></div>
 <div id="menuPanel" class="menu-panel">
   <div class="menu-header">Menu</div>
-  <div class="menu-item"><button class="primary" onclick="abrirExportBackup(); closeMenu();">Exportar / Backup</button></div>
+  <div class="menu-item"><button class="primary" onclick="exportarBackup(); closeMenu();">Exportar / Backup</button></div>
   <div class="menu-item"><button class="secondary" onclick="document.getElementById('importFile').click()">Importar backup</button></div>
   <div class="menu-item"><button class="secondary" onclick="exportarRelatorioPDF(); closeMenu();">Exportar relatório (PDF)</button></div>
   <div class="menu-item"><button class="danger" onclick="openZerar(); closeMenu();">Zerar dados (cuidado)</button></div>
   <div class="menu-item"><button class="secondary" onclick="location.href='painel.html'; closeMenu();">Gerenciar APP</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
-  <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
+  <div class="menu-item"><button class="secondary" onclick="openThemeModal(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
   <div class="menu-note">
     • Backup exporta um .json com tudo.<br>
@@ -2528,60 +1921,6 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
     • PDF abre a tela de impressão pra salvar em PDF.
   </div>
 </div>
-
-<div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
-<div id="temasPanel" class="temas-panel" role="dialog" aria-modal="true" aria-labelledby="temasTitle">
-  <div class="temas-head">
-    <div id="temasTitle" class="temas-title">Temas</div>
-    <div class="temas-sub">Visual premium com identidade própria, inspirado na clareza e contraste de apps grandes de mobilidade.</div>
-  </div>
-  <div class="temas-body">
-    <div class="tema-card">
-      <div class="tema-card-title">MetaDriver</div>
-      <div class="tema-card-desc">Visual atual do app, refinado para contraste e leitura.</div>
-      <div class="tema-options">
-        <div class="tema-option" data-tema-option="meta-escuro" onclick="selecionarTema('meta-escuro')">
-          <div class="tema-preview" style="background:#0f172a;"><div class="tema-preview-top" style="background:#60a5fa"></div><div class="tema-preview-card" style="background:#22c55e"></div></div>
-          <div class="tema-label">Escuro</div>
-        </div>
-        <div class="tema-option" data-tema-option="meta-claro" onclick="selecionarTema('meta-claro')">
-          <div class="tema-preview" style="background:#f5f7fb;"><div class="tema-preview-top" style="background:#3b82f6"></div><div class="tema-preview-card" style="background:#1db954"></div></div>
-          <div class="tema-label">Claro</div>
-        </div>
-      </div>
-    </div>
-    <div class="tema-card">
-      <div class="tema-card-title">Preto Profissional</div>
-      <div class="tema-card-desc">Minimalista, denso e sofisticado, bem próximo da sensação visual de apps executivos escuros.</div>
-      <div class="tema-options">
-        <div class="tema-option" data-tema-option="preto-escuro" onclick="selecionarTema('preto-escuro')">
-          <div class="tema-preview" style="background:#000"><div class="tema-preview-top" style="background:#fff"></div><div class="tema-preview-card" style="background:#1c1c1e;border:1px solid rgba(255,255,255,.10)"></div></div>
-          <div class="tema-label">Escuro</div>
-        </div>
-        <div class="tema-option" data-tema-option="preto-claro" onclick="selecionarTema('preto-claro')">
-          <div class="tema-preview" style="background:#f2f2f2;"><div class="tema-preview-top" style="background:#111"></div><div class="tema-preview-card" style="background:#fff;border:1px solid rgba(0,0,0,.08)"></div></div>
-          <div class="tema-label">Claro</div>
-        </div>
-      </div>
-    </div>
-    <div class="tema-card">
-      <div class="tema-card-title">Amarelo Dinâmico</div>
-      <div class="tema-card-desc">Vibrante, rápido de ler e com alto destaque visual para uso na rua.</div>
-      <div class="tema-options">
-        <div class="tema-option" data-tema-option="amarelo-escuro" onclick="selecionarTema('amarelo-escuro')">
-          <div class="tema-preview" style="background:#161100;"><div class="tema-preview-top" style="background:#ffd400"></div><div class="tema-preview-card" style="background:#241c00"></div></div>
-          <div class="tema-label">Escuro</div>
-        </div>
-        <div class="tema-option" data-tema-option="amarelo-claro" onclick="selecionarTema('amarelo-claro')">
-          <div class="tema-preview" style="background:#fff8d9;"><div class="tema-preview-top" style="background:#ffcc00"></div><div class="tema-preview-card" style="background:#fff1a6"></div></div>
-          <div class="tema-label">Claro</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="temas-actions"><button class="secondary" onclick="fecharTemas()">Fechar</button></div>
-</div>
-
 <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importarBackup(event)">
 
 
@@ -2614,18 +1953,18 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
     <input type="date" id="dataLimite">
 
     
-    <div class="label-row" style="display:flex;justify-content:center;align-items:center;margin-top:10px;"><label style="margin:0;">Dias não trabalhados</label></div>
+    <div class="label-row" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-top:10px;" onclick="toggleListaNaoTrab()"><label style="margin:0;">Dias não trabalhados</label><span id="arrowListaNaoTrab" style="font-weight:900;opacity:.9;transform:rotate(-90deg);display:inline-block;">▼</span></div>
     
 <button id="btnMaisNaoTrab" class="secondary"
-        onclick="toggleDiasNaoTrabalhadosTudo()"
+        onclick="toggleForm('formNaoTrabalhado')"
         style="width:22px;height:22px;padding:0;border-radius:6px;display:block;margin:8px auto;font-size:14px;font-weight:900;">
   +
 </button>
 
     <div id="formNaoTrabalhado" class="collapsible">
-      <input type="text" id="dataNaoTrabalhado" placeholder="Selecione a data" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
+      <input type="date" id="dataNaoTrabalhado">
       <input type="text" id="motivoNaoTrabalhado" placeholder="Motivo (ex: folga, manutenção, médico)">
-      <button onclick="addNaoTrabalhado()" class="dias-link-add">Adicionar</button>
+      <button onclick="addNaoTrabalhado()">Salvar</button>
     </div>
     <div id="wrapListaNaoTrab" style="margin-top:10px;;display:none;">
       <div id="listaNaoTrabalhados" style="margin-top:10px;"></div>
@@ -2667,25 +2006,22 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 <div id="ganhosForaResumo" class="muted" style="margin-top:10px;"></div>
 <div id="ganhosForaSessoes" class="muted" style="margin-top:10px;"></div>
 <div style="margin-top:10px;">
-  <span style="display:inline-flex;align-items:center;gap:8px;">
-    <button type="button" id="btnHistoricoGanhoHora" class="btn-historico-link" onclick="toggleHistoricoGanhoHora()">Histórico</button>
-    <!-- v8 - botão limpar histórico -->
-    <button type="button" onclick="limparHistoricoGanhoHora()" title="Limpar histórico" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--danger);opacity:0.55;padding:0;line-height:1;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.55">🗑</button>
-  </span>
-  <div id="historicoGanhoHoraWrap" class="muted" style="display:none;margin-top:8px;text-align:left;"></div>
+  <button type="button" id="btnHistoricoGanhoHora" class="btn-historico-link" onclick="toggleHistoricoGanhoHora()">Histórico</button>
+  <div id="historicoGanhoHoraWrap" class="muted" style="display:none;margin-top:8px;"></div>
 </div>
 </div>
 </div>
 
-<div class="card" id="cardTempoMeta">
+<div class="card">
   <div class="card-header collapsible-header" onclick="toggleSection(this)">
-        <h3>Tempo para atingir a meta diária</h3>
+        <h3>Horas necessárias para atingir a Meta</h3>
         <span class="collapse-arrow">▼</span>
       </div>
-  <div class="card-body tempo-meta-stack">
+  <div class="card-body">
+    <div class="grid2">
       <div>
         <label>Meta diária (R$) — automática</label>
-        <input type="number" id="metaDiariaManual" inputmode="decimal" placeholder="Meta diária automática" readonly>
+        <input type="number" id="metaDiariaManual" inputmode="decimal" placeholder="Meta diária automática" readonly />
       </div>
       <div>
         <label>Ganho diário atual (R$) — automático</label>
@@ -2695,7 +2031,8 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
         <label>Ganho por hora (R$)</label>
         <input type="number" id="ganhoHoraManual" inputmode="decimal" placeholder="Ex: 40">
       </div>
-    <button onclick="salvarHoras()">Salvar</button>
+    </div>
+    <button onclick="salvarHoras()">Iniciar / Atualizar sessão</button>
     <div id="horasResumo" class="muted" style="margin-top:10px;"></div>
   </div>
 </div>
@@ -2811,6 +2148,43 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   </div>
 </div>
 
+
+<div id="themeOverlay" class="editvalor-overlay" role="dialog" aria-modal="true" aria-label="Temas">
+  <div class="editvalor-modal">
+    <div class="editvalor-title">Temas</div>
+    <div style="opacity:.85;font-size:13px;line-height:1.35;margin-bottom:10px">Escolha um visual original inspirado em apps de mobilidade, com versões clara e escura.</div>
+    <div class="theme-grid">
+      <div class="theme-card">
+        <div class="theme-card-title">MetaDriver</div>
+        <div class="theme-card-sub">Visual oficial do app, com identidade própria.</div>
+        <div class="theme-options">
+          <button type="button" class="theme-option" data-theme-choice="metadriver-light" onclick="applyTheme('metadriver-light')">Claro</button>
+          <button type="button" class="theme-option" data-theme-choice="metadriver-dark" onclick="applyTheme('metadriver-dark')">Escuro</button>
+        </div>
+      </div>
+      <div class="theme-card">
+        <div class="theme-card-title">Preto Profissional</div>
+        <div class="theme-card-sub">Minimalista, contraste forte e aparência premium.</div>
+        <div class="theme-options">
+          <button type="button" class="theme-option" data-theme-choice="executivo-light" onclick="applyTheme('executivo-light')">Claro</button>
+          <button type="button" class="theme-option" data-theme-choice="executivo-dark" onclick="applyTheme('executivo-dark')">Escuro</button>
+        </div>
+      </div>
+      <div class="theme-card">
+        <div class="theme-card-title">Amarelo Dinâmico</div>
+        <div class="theme-card-sub">Mais vibrante, energético e com leitura rápida.</div>
+        <div class="theme-options">
+          <button type="button" class="theme-option" data-theme-choice="energia-light" onclick="applyTheme('energia-light')">Claro</button>
+          <button type="button" class="theme-option" data-theme-choice="energia-dark" onclick="applyTheme('energia-dark')">Escuro</button>
+        </div>
+      </div>
+    </div>
+    <div class="editvalor-actions" style="margin-top:14px">
+      <button type="button" class="cancel" onclick="closeThemeModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
 
 
@@ -2826,41 +2200,6 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 </div>
 
 
-
-
-
-<!-- v9 - modal editar data/motivo de dias não trabalhados -->
-<div id="editDataOverlay" class="edit-data-overlay" onclick="if(event.target.id==='editDataOverlay')fecharEditData()">
-  <div class="edit-data-modal" onclick="event.stopPropagation()">
-    <div class="edit-data-title" id="editDataTitle">Editar data</div>
-    <input type="date" id="editDataInput" />
-    <input type="text" id="editMotivoInput" placeholder="Motivo (ex: folga, manutenção...)" style="display:none;" />
-    <div class="edit-data-actions">
-      <button class="btn-cancelar" onclick="fecharEditData()">Cancelar</button>
-      <button onclick="confirmarEditData()">Salvar</button>
-    </div>
-  </div>
-</div>
-
-<!-- v8 - modal exportar backup -->
-<div id="exportBackupOverlay" class="export-backup-overlay" onclick="if(event.target.id==='exportBackupOverlay')fecharExportBackup()">
-  <div class="export-backup-modal" onclick="event.stopPropagation()">
-    <div class="export-backup-title">Exportar Backup</div>
-    <div class="export-backup-subtitle">Escolha o nome do arquivo e onde salvar.</div>
-    <div class="export-backup-field">
-      <label for="exportBackupNome">Nome do arquivo</label>
-      <input id="exportBackupNome" type="text" placeholder="Ex.: MetaDriver_Backup" />
-    </div>
-    <div id="exportBackupAviso" class="export-backup-warning">
-      Seu navegador não suporta seleção de pasta. Use a opção de Downloads.
-    </div>
-    <div class="export-backup-actions">
-      <button class="btn-pasta" type="button" onclick="exportarBackupComPasta()">📁 Escolher pasta e salvar</button>
-      <button class="btn-downloads" type="button" onclick="exportarBackupDownloads()">⬇️ Salvar em Downloads</button>
-      <button class="btn-cancelar" type="button" onclick="fecharExportBackup()">Cancelar</button>
-    </div>
-  </div>
-</div>
 
 <div id="fullscreenBar" class="fullscreen-bar" role="dialog" aria-live="polite">
   <div class="txt">📲 Para ficar em <b>tela cheia</b> (sem abas), toque em <b>Tela cheia</b>. Alguns celulares exigem 1 toque.</div>
@@ -2961,11 +2300,8 @@ const CLOUD_SUPABASE_URL = "https://xoqlgwjpmdkiazwpwhmn.supabase.co";
 const CLOUD_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA";
 const FIRST_INSTALL_COLLAPSED_KEY = "metadriver_first_install_collapsed_v1";
 const FAB_PREF_KEY = "metadriver_quick_balance_fab_enabled";
-const CLOUD_PENDING_KEY = STORAGE_KEY + "__cloud_pending_v1";
-const CLOUD_LAST_OK_KEY = STORAGE_KEY + "__cloud_last_ok_v1";
 let __cloudSaveTimer = null;
 let __cloudBootStarted = false;
-let __cloudDirty = false; // v9 - flag: só envia pra nuvem se houve mudança real
 
 // ===== Forçar aba inicial: sempre MetaDriver =====
 try{
@@ -3067,7 +2403,6 @@ let dados = loadDados() || {
   ganhoHoraSessoes: [],
   ganhoHoraHistorico: [],
   ganhoHoraHistoricoAberto: false,
-  ganhoHoraHistoricoExpandidos: {},
   ganhoHoraDiaRef: dataUberISO(),
   ganhoHoraSessaoDiaRef: "",
   combustivelModo: "fixo",
@@ -3076,9 +2411,11 @@ let dados = loadDados() || {
     kmRodados: 0,
     consumoMedio: 0,
     precoLitro: 0
-  }
+  },
+  appTema: 'metadriver-dark'
 };
 
+if(typeof dados.appTema !== 'string' || !dados.appTema) dados.appTema = 'metadriver-dark';
 if(typeof dados.saldoAtualButtonAtivo !== "boolean"){ dados.saldoAtualButtonAtivo = getQuickBalanceFabPref ? getQuickBalanceFabPref() : true; }
 if(!dados.saldoAtualButtonPos || typeof dados.saldoAtualButtonPos !== "object"){
   dados.saldoAtualButtonPos = null;
@@ -3086,7 +2423,6 @@ if(!dados.saldoAtualButtonPos || typeof dados.saldoAtualButtonPos !== "object"){
 if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
 if(!Array.isArray(dados.ganhoHoraHistorico)) dados.ganhoHoraHistorico = [];
 if(typeof dados.ganhoHoraHistoricoAberto !== "boolean") dados.ganhoHoraHistoricoAberto = false;
-if(!dados.ganhoHoraHistoricoExpandidos || typeof dados.ganhoHoraHistoricoExpandidos !== "object") dados.ganhoHoraHistoricoExpandidos = {};
 if(!dados.ganhoHoraDiaRef) dados.ganhoHoraDiaRef = dataUberISO();
 if(typeof dados.ganhoHoraSessaoDiaRef !== "string") dados.ganhoHoraSessaoDiaRef = "";
 try{
@@ -3099,24 +2435,13 @@ try{
   }
 }catch(e){}
 try{ reprocessarSessoesGanhoHora(); }catch(e){}
+try{ document.addEventListener('DOMContentLoaded', function(){ applyTheme(dados.appTema || 'metadriver-dark', true); }); }catch(e){}
 // Migração desativada (substituída por loadDados com legacyKeys)
-// v9 - salvar com verificação de integridade: confirma que o dado foi realmente gravado
 function salvar(){
   try{
     const payload = JSON.stringify(dados);
-    // Verifica que o payload não é menor que o anterior (proteção contra corrupção)
-    const anterior = localStorage.getItem(STORAGE_KEY);
-    if(anterior && anterior.length > payload.length + 500){
-      // Payload atual é significativamente menor — possível corrupção, aborta
-      console.warn("MetaDriver: payload menor que anterior, salvamento abortado por segurança");
-      return;
-    }
     localStorage.setItem(STORAGE_KEY, payload);
-    // Verifica se realmente foi gravado
-    const verificacao = localStorage.getItem(STORAGE_KEY);
-    if(verificacao !== payload){
-      throw new Error("Verificação de escrita falhou");
-    }
+    // fallback para garantir persistência ao fechar
     idbSet(IDB_KEY, payload);
   }catch(e){
     try{
@@ -3134,66 +2459,22 @@ salvar = function(){
     }
   }catch(e){}
   const r = window.__salvarLocalOriginal.apply(this, arguments);
-  try{
-    if(typeof dados === "object" && dados){
-      cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
-    }
-  }catch(e){}
-  // v9 - marca que há mudança pendente para o intervalo de 60s
-  __cloudDirty = true;
   try{ cloudScheduleSave(); }catch(e){}
   return r;
 }
 
 
 async function cloudGetToken(){
-  try{
-    if(typeof window.mdEnsureActiveSession === "function"){
-      const renewed = await window.mdEnsureActiveSession(false);
-      if(renewed) return renewed;
-    }
-    return localStorage.getItem("sb_token") || "";
-  }catch(e){
-    try{ return localStorage.getItem("sb_token") || ""; }catch(_){ return ""; }
-  }
-}
-
-function cloudReadPendingSnapshot(){
-  try{
-    const raw = localStorage.getItem(CLOUD_PENDING_KEY);
-    return raw ? JSON.parse(raw) : null;
-  }catch(e){ return null; }
-}
-
-function cloudWritePendingSnapshot(snapshot){
-  try{
-    if(!snapshot || typeof snapshot !== "object") return false;
-    localStorage.setItem(CLOUD_PENDING_KEY, JSON.stringify({
-      updated_at: snapshot.__cloud_updated_at || new Date().toISOString(),
-      payload: snapshot
-    }));
-    return true;
-  }catch(e){ return false; }
-}
-
-function cloudClearPendingSnapshot(expectedTs){
-  try{
-    const cur = cloudReadPendingSnapshot();
-    if(!cur) return;
-    if(!expectedTs || String(cur.updated_at || "") === String(expectedTs || "")){
-      localStorage.removeItem(CLOUD_PENDING_KEY);
-    }
-  }catch(e){}
-}
-
-function cloudMarkLastOk(ts){
-  try{
-    localStorage.setItem(CLOUD_LAST_OK_KEY, String(ts || new Date().toISOString()));
-  }catch(e){}
+  try{ return localStorage.getItem("sb_token") || ""; }catch(e){ return ""; }
 }
 
 async function cloudGetUser(token){
-  const res = await // fetch disabled
+  const res = await fetch(CLOUD_SUPABASE_URL + "/auth/v1/user", {
+    headers: {
+      "apikey": CLOUD_SUPABASE_KEY,
+      "Authorization": "Bearer " + token
+    }
+  });
   if(!res.ok) throw new Error("Falha ao obter usuário");
   return await res.json();
 }
@@ -3248,89 +2529,27 @@ async function cloudFetchRow(token, userId){
   return (Array.isArray(rows) && rows.length) ? rows[0] : null;
 }
 
-// v9 - fix crítico: merge inteligente — nunca sobrescreve array local com array menor
-function cloudMergeArrays(local, remote){
-  // Garante que nenhum dado lançado localmente é perdido ao restaurar da nuvem
-  if(!Array.isArray(remote)) return Array.isArray(local) ? local : [];
-  if(!Array.isArray(local) || local.length === 0) return remote;
-  if(remote.length === 0) return local;
-  // Usa o array com mais registros como base, sem descartar o outro
-  const base = remote.length >= local.length ? remote : local;
-  const extra = remote.length >= local.length ? local : remote;
-  // Adiciona itens do menor array que não existam no base (por data+valor ou por chave única)
-  const baseStr = base.map(function(i){ return JSON.stringify(i); });
-  extra.forEach(function(item){
-    if(!baseStr.includes(JSON.stringify(item))){
-      base.push(item);
-    }
-  });
-  return base;
-}
-
 function cloudApplyRemoteData(remoteData){
   try{
     if(!remoteData || typeof remoteData !== "object") return;
-    // Campos de array: sempre mescla, nunca substitui cegamente
-    const arrayFields = ["ganhos","gastos","abastecimentos","naoTrabalhados",
-                         "ganhoHoraSessoes","ganhoHoraHistorico"];
-    const merged = Object.assign({}, remoteData || {});
-    arrayFields.forEach(function(field){
-      merged[field] = cloudMergeArrays(
-        Array.isArray(dados[field]) ? dados[field] : [],
-        Array.isArray(remoteData[field]) ? remoteData[field] : []
-      );
-    });
-    // Campos escalares: usa remoto só se local estiver vazio/zero
-    const scalarPreferLocal = ["metaTotal","dataLimite","metaDiariaManual",
-                               "saldoAtualFora","horarioInicioFora","ganhoHoraDiaRef",
-                               "combustivelPercentual","combustivelModo","tema"];
-    scalarPreferLocal.forEach(function(field){
-      const localVal = dados[field];
-      const hasLocal = localVal !== null && localVal !== undefined && localVal !== "" && localVal !== 0;
-      if(hasLocal) merged[field] = localVal;
-    });
-    // v9 - fix logout: sessão em andamento NUNCA é apagada por sync da nuvem
-    // Se havia sessão local ativa, preserva ela integralmente
-    const sessaoLocalAtiva = String(dados.horarioInicioFora || "").trim();
-    if(sessaoLocalAtiva){
-      merged.horarioInicioFora    = dados.horarioInicioFora;
-      merged.saldoAtualFora       = dados.saldoAtualFora;
-      merged.saldoAnteriorFora    = dados.saldoAnteriorFora;
-      merged.ganhoHoraSessaoDiaRef = dados.ganhoHoraSessaoDiaRef;
-      merged.ganhoHoraDiaRef      = dados.ganhoHoraDiaRef;
-      merged.horasDecorridasFora  = dados.horasDecorridasFora;
-      merged.ganhoHoraAtualFora   = dados.ganhoHoraAtualFora;
-    }
-    dados = merged;
+    dados = Object.assign({}, dados || {}, remoteData || {});
     if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
-    // v9 - religa timer da sessão se ainda estiver em andamento após merge
-    try{
-      if(String(dados.horarioInicioFora || "").trim()){
-        iniciarTimerGanhoHoraTempoReal();
-      }
-    }catch(e){}
     try{ atualizar(); }catch(e){}
     try{ initTabs(); }catch(e){}
   }catch(e){}
 }
 
-async function cloudPushNow(snapshotOverride){
+async function cloudPushNow(){
   try{
     const token = await cloudGetToken();
     if(!token) return false;
     const user = await cloudGetUser(token);
-    if(!user || !user.id) return false;
-
-    const pending = snapshotOverride || cloudReadPendingSnapshot();
-    const payload = pending && pending.payload ? pending.payload : dados;
-    const updatedAt = (pending && pending.updated_at) || (payload && payload.__cloud_updated_at) || new Date().toISOString();
-
-    if(!cloudHasUsefulData(payload)) return false;
+    if(!user || !user.id || !cloudHasUsefulData(dados)) return false;
 
     const body = [{
       user_id: user.id,
-      payload: payload,
-      updated_at: updatedAt
+      payload: dados,
+      updated_at: new Date().toISOString()
     }];
 
     const res = await fetch(
@@ -3346,32 +2565,13 @@ async function cloudPushNow(snapshotOverride){
         body: JSON.stringify(body)
       }
     );
-
-    if(res.ok){
-      cloudClearPendingSnapshot(updatedAt);
-      cloudMarkLastOk(updatedAt);
-      return true;
-    }
-    // Push falhou — remarca como sujo para o próximo ciclo de 60s tentar de novo
-    __cloudDirty = true;
-    return false;
+    return res.ok;
   }catch(e){ return false; }
 }
 
-// v9 - fix: delay maior (1s) e retry em caso de falha
-let __cloudSaveRetries = 0;
 function cloudScheduleSave(){
   clearTimeout(__cloudSaveTimer);
-  __cloudSaveTimer = setTimeout(async function(){
-    const ok = await cloudPushNow();
-    if(!ok && __cloudSaveRetries < 4){
-      __cloudSaveRetries++;
-      const delay = Math.min(2000 * __cloudSaveRetries, 10000);
-      setTimeout(function(){ cloudPushNow(); }, delay);
-    } else {
-      __cloudSaveRetries = 0;
-    }
-  }, 1000);
+  __cloudSaveTimer = setTimeout(function(){ cloudPushNow(); }, 1200);
 }
 
 async function cloudBoot(){
@@ -3383,58 +2583,25 @@ async function cloudBoot(){
     const user = await cloudGetUser(token);
     if(!user || !user.id) return;
 
-    const pending = cloudReadPendingSnapshot();
-    const pendingTs = pending && pending.updated_at ? new Date(pending.updated_at).getTime() : 0;
-    const localTs = dados && dados.__cloud_updated_at ? new Date(dados.__cloud_updated_at).getTime() : 0;
-
-    // Primeiro tenta empurrar o que ainda está pendente localmente
-    if(pending && pending.payload && cloudHasUsefulData(pending.payload)){
-      await cloudPushNow(pending);
-    }
-
     const remoteRow = await cloudFetchRow(token, user.id);
     const remoteData = remoteRow && remoteRow.payload ? remoteRow.payload : null;
     const remoteTs = remoteRow && remoteRow.updated_at ? new Date(remoteRow.updated_at).getTime() : 0;
+    const localTs = dados && dados.__cloud_updated_at ? new Date(dados.__cloud_updated_at).getTime() : 0;
 
-    // v9 - fix: sempre mescla nuvem+local; nunca descarta nenhum dos dois
-    if(remoteData && cloudHasUsefulData(remoteData)){
-      // cloud apply disabled
-      // Após merge, salva o resultado consolidado de volta pra nuvem
-      try{
-        cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
-        cloudScheduleSave();
-      }catch(e){}
-      if(remoteTs > Math.max(localTs, pendingTs)){
-        try{ toast("☁️ Dados sincronizados com a nuvem."); }catch(e){}
-      }
+    if(remoteData && (remoteTs > localTs || !cloudHasUsefulData(dados))){
+      cloudApplyRemoteData(remoteData);
+      try{ toast("☁️ Dados restaurados da nuvem."); }catch(e){}
       return;
     }
 
-    // Nuvem vazia ou sem dados úteis — envia o local
     if(cloudHasUsefulData(dados)){
-      cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
-      cloudScheduleSave();
+      cloudPushNow();
     }
   }catch(e){}
 }
 
 window.addEventListener("pagehide", function(){ try{ cloudPushNow(); }catch(e){} });
-window.addEventListener("beforeunload", function(){ try{ cloudPushNow(); }catch(e){} });
-window.addEventListener("online", function(){ try{ cloudPushNow(); }catch(e){} });
-// v9 - fix: ao esconder app (minimizar, trocar aba, fechar) salva local E nuvem
-// visibility sync disabled
-// v9 - save inteligente a cada 60s: só envia pra nuvem se houve mudança real
-setInterval(function(){
-  try{
-    if(document.visibilityState !== "visible") return;
-    if(!__cloudDirty) return; // nenhuma mudança desde o último envio — não faz nada
-    __cloudDirty = false;     // limpa a flag antes de enviar (se falhar, próximo ciclo reenvia via pending)
-    const pending = cloudReadPendingSnapshot();
-    if((pending && pending.payload && cloudHasUsefulData(pending.payload)) || cloudHasUsefulData(dados)){
-      cloudPushNow();
-    }
-  }catch(e){}
-}, 60000);
+// disabled visibilitychange re-sync (fix meta reset)
 
 
 function toast(msg){
@@ -3552,6 +2719,47 @@ document.addEventListener("click", function(e){
   }
 });
 
+
+
+function updateThemeButtons(){
+  try{
+    const atual = String((dados && dados.appTema) || 'metadriver-dark');
+    document.querySelectorAll('[data-theme-choice]').forEach(function(btn){
+      btn.classList.toggle('active', btn.getAttribute('data-theme-choice') === atual);
+    });
+  }catch(e){}
+}
+
+function updateThemeMetaColor(){
+  try{
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if(!meta) return;
+    const bg = getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#0f172a';
+    meta.setAttribute('content', bg);
+  }catch(e){}
+}
+
+function applyTheme(themeName, skipSave){
+  try{
+    const tema = String(themeName || 'metadriver-dark');
+    document.body.setAttribute('data-theme', tema);
+    if(typeof dados === 'object' && dados){ dados.appTema = tema; }
+    updateThemeButtons();
+    updateThemeMetaColor();
+    if(!skipSave){ salvar(); }
+  }catch(e){}
+}
+
+function openThemeModal(){
+  try{ document.getElementById('themeOverlay').classList.add('show'); updateThemeButtons(); }catch(e){}
+}
+function closeThemeModal(){
+  try{ document.getElementById('themeOverlay').classList.remove('show'); }catch(e){}
+}
+document.addEventListener('click', function(ev){
+  const ov = document.getElementById('themeOverlay');
+  if(ov && ev.target === ov) closeThemeModal();
+});
 
 /* Menu */
 function toggleMenu(){
@@ -3747,8 +2955,14 @@ function salvarMeta(){
   dados.metaTotal = parseFloat(document.getElementById("metaTotal").value) || 0;
   dados.dataLimite = document.getElementById("dataLimite").value || "";
   salvar();
+  setTimeout(()=>atualizar(),0);
+  return;
+  dados.metaTotal = parseFloat(document.getElementById("metaTotal").value) || 0;
+  dados.dataLimite = document.getElementById("dataLimite").value || "";
+  salvar();
   atualizar();
-  try{ atualizarCarro(); }catch(e){}
+      try{ atualizarCarro(); }catch(e){}
+
 }
 
 function salvarHoras(){
@@ -3860,7 +3074,7 @@ function addNaoTrabalhado(){
   atualizar();
 
   document.getElementById("motivoNaoTrabalhado").value = "";
-  document.getElementById("wrapListaNaoTrab").style.display = "block";
+  document.getElementById("formNaoTrabalhado").classList.remove("open");
 }
 function editarValorSessaoFinalizada(index){
   window.__editValorCtx = { tipo: 'ganhoHoraSessaoFinalizada', index };
@@ -3918,17 +3132,6 @@ function confirmEditValor(){
         salvar();
         atualizar();
       }
-    }else if(ctx.tipo === 'ganhoHoraSessaoHistorico'){
-      const dia = String(ctx.diaUber || '').trim();
-      const hist = (dados.ganhoHoraHistorico || []).find(function(h){ return String((h && h.diaUber) || '').trim() === dia; });
-      if(hist && Array.isArray(hist.sessoes) && hist.sessoes[ctx.index]){
-        hist.sessoes[ctx.index].valorTotal = v;
-        const horasSessao = Number(hist.sessoes[ctx.index].tempoDecorrido || 0);
-        hist.sessoes[ctx.index].ganhoHora = horasSessao > 0 ? (v / horasSessao) : 0;
-        reprocessarResumoHistoricoGanhoHora(dia);
-        salvar();
-        atualizar();
-      }
     }else{
       const item = dados[ctx.tipo] && dados[ctx.tipo][ctx.index];
       if(item){
@@ -3945,70 +3148,27 @@ function confirmEditValor(){
 
 
 
-// v9 - editarData e editarMotivo: modal próprio substituindo prompt() nativo (falha no Android)
-window.__editDataCtx = null;
-
-function editarData(tipo, index){
-  const item = dados[tipo] && dados[tipo][index];
-  if(!item) return;
-  window.__editDataCtx = { tipo, index, modo: 'data' };
-  const ov = document.getElementById('editDataOverlay');
-  const inp = document.getElementById('editDataInput');
-  const inpM = document.getElementById('editMotivoInput');
-  const title = document.getElementById('editDataTitle');
-  if(!ov || !inp) return;
-  title.textContent = 'Editar data';
-  inp.value = item.data || '';
-  inp.style.display = '';
-  inpM.style.display = 'none';
-  ov.classList.add('show');
-  setTimeout(()=>{ try{ inp.focus(); }catch(e){} }, 50);
-}
-
 function editarMotivoNaoTrabalhado(index){
   const item = (dados.naoTrabalhados || [])[index];
   if(!item) return;
-  window.__editDataCtx = { tipo: 'naoTrabalhados', index, modo: 'motivo' };
-  const ov = document.getElementById('editDataOverlay');
-  const inp = document.getElementById('editDataInput');
-  const inpM = document.getElementById('editMotivoInput');
-  const title = document.getElementById('editDataTitle');
-  if(!ov || !inpM) return;
-  title.textContent = 'Editar motivo';
-  inpM.value = item.motivo || '';
-  inp.style.display = 'none';
-  inpM.style.display = '';
-  ov.classList.add('show');
-  setTimeout(()=>{ try{ inpM.focus(); }catch(e){} }, 50);
-}
-
-function fecharEditData(){
-  const ov = document.getElementById('editDataOverlay');
-  if(ov) ov.classList.remove('show');
-  window.__editDataCtx = null;
-}
-
-function confirmarEditData(){
-  const ctx = window.__editDataCtx;
-  if(!ctx) return;
-  const item = dados[ctx.tipo] && dados[ctx.tipo][ctx.index];
-  if(!item){ fecharEditData(); return; }
-
-  if(ctx.modo === 'data'){
-    const val = (document.getElementById('editDataInput').value || '').trim();
-    if(!val || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(val)){
-      toast('⚠️ Data inválida. Use o seletor de data.');
-      return;
-    }
-    item.data = val;
-  } else {
-    const val = (document.getElementById('editMotivoInput').value || '').trim();
-    item.motivo = val || 'Dia não trabalhado';
-  }
+  const atual = item.motivo || "";
+  const novo = prompt("Editar motivo:", atual);
+  if(novo === null) return;
+  item.motivo = String(novo).trim() || "Dia não trabalhado";
   salvar();
   atualizar();
-  fecharEditData();
-  toast('✅ Atualizado.');
+}
+
+function editarData(tipo, index){
+  const item = dados[tipo][index];
+  const atual = item.data || hojeISO();
+  const novo = prompt("Nova data (AAAA-MM-DD):", atual);
+  if(novo === null) return;
+  if(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(novo)){
+    item.data = novo;
+    salvar();
+    atualizar();
+  }
 }
 
 function excluirItem(tipo, index){
@@ -4017,100 +3177,33 @@ function excluirItem(tipo, index){
   atualizar();
 }
 
-// v9 - funções de tema (corrigido: funções estavam ausentes)
-function aplicarTema(tema){
-  document.body.setAttribute('data-tema', tema || 'meta-escuro');
-  document.querySelectorAll('[data-tema-option]').forEach(function(el){
-    el.classList.toggle('active', el.dataset.temaOption === tema);
-  });
-}
-function selecionarTema(tema){
-  dados.tema = tema;
-  aplicarTema(tema);
-  salvar();
-}
-function abrirTemas(){
-  const overlay = document.getElementById('temasOverlay');
-  const panel = document.getElementById('temasPanel');
-  if(overlay) overlay.classList.add('show');
-  if(panel) panel.classList.add('show');
-  aplicarTema(dados.tema || 'meta-escuro');
-}
-function fecharTemas(){
-  const overlay = document.getElementById('temasOverlay');
-  const panel = document.getElementById('temasPanel');
-  if(overlay) overlay.classList.remove('show');
-  if(panel) panel.classList.remove('show');
-}
-
-// v8 - exportar backup agora abre modal com opção de nome e escolha de pasta
-function getExportBackupBlob(){
-  const payload = {
-    app: "MetaDriver",
-    version: "8",
-    exported_at: new Date().toISOString(),
-    storage_key: STORAGE_KEY,
-    dados
-  };
-  return new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
-}
-function getExportBackupNome(){
-  const val = (document.getElementById("exportBackupNome")?.value || "").trim().replace(/\.json$/i,"");
-  return (val || "MetaDriver_Backup") + ".json";
-}
-function abrirExportBackup(){
-  const now = new Date();
-  const pad = n => String(n).padStart(2,"0");
-  const stamp = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
-  const el = document.getElementById("exportBackupNome");
-  if(el) el.value = `MetaDriver_Backup_${stamp}`;
-  const aviso = document.getElementById("exportBackupAviso");
-  if(aviso) aviso.classList.remove("show");
-  const ov = document.getElementById("exportBackupOverlay");
-  if(ov) ov.classList.add("show");
-}
-function fecharExportBackup(){
-  const ov = document.getElementById("exportBackupOverlay");
-  if(ov) ov.classList.remove("show");
-}
-async function exportarBackupComPasta(){
-  if(!window.showSaveFilePicker){
-    const aviso = document.getElementById("exportBackupAviso");
-    if(aviso) aviso.classList.add("show");
-    return;
-  }
+function exportarBackup(){
   try{
-    const handle = await window.showSaveFilePicker({
-      suggestedName: getExportBackupNome(),
-      types:[{description:"Arquivo JSON", accept:{"application/json":[".json"]}}]
-    });
-    const writable = await handle.createWritable();
-    await writable.write(getExportBackupBlob());
-    await writable.close();
-    fecharExportBackup();
-    toast("✅ Backup salvo na pasta escolhida.");
-  }catch(e){
-    if(e.name !== "AbortError") toast("❌ Não foi possível salvar: " + e.message);
-  }
-}
-function exportarBackupDownloads(){
-  try{
-    const blob = getExportBackupBlob();
+    const payload = {
+      app: "MetaDriver",
+      version: "6.3",
+      exported_at: new Date().toISOString(),
+      storage_key: STORAGE_KEY,
+      dados
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
+    const stamp = new Date();
+    const y = stamp.getFullYear();
+    const m = String(stamp.getMonth()+1).padStart(2,"0");
+    const d = String(stamp.getDate()).padStart(2,"0");
     a.href = url;
-    a.download = getExportBackupNome();
+    a.download = `backup_controle_uber_${y}-${m}-${d}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    fecharExportBackup();
-    toast("✅ Backup exportado para Downloads.");
+    toast("✅ Backup exportado com sucesso.");
   }catch(e){
     toast("❌ Não consegui exportar o backup.");
   }
 }
-function exportarBackup(){ abrirExportBackup(); }
 
 function importarBackup(ev){
   const file = ev.target.files && ev.target.files[0];
@@ -4141,7 +3234,6 @@ function importarBackup(ev){
         ganhoHoraSessoes: Array.isArray(novoDados.ganhoHoraSessoes) ? novoDados.ganhoHoraSessoes : [],
         ganhoHoraHistorico: Array.isArray(novoDados.ganhoHoraHistorico) ? novoDados.ganhoHoraHistorico : [],
         ganhoHoraHistoricoAberto: typeof novoDados.ganhoHoraHistoricoAberto === "boolean" ? novoDados.ganhoHoraHistoricoAberto : false,
-        ganhoHoraHistoricoExpandidos: (novoDados.ganhoHoraHistoricoExpandidos && typeof novoDados.ganhoHoraHistoricoExpandidos === "object") ? novoDados.ganhoHoraHistoricoExpandidos : {},
         ganhoHoraDiaRef: (novoDados.ganhoHoraDiaRef && String(novoDados.ganhoHoraDiaRef)) || dataUberISO(),
         ganhoHoraSessaoDiaRef: (novoDados.ganhoHoraSessaoDiaRef && String(novoDados.ganhoHoraSessaoDiaRef)) || "",
         combustivelModo: (String(novoDados.combustivelModo || "fixo") === "real" ? "real" : "fixo"),
@@ -4227,11 +3319,6 @@ safe.naoTrabalhados = (safe.naoTrabalhados || []).map(n => ({
 function zerarTudo(){
   const ok = confirm("Tem certeza? Isso vai apagar TODOS os dados deste aparelho.");
   if(!ok) return;
-  try{ pararTimerGanhoHoraTempoReal(); }catch(e){}
-  try{
-    localStorage.removeItem(CLOUD_PENDING_KEY);
-    localStorage.removeItem(CLOUD_LAST_OK_KEY);
-  }catch(e){}
   dados = {
     ganhos: [],
     gastos: [],
@@ -4249,7 +3336,6 @@ function zerarTudo(){
     ganhoHoraSessoes: [],
     ganhoHoraHistorico: [],
     ganhoHoraHistoricoAberto: false,
-    ganhoHoraHistoricoExpandidos: {},
     ganhoHoraDiaRef: dataUberISO(),
     ganhoHoraSessaoDiaRef: "",
     combustivelModo: "fixo",
@@ -4296,32 +3382,18 @@ function getResumoDiaGanhoHora(diaRef){
   const dia = String(diaRef || '').trim();
   if(!dia) return null;
   const sessoes = Array.isArray(dados.ganhoHoraSessoes) ? dados.ganhoHoraSessoes : [];
-  const sessoesDia = sessoes.map(function(s, idx){
-    return { s: s, idx: idx };
-  }).filter(function(item){
-    return String((item.s && item.s.diaRef) || '').trim() === dia || (!String((item.s && item.s.diaRef) || '').trim() && dia === String(dados.ganhoHoraDiaRef || ''));
+  const sessoesDia = sessoes.filter(function(s){
+    return String((s && s.diaRef) || '').trim() === dia || (!String((s && s.diaRef) || '').trim() && dia === String(dados.ganhoHoraDiaRef || ''));
   });
   if(!sessoesDia.length) return null;
-  const sessoesResumo = sessoesDia.map(function(item){
-    const recalculada = recalcularSessaoGanhoHora(Object.assign({}, item.s), item.idx);
-    return {
-      inicio: String(recalculada.inicio || ''),
-      fim: String(recalculada.fim || ''),
-      valorTotal: Number(recalculada.valorTotal || 0),
-      ganhoHora: Number(recalculada.ganhoHora || 0),
-      tempoDecorrido: Number(recalculada.tempoDecorrido || 0),
-      diaRef: dia
-    };
-  });
-  const totalSaldoBase = sessoesResumo.reduce(function(acc, s){ return acc + Number((s && s.valorTotal) || 0); }, 0);
-  const totalHoras = sessoesResumo.reduce(function(acc, s){ return acc + Number((s && s.tempoDecorrido) || 0); }, 0);
+  const totalSaldoBase = sessoesDia.reduce(function(acc, s){ return acc + Number((s && s.ganhoSessao) || 0); }, 0);
+  const totalHoras = sessoesDia.reduce(function(acc, s){ return acc + Number((s && s.tempoDecorrido) || 0); }, 0);
   const totalGanhoHora = totalHoras > 0 ? (totalSaldoBase / totalHoras) : 0;
   return {
     diaUber: dia,
     totalSaldoBase: totalSaldoBase,
     totalHoras: totalHoras,
-    totalGanhoHora: totalGanhoHora,
-    sessoes: sessoesResumo
+    totalGanhoHora: totalGanhoHora
   };
 }
 
@@ -4343,117 +3415,10 @@ function salvarResumoDiaGanhoHora(diaRef){
   return true;
 }
 
-function reprocessarResumoHistoricoGanhoHora(diaUber){
-  const dia = String(diaUber || '').trim();
-  if(!dia || !Array.isArray(dados.ganhoHoraHistorico)) return false;
-  const item = dados.ganhoHoraHistorico.find(function(h){
-    return String((h && h.diaUber) || '').trim() === dia;
-  });
-  if(!item) return false;
-  const sessoes = Array.isArray(item.sessoes) ? item.sessoes : [];
-  item.totalSaldoBase = sessoes.reduce(function(acc, s){ return acc + Number((s && s.valorTotal) || 0); }, 0);
-  item.totalHoras = sessoes.reduce(function(acc, s){ return acc + Number((s && s.tempoDecorrido) || 0); }, 0);
-  item.totalGanhoHora = Number(item.totalHoras || 0) > 0 ? (Number(item.totalSaldoBase || 0) / Number(item.totalHoras || 0)) : 0;
-  return true;
-}
-
-function toggleHistoricoDiaGanhoHora(diaUber){
-  const dia = String(diaUber || '').trim();
-  if(!dia) return;
-  if(!dados.ganhoHoraHistoricoExpandidos || typeof dados.ganhoHoraHistoricoExpandidos !== 'object') dados.ganhoHoraHistoricoExpandidos = {};
-  dados.ganhoHoraHistoricoExpandidos[dia] = !dados.ganhoHoraHistoricoExpandidos[dia];
-  salvar();
-  atualizar();
-}
-
-
-// v8 - editar horário de sessões no histórico
-function editarHorarioSessaoHistorico(diaUber, indice, campo){
-  const item = (dados.ganhoHoraHistorico || []).find(function(h){ return String((h && h.diaUber) || '').trim() === String(diaUber || '').trim(); });
-  if(!item || !Array.isArray(item.sessoes) || !item.sessoes[indice]) return;
-  const sessao = item.sessoes[indice];
-  const rotulo = campo === 'inicio' ? 'hora de início' : 'hora de término';
-  const atual = String(sessao[campo] || '').trim() || '00:00';
-  const novo = prompt('Digite a nova ' + rotulo + ' no formato HH:MM', atual);
-  if(novo == null) return;
-  const valor = String(novo).trim();
-  if(!/^([01]?\d|2[0-3]):[0-5]\d$/.test(valor)){
-    toast('Hora inválida. Use HH:MM.');
-    return;
-  }
-  sessao[campo] = valor;
-  // Recalcular tempo decorrido da sessão
-  try{
-    const ini = sessao.inicio ? sessao.inicio.split(':').map(Number) : [0,0];
-    const fim = sessao.fim ? sessao.fim.split(':').map(Number) : [0,0];
-    let diffMin = (fim[0]*60+fim[1]) - (ini[0]*60+ini[1]);
-    if(diffMin < 0) diffMin += 24*60;
-    sessao.tempoDecorrido = diffMin / 60;
-    if(sessao.tempoDecorrido > 0){
-      const ganhoSessao = Number(sessao.valorTotal||0) - Number(sessao.saldoAnterior||0);
-      sessao.ganhoSessao = ganhoSessao;
-      sessao.ganhoHora = ganhoSessao / sessao.tempoDecorrido;
-    }
-  }catch(e){}
-  salvar();
-  atualizar();
-  toast('✅ Sessão do histórico atualizada.');
-}
-
-// v8 - excluir sessão do histórico
-function excluirSessaoHistorico(diaUber, indice){
-  if(!confirm('Excluir esta sessão do histórico?')) return;
-  const idx = (dados.ganhoHoraHistorico || []).findIndex(function(h){ return String((h && h.diaUber) || '').trim() === String(diaUber || '').trim(); });
-  if(idx === -1) return;
-  dados.ganhoHoraHistorico[idx].sessoes.splice(indice, 1);
-  // Remove dia se ficou sem sessões
-  if(!dados.ganhoHoraHistorico[idx].sessoes.length){
-    dados.ganhoHoraHistorico.splice(idx, 1);
-  }
-  salvar();
-  atualizar();
-  toast('✅ Sessão do histórico excluída.');
-}
-
-// v8 - limpar todo o histórico
-function limparHistoricoGanhoHora(){
-  if(!dados.ganhoHoraHistorico || !dados.ganhoHoraHistorico.length){
-    toast('Histórico já está vazio.');
-    return;
-  }
-  if(!confirm('Apagar todo o histórico de sessões? Esta ação não pode ser desfeita.')) return;
-  dados.ganhoHoraHistorico = [];
-  dados.ganhoHoraHistoricoAberto = false;
-  salvar();
-  atualizar();
-  toast('✅ Histórico apagado.');
-}
-
-function editarValorSessaoHistorico(diaUber, indice){
-  window.__editValorCtx = { tipo: 'ganhoHoraSessaoHistorico', diaUber: String(diaUber || '').trim(), index: Number(indice || 0) };
-  const item = (dados.ganhoHoraHistorico || []).find(function(h){ return String((h && h.diaUber) || '').trim() === String(diaUber || '').trim(); });
-  const sessao = item && Array.isArray(item.sessoes) ? item.sessoes[Number(indice || 0)] : null;
-  const atual = sessao ? Number(sessao.valorTotal || 0) : 0;
-  const ov = document.getElementById("editValorOverlay");
-  const inp = document.getElementById("editValorInput");
-  if(!ov || !inp) return;
-  inp.value = (atual ?? 0);
-  ov.classList.add("show");
-  try{ closeAllMenus(); }catch(e){}
-  setTimeout(()=>{ try{ inp.focus(); inp.select(); }catch(e){} }, 50);
-}
-
 function toggleHistoricoGanhoHora(){
   dados.ganhoHoraHistoricoAberto = !dados.ganhoHoraHistoricoAberto;
   salvar();
   atualizar();
-}
-
-function formatHorasMinutos(horasDecimal){
-  const totalMinutos = Math.max(0, Math.round(Number(horasDecimal || 0) * 60));
-  const horas = Math.floor(totalMinutos / 60);
-  const minutos = totalMinutos % 60;
-  return `${horas}h ${String(minutos).padStart(2, '0')}min`;
 }
 
 function getViradaOperacional(refDate){
@@ -4716,22 +3681,6 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
     if(horarioInicioEl) horarioInicioEl.value = deveIniciarProxima ? horaFim : "";
   }catch(e){}
 
-  if(deveIniciarProxima){
-    iniciarTimerGanhoHoraTempoReal();
-  }else{
-    pararTimerGanhoHoraTempoReal();
-    dados.horarioInicioFora = "";
-    dados.ganhoHoraSessaoDiaRef = "";
-    dados.horasDecorridasFora = 0;
-    dados.ganhoHoraAtualFora = 0;
-    try{
-      const saldoAnteriorEl = document.getElementById("saldoAnteriorFora");
-      const horarioInicioEl = document.getElementById("horarioInicioFora");
-      if(saldoAnteriorEl) saldoAnteriorEl.value = String(dados.saldoAnteriorFora || 0);
-      if(horarioInicioEl) horarioInicioEl.value = "";
-    }catch(e){}
-  }
-
   if(!opts.skipSave){ salvar(); }
   if(!opts.skipUpdate){ atualizar(); }
   if(!opts.silent){ toast("✅ Sessão finalizada."); }
@@ -4781,15 +3730,14 @@ function ensureGanhoHoraDiaAtual(){
   dados.saldoAtualFora = saldoAtualAntesVirada;
   dados.ganhoDiarioAtual = saldoAtualAntesVirada;
   dados.saldoAnteriorFora = saldoAtualAntesVirada;
-  // v8 - fix: ao virar 4h não inicia nova sessão automaticamente, usuário deve usar o botão Iniciar
-  dados.horarioInicioFora = "";
-  dados.ganhoHoraSessaoDiaRef = "";
+  dados.horarioInicioFora = horaAtual;
+  dados.ganhoHoraSessaoDiaRef = diaAtualUber;
   dados.horasDecorridasFora = 0;
   dados.ganhoHoraAtualFora = 0;
   salvar();
   atualizar();
   try{
-    toast("✅ Virou 4h: dia anterior salvo. Use Iniciar sessão para começar.");
+    toast("✅ Virou 4h: resumo do dia anterior salvo e nova sessão iniciada.");
   }catch(e){}
   return true;
 }
@@ -4835,81 +3783,13 @@ function salvarGanhosForaTempoReal(){
     dados.ganhoHoraAtualFora = 0;
   }
 
-  if(horario){
-    iniciarTimerGanhoHoraTempoReal();
-  }else{
-    pararTimerGanhoHoraTempoReal();
-  }
-
   salvar();
   atualizar();
 }
 
 function finalizarSessaoGanhoHora(){
   ensureGanhoHoraDiaAtual();
-  finalizarSessaoGanhoHoraInterno({ naoIniciarProxima: true });
-}
-
-let ganhoHoraTempoRealTimer = null;
-
-function pararTimerGanhoHoraTempoReal(){
-  if(ganhoHoraTempoRealTimer){
-    clearInterval(ganhoHoraTempoRealTimer);
-    ganhoHoraTempoRealTimer = null;
-  }
-}
-
-function recalcularGanhoHoraSessaoEmTempoReal(renderizar){
-  try{ ensureGanhoHoraDiaAtual(); }catch(e){}
-
-  const horarioEl = document.getElementById("horarioInicioFora");
-  const saldoEl = document.getElementById("saldoAtualFora");
-  const horario = String((horarioEl && horarioEl.value) || dados.horarioInicioFora || "").trim();
-
-  if(!horario){
-    dados.horasDecorridasFora = 0;
-    dados.ganhoHoraAtualFora = 0;
-    if(renderizar !== false) atualizar();
-    pararTimerGanhoHoraTempoReal();
-    return;
-  }
-
-  const saldoAtualLido = Number((saldoEl && saldoEl.value) || dados.saldoAtualFora || 0);
-  dados.saldoAtualFora = saldoAtualLido;
-  dados.ganhoDiarioAtual = saldoAtualLido;
-  dados.horarioInicioFora = horario;
-  dados.ganhoHoraSessaoDiaRef = String(dados.ganhoHoraDiaRef || dataUberISO());
-
-  const saldoAnterior = syncSaldoAnteriorSessaoAtual();
-  const saldoBase = saldoAtualLido - saldoAnterior;
-
-  const agora = new Date();
-  const partes = horario.split(":");
-  const hIni = Number(partes[0] || 0);
-  const mIni = Number(partes[1] || 0);
-
-  let inicio = new Date(agora.getTime());
-  inicio.setHours(hIni, mIni, 0, 0);
-
-  let diffMs = agora.getTime() - inicio.getTime();
-  if(diffMs < 0){
-    inicio.setDate(inicio.getDate() - 1);
-    diffMs = agora.getTime() - inicio.getTime();
-  }
-
-  const horas = Math.max(0, diffMs / 3600000);
-  dados.horasDecorridasFora = horas;
-  dados.ganhoHoraAtualFora = horas > 0 ? (saldoBase / horas) : 0;
-
-  if(renderizar !== false) atualizar();
-}
-
-function iniciarTimerGanhoHoraTempoReal(){
-  pararTimerGanhoHoraTempoReal();
-  recalcularGanhoHoraSessaoEmTempoReal(true);
-  ganhoHoraTempoRealTimer = setInterval(function(){
-    recalcularGanhoHoraSessaoEmTempoReal(true);
-  }, 1000);
+  finalizarSessaoGanhoHoraInterno();
 }
 
 
@@ -4959,11 +3839,6 @@ function updateFuelModeUI(){
   const fuelPercentFields = document.getElementById("fuelPercentFields");
   if(fuelRealFields) fuelRealFields.style.display = modo === "real" ? "grid" : "none";
   if(fuelPercentFields) fuelPercentFields.style.display = modo === "fixo" ? "block" : "none";
-  // impede voltar sozinho para % do bruto ao atualizar a tela
-  if(dados && dados.combustivelModo !== modo){
-    dados.combustivelModo = modo;
-    try{ salvar(); }catch(e){}
-  }
 }
 
 function setFuelConfigCollapsed(collapsed){
@@ -5151,8 +4026,10 @@ function exportarRelatorioPDF(){
 }
 
 function atualizar(){
-  // v9 - aplicar tema salvo a cada atualização
-  try{ aplicarTema(dados.tema || 'meta-escuro'); }catch(e){}
+  if(!dados || !dados.metaTotal || !dados.dataLimite){
+    // evita zerar meta com estado incompleto
+    return;
+  }
   try{
     const metaDiaInput = document.getElementById("metaDiariaManual");
     const ganhoDiaInput = document.getElementById("ganhoDiarioAtual");
@@ -5202,7 +4079,7 @@ function atualizar(){
           "Hora de término: -<br>" +
           "Valor total: <span class='" + valorClass + "'>R$ " + valorSessaoAtual.toFixed(2) + "</span><br>" +
           "Ganho por hora: <span class='" + horaClass + "'>R$ " + ganhoHora.toFixed(2) + "</span><br>" +
-          "Tempo decorrido: <span class='warning'>" + formatHorasMinutos(horas) + "</span></div>";
+          "Tempo decorrido: <span class='warning'>" + horas.toFixed(2) + "h</span></div>";
       }else{
         resumoEl.innerHTML = "";
       }
@@ -5226,7 +4103,7 @@ function atualizar(){
             const valorClass = Number(s.valorTotal || 0) < 0 ? "dangerText" : "warning";
             const horaClass = Number(s.ganhoHora || 0) < 0 ? "dangerText" : "warning";
             const tempoDecorrido = Number(s.tempoDecorrido || 0);
-            return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);position:relative;padding-right:40px"><div class="action-menu" style="position:absolute;top:8px;right:0"><button class="kebab-btn" type="button" onclick="event.stopPropagation(); toggleItemMenu('menu_sessao_${item.originalIdx}', this)">≡</button><div class="menu-pop" id="menu_sessao_${item.originalIdx}"><button type="button" onclick="editarHorarioSessaoFinalizada(${item.originalIdx}, 'inicio')">Editar hora de início</button><button type="button" onclick="editarHorarioSessaoFinalizada(${item.originalIdx}, 'fim')">Editar hora de término</button><button type="button" onclick="editarValorSessaoFinalizada(${item.originalIdx})">Editar valor</button><button type="button" onclick="fecharMenuSessaoFinalizada(${item.originalIdx})">Excluir sessão</button></div></div><b>${getNomeSessao(idx + 1)} sessão</b><br>Hora de início: ${s.inicio || "-"}<br>Hora de término: ${s.fim || "-"}<br>Valor total: <span class="${valorClass}">R$ ${Number(s.valorTotal || 0).toFixed(2)}</span><br>Ganho por hora: <span class="${horaClass}">R$ ${Number(s.ganhoHora || 0).toFixed(2)}</span><br>Tempo decorrido: <span class="warning">${formatHorasMinutos(tempoDecorrido)}</span></div>`;
+            return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);position:relative;padding-right:40px"><div class="action-menu" style="position:absolute;top:8px;right:0"><button class="kebab-btn" type="button" onclick="event.stopPropagation(); toggleItemMenu('menu_sessao_${item.originalIdx}', this)">≡</button><div class="menu-pop" id="menu_sessao_${item.originalIdx}"><button type="button" onclick="editarHorarioSessaoFinalizada(${item.originalIdx}, 'inicio')">Editar hora de início</button><button type="button" onclick="editarHorarioSessaoFinalizada(${item.originalIdx}, 'fim')">Editar hora de término</button><button type="button" onclick="editarValorSessaoFinalizada(${item.originalIdx})">Editar valor</button><button type="button" onclick="fecharMenuSessaoFinalizada(${item.originalIdx})">Excluir sessão</button></div></div><b>${getNomeSessao(idx + 1)} sessão</b><br>Hora de início: ${s.inicio || "-"}<br>Hora de término: ${s.fim || "-"}<br>Valor total: <span class="${valorClass}">R$ ${Number(s.valorTotal || 0).toFixed(2)}</span><br>Ganho por hora: <span class="${horaClass}">R$ ${Number(s.ganhoHora || 0).toFixed(2)}</span><br>Tempo decorrido: <span class="warning">${tempoDecorrido.toFixed(2)}h</span></div>`;
           }).join("");
         }
       }
@@ -5245,7 +4122,6 @@ function atualizar(){
         return da < db ? 1 : da > db ? -1 : 0;
       });
       historicoWrap.style.display = dados.ganhoHoraHistoricoAberto ? "block" : "none";
-      historicoWrap.style.textAlign = "left";
       if(!historico.length){
         historicoWrap.innerHTML = dados.ganhoHoraHistoricoAberto ? "<div style='padding-top:6px'>Sem histórico.</div>" : "";
       }else{
@@ -5255,16 +4131,7 @@ function atualizar(){
           const ganhoHoraItem = Number(item.totalGanhoHora || 0);
           const totalClass = total < 0 ? "dangerText" : "warning";
           const ghClass = ganhoHoraItem < 0 ? "dangerText" : "warning";
-          const dia = String(item.diaUber || '-');
-          const aberto = !!(dados.ganhoHoraHistoricoExpandidos && dados.ganhoHoraHistoricoExpandidos[dia]);
-          const sessoesHist = Array.isArray(item.sessoes) ? item.sessoes : [];
-          const detalhes = aberto ? (sessoesHist.length ? sessoesHist.map(function(s, idxSess){
-            const valorSessClass = Number(s.valorTotal || 0) < 0 ? "dangerText" : "warning";
-            const ghSessClass = Number(s.ganhoHora || 0) < 0 ? "dangerText" : "warning";
-            const tempoSess = Number(s.tempoDecorrido || 0);
-            return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);position:relative;padding-right:40px"><div class="action-menu" style="position:absolute;top:8px;right:0"><button class="kebab-btn" type="button" onclick="event.stopPropagation(); toggleItemMenu('menu_hist_sessao_${dia}_${idxSess}', this)">≡</button><div class="menu-pop" id="menu_hist_sessao_${dia}_${idxSess}"><!-- v8 - menu completo sessão histórico --><button type="button" onclick="editarHorarioSessaoHistorico('${dia}', ${idxSess}, 'inicio')">Editar hora de início</button><button type="button" onclick="editarHorarioSessaoHistorico('${dia}', ${idxSess}, 'fim')">Editar hora de término</button><button type="button" onclick="editarValorSessaoHistorico('${dia}', ${idxSess})">Editar valor</button><button type="button" class="danger" onclick="excluirSessaoHistorico('${dia}', ${idxSess})">Excluir sessão</button></div></div><b>${getNomeSessao(idxSess + 1)} sessão</b><br>Hora de início: ${s.inicio || '-'}<br>Hora de término: ${s.fim || '-'}<br>Valor total: <span class="${valorSessClass}">R$ ${Number(s.valorTotal || 0).toFixed(2)}</span><br>Ganho por hora: <span class="${ghSessClass}">R$ ${Number(s.ganhoHora || 0).toFixed(2)}</span><br>Tempo decorrido: <span class="warning">${formatHorasMinutos(tempoSess)}</span></div>`;
-          }).join('') : "<div style='padding-top:6px'>Sem sessões salvas nesse dia.</div>") : '';
-          return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);text-align:left"><button type="button" class="btn-historico-link" onclick="toggleHistoricoDiaGanhoHora('${dia}')">${dia}</button><br>Total: <span class="${totalClass}">R$ ${total.toFixed(2)}</span> | <span class="warning">${formatHorasMinutos(horasItem)}</span> | <span class="${ghClass}">R$ ${ganhoHoraItem.toFixed(2)}/h</span>${aberto ? `<div style="margin-top:8px">${detalhes}</div>` : ''}</div>`;
+          return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)"><b>${item.diaUber || "-"}</b><br>Total: <span class="${totalClass}">R$ ${total.toFixed(2)}</span> | <span class="warning">${horasItem.toFixed(2)}h</span> | <span class="${ghClass}">R$ ${ganhoHoraItem.toFixed(2)}/h</span></div>`;
         }).join("");
       }
     }
@@ -5377,7 +4244,9 @@ const fuelCfg = getCombustivelConfig(bruto);
   const horasNecessarias = (ganhoHoraRef > 0) ? (metaDia / ganhoHoraRef) : 0;
   const horasRestantes = (ganhoHoraRef > 0) ? (Math.max(0, metaDia - ganhoDia) / ganhoHoraRef) : 0;
 
-      
+  const horasNecessariasCeil = Math.ceil(horasNecessarias);
+  const horasRestantesCeil = horasRestantes.toFixed(1);
+  
   document.getElementById("statusMeta").innerHTML =
     "Dias restantes: <span class='" + (diasRestantes < 0 ? "dangerText" : "warning") + "'>" + diasRestantes + "</span><br>" +
     "Meta bruta necessária total (" + (fuelCfg.modo === "real" ? "combustível real" : "30% combustível") + "): <span class='" + (metaBrutaComGastos < 0 ? "dangerText" : "warning") + "'>R$ " + metaBrutaComGastos.toFixed(2) + "</span><br>" +
@@ -5385,9 +4254,9 @@ const fuelCfg = getCombustivelConfig(bruto);
     "Meta diária (automática): <span class='" + (metaDiariaAuto < 0 ? "dangerText" : "warning") + "'>R$ " + metaDiariaAuto.toFixed(2) + "</span>";
   const valorRestanteHoras = (metaDia - ganhoDia);
   document.getElementById("horasResumo").innerHTML =
-    "Tempo para atingir a meta diária: <span class='" + (horasNecessarias < 0 ? "dangerText" : "warning") + "'>" + formatHorasMinutos(horasNecessarias) + "</span><br>" +
+    "Horas necessárias: <span class='" + (horasNecessarias < 0 ? "dangerText" : "warning") + "'>" + horasNecessariasCeil + "h</span><br>" +
     "Valor restante: <span class='" + (valorRestanteHoras < 0 ? "dangerText" : "warning") + "'>R$ " + valorRestanteHoras.toFixed(2) + "</span><br>" +
-    "Tempo restante: <span class='" + (horasRestantes < 0 ? "dangerText" : "warning") + "'>" + formatHorasMinutos(horasRestantes) + "</span>";
+    "Horas restantes: <span class='" + (horasRestantes < 0 ? "dangerText" : "warning") + "'>" + horasRestantesCeil + "h</span>";
 
   document.getElementById("fuelResumo").innerHTML =
     "Modo combustível: <span class='warning'>" + (fuelCfg.modo === "real" ? "Real" : (Math.round(fuelCfg.percentualSelecionado * 100) + "% do bruto")) + "</span><br>" +
@@ -5905,13 +4774,7 @@ function bootApp(){
   try{ ensureGanhoHoraDiaAtual(); }catch(e){}
   try{ setInterval(function(){ try{ ensureGanhoHoraDiaAtual(); }catch(e){} }, 15000); }catch(e){}
   try{ updateUberClock(); setInterval(updateUberClock, 1000); }catch(e){}
-  // v9 - fix logout: se havia sessão em andamento, retoma o timer automaticamente
-  try{
-    if(String(dados.horarioInicioFora || "").trim()){
-      iniciarTimerGanhoHoraTempoReal();
-    }
-  }catch(e){}
-  setTimeout(function(){ try{ // cloudBoot disabled for test }catch(e){} }, 500);
+  setTimeout(function(){ try{ cloudBoot(); }catch(e){} }, 500);
 }
 if(document.readyState === "loading"){
   document.addEventListener("DOMContentLoaded", ()=>{ bootApp(); try{ initTabs(); }catch(e){} });
@@ -6070,10 +4933,8 @@ function salvarKmAtual(){
   }
 
   dados.carro.kmAtual = { km: kmNum, data: data };
-  dados.carro.snooze = {};
   salvar();
   atualizarCarro();
-  forceMaintenancePopupCheck();
   try{ toggleKmAtualForm(true); }catch(e){}
 }
 
@@ -6132,12 +4993,10 @@ function addManutencao(){
 
   dados.carro.manut = (dados.carro.manut||[]);
   dados.carro.manut.push(item);
-  dados.carro.snooze = {};
   salvar();
   atualizarCarro();
-  forceMaintenancePopupCheck();
   // recolhe form se existir
-  try{ toggleManutForm(true); }catch(e){}
+  try{ toggleManutForm(false); }catch(e){}
 }
 
 
@@ -6170,9 +5029,7 @@ function editManut(id){
   const plan = confirm("Essa é uma PRÓXIMA manutenção (avisar ao atingir o KM)?\nOK = Sim / Cancelar = Não");
   m.planejada = !!plan;
 
-  dados.carro.snooze = {};
   salvar(); atualizarCarro();
-  forceMaintenancePopupCheck();
 }
 
 function delManut(id){
@@ -6180,7 +5037,6 @@ function delManut(id){
   dados.carro.manut = dados.carro.manut.filter(x=>x.id!==id);
   delete dados.carro.snooze[id];
   salvar(); atualizarCarro();
-  forceMaintenancePopupCheck();
 }
 
 
@@ -6215,7 +5071,6 @@ function toggleManutConcluida(id, checked){
 
   salvar();
   atualizarCarro();
-  forceMaintenancePopupCheck();
 }
 
 
@@ -6243,7 +5098,6 @@ function markDone(id){
   delete dados.carro.snooze[id];
   salvar(); atualizarCarro();
   dismissCarPopup();
-  forceMaintenancePopupCheck();
   toast("✅ Marcado como feito!");
 }
 
@@ -6359,19 +5213,6 @@ function maybeCarPopup(){
 
 
 
-
-function forceMaintenancePopupCheck(){
-  try{
-    ensureCarro();
-    // alterações de KM/manutenção devem voltar a disparar alerta visual e popup
-    if(!dados.carro || typeof dados.carro !== "object") return;
-    dados.carro.snooze = {};
-    setTimeout(function(){
-      try{ maybeCarPopup(); }catch(e){}
-      try{ atualizarIndicadorAbaManutencao(); }catch(e){}
-    }, 80);
-  }catch(e){}
-}
 
 function showCarPopup(list, kmAtual){
   kmAtual = parseKm(kmAtual);
@@ -6771,7 +5612,6 @@ function atualizarIndicadorAbaManutencao(){
   document.addEventListener("DOMContentLoaded", ()=>{
     setTimeout(_apply, 150);
     setTimeout(_apply, 600);
-    setTimeout(function(){ try{ maybeCarPopup(); }catch(e){} }, 900);
   });
   window.addEventListener("load", ()=>{
     setTimeout(_apply, 200);
@@ -6862,25 +5702,9 @@ function zerarControleUber(){
   dados.dataLimite = "";
   dados.metaDiariaManual = 0;
   dados.ganhoDiarioAtual = 0;
-  dados.saldoAtualFora = 0;
-  dados.horarioInicioFora = "";
-  dados.horasDecorridasFora = 0;
-  dados.ganhoHoraAtualFora = 0;
-  dados.saldoAnteriorFora = 0;
-  dados.ganhoHoraSessoes = [];
-  dados.ganhoHoraHistorico = [];
-  dados.ganhoHoraHistoricoAberto = false;
-  dados.ganhoHoraHistoricoExpandidos = {};
-  dados.ganhoHoraDiaRef = dataUberISO();
-  dados.ganhoHoraSessaoDiaRef = "";
   dados.combustivelModo = "fixo";
   dados.combustivelPercentual = 0.30;
   dados.combustivelReal = { kmRodados: 0, consumoMedio: 0, precoLitro: 0 };
-  try{ pararTimerGanhoHoraTempoReal(); }catch(e){}
-  try{
-    localStorage.removeItem(CLOUD_PENDING_KEY);
-    localStorage.removeItem(CLOUD_LAST_OK_KEY);
-  }catch(e){}
 }
 
 function zerarManutencaoCarro(){
@@ -6943,27 +5767,14 @@ window.addEventListener("load", ()=>{ restoreFromIDBIfNeeded(); });
 
 /* ===== Seta recolher/mostrar lista de Dias Não Trabalhados ===== */
 function toggleListaNaoTrab(){
-  return toggleDiasNaoTrabalhadosTudo();
-}
-
-function toggleDiasNaoTrabalhadosTudo(forceOpen){
-  const form = document.getElementById("formNaoTrabalhado");
-  const wrap = document.getElementById("wrapListaNaoTrab");
+const wrap = document.getElementById("wrapListaNaoTrab");
+  const arrow = document.getElementById("arrowListaNaoTrab");
   const btnMais = document.getElementById("btnMaisNaoTrab");
-  if(!form || !wrap) return;
-
-  const aberto = form.classList.contains("open") || wrap.style.display === "block";
-  const abrir = (typeof forceOpen === "boolean") ? forceOpen : !aberto;
-
-  if(abrir){
-    form.classList.add("open");
-    wrap.style.display = "block";
-  }else{
-    form.classList.remove("open");
-    wrap.style.display = "none";
-  }
-
-  if(btnMais) btnMais.style.display = "block";
+  if(!wrap) return;
+  const hidden = wrap.style.display === "none";
+  wrap.style.display = hidden ? "block" : "none";
+  if(btnMais) btnMais.style.display = hidden ? "block" : "none";
+  if(arrow) arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(-90deg)";
 }
 
 
@@ -6993,14 +5804,8 @@ function logoutApp(){
 }
 
 
-/* ===== Logout robusto do app (v9: salva na nuvem antes de sair) ===== */
-async function forceLogout(){
-  try{ closeMenu(); }catch(e){}
-  // v9 - garante push pra nuvem antes de limpar token e sair
-  try{
-    if(typeof salvar === "function") salvar();
-    await cloudPushNow();
-  }catch(e){}
+/* ===== Logout robusto do app ===== */
+function forceLogout(){
   try{
     const keysToRemove = [];
     for(let i=0;i<localStorage.length;i++){
@@ -7012,26 +5817,16 @@ async function forceLogout(){
     keysToRemove.forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
     try{ sessionStorage.clear(); }catch(e){}
   }catch(e){}
+  try{ closeMenu(); }catch(e){}
   const target = "login.html?logout=1&t=" + Date.now();
   try{ window.location.replace(target); }catch(e){}
   setTimeout(function(){
     try{ window.location.href = target; }catch(e){}
-  }, 300);
+  }, 120);
 }
 function logoutApp(){
   forceLogout();
 }
-
-window.addEventListener("load", function(){
-  try{
-    if(String(dados.horarioInicioFora || '').trim()){
-      iniciarTimerGanhoHoraTempoReal();
-    }else{
-      pararTimerGanhoHoraTempoReal();
-    }
-  }catch(e){}
-});
-
 </script>
 
 <button type="button" id="quickBalanceFab" class="quick-balance-fab" onclick="toggleQuickBalancePanel(true)" aria-label="Atualizar saldo atual rápido"><span class="quick-balance-fab-inner"><span class="quick-balance-fab-icon">$</span><span id="quickBalanceFabValue" class="quick-balance-fab-value">R$ 0</span></span></button>
@@ -7040,7 +5835,9 @@ window.addEventListener("load", function(){
 
 
 <div id="quickBalancePanel" class="quick-balance-panel" role="dialog" aria-modal="true" aria-labelledby="quickBalanceTitle">
-    <div class="quick-balance-display">
+  <div id="quickBalanceTitle" class="quick-balance-title">Atualizar saldo atual</div>
+  <div class="quick-balance-sub">Atalho rápido para alterar o <b>Saldo atual</b> enquanto dirige.</div>
+  <div class="quick-balance-display">
     <div class="quick-balance-display-inner">
       <div class="quick-balance-display-top">Saldo atual</div>
       <div class="quick-balance-display-bottom">
@@ -7065,9 +5862,6 @@ window.addEventListener("load", function(){
   </div>
   <div class="quick-balance-actions">
     <button type="button" onclick="salvarSaldoAtualRapido()">Salvar</button>
-    <button type="button" class="secondary quick-balance-home-btn" onclick="toggleQuickBalancePanel(false)" aria-label="Fechar painel">
-      <span class="quick-balance-home-icon" aria-hidden="true"></span>
-    </button>
     <button type="button" class="secondary" onclick="clearQuickBalance()">Limpar</button>
   </div>
 </div>
