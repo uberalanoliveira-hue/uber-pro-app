@@ -2012,6 +2012,26 @@ body[data-tema="amarelo-claro"] .menu-btn{
   opacity:.95;
 }
 
+
+/* mdStickyTabsV12 */
+.tabs-wrap{
+  position: sticky;
+  top: 58px;
+  z-index: 48;
+  background: linear-gradient(to bottom, rgba(15,23,42,0.98), rgba(15,23,42,0.94));
+  padding: 8px 12px 12px;
+  margin: 0 -15px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px);
+}
+.tabs-bar{
+  margin-top: 0 !important;
+  max-width: 100%;
+}
+@media (max-width: 480px){
+  .tabs-wrap{ top: 56px; }
+}
+
 </style>
 
 <style id="app30-auth-guard-style">
@@ -4400,7 +4420,44 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v11 · backup</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v12 · backup</div>
+
+<script>
+// mdScrollRestoreV12
+(function(){
+  const KEY = "md_scroll_restore_v12";
+
+  function saveScroll(){
+    try {
+      localStorage.setItem(KEY, String(window.scrollY || window.pageYOffset || 0));
+    } catch(e) {}
+  }
+
+  function restoreScroll(){
+    try {
+      const raw = localStorage.getItem(KEY);
+      if(raw == null) return;
+      const y = parseInt(raw, 10) || 0;
+      requestAnimationFrame(function(){
+        window.scrollTo(0, y);
+        setTimeout(function(){ window.scrollTo(0, y); }, 80);
+        setTimeout(function(){ window.scrollTo(0, y); }, 220);
+        setTimeout(function(){ window.scrollTo(0, y); }, 420);
+      });
+    } catch(e) {}
+  }
+
+  window.addEventListener("scroll", saveScroll, {passive:true});
+  window.addEventListener("beforeunload", saveScroll);
+  window.addEventListener("pagehide", saveScroll);
+  window.addEventListener("pageshow", restoreScroll);
+  window.addEventListener("load", restoreScroll);
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "hidden") saveScroll();
+    if(document.visibilityState === "visible") restoreScroll();
+  });
+})();
+</script>
 </body>
     </html>  `);
   w.document.close();
@@ -4526,8 +4583,14 @@ function atualizar(){
 
   if(!Array.isArray(dados.naoTrabalhados)) dados.naoTrabalhados = [];
 
-  document.getElementById("metaTotal").value = dados.metaTotal || "";
-  document.getElementById("dataLimite").value = dados.dataLimite || "";
+  const __metaTotalEl = document.getElementById("metaTotal");
+  const __dataLimiteEl = document.getElementById("dataLimite");
+  if(__metaTotalEl && document.activeElement !== __metaTotalEl){
+    __metaTotalEl.value = dados.metaTotal || "";
+  }
+  if(__dataLimiteEl && document.activeElement !== __dataLimiteEl){
+    __dataLimiteEl.value = dados.dataLimite || "";
+  }
 document.getElementById("metaDiariaManual").value = (dados.metaDiariaManual || dados.metaDiariaManual === 0) ? dados.metaDiariaManual : "";
   document.getElementById("ganhoDiarioAtual").value = (dados.ganhoDiarioAtual ?? "");
 

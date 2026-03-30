@@ -164,3 +164,30 @@ ARQUIVOS ALTERADOS:
 
 STATUS:
 - Aguardando teste
+
+VERSÃO v12 - fix-rolagem-meta-inputs-e-botoes
+
+O QUE FOI PEDIDO:
+- Corrigir a rolagem: ao minimizar e voltar para o app, a tela não pode voltar para o topo
+- Fixar de verdade os botões MetaDriver e Manutenção do carro no topo
+- Corrigir os campos Meta líquida desejada e Data limite para atingir a Meta, que não estavam deixando alterar porque voltavam para o valor anterior
+- Atualizar sempre a versão visível na instalação e no app
+
+O QUE FOI FEITO:
+- Substituída a restauração de rolagem por uma rotina mais forte, salvando e restaurando em scroll, load, pageshow, pagehide, beforeunload e visibilitychange
+- Aplicado sticky real na barra dos botões MetaDriver / Manutenção do carro
+- Corrigido o preenchimento dos campos metaTotal e dataLimite para não sobrescrever enquanto o usuário estiver digitando/alterando
+- Atualizada a versão visual para v12 na instalação, app e demais telas
+
+ARQUIVOS ALTERADOS:
+- app30_app.html
+- app30_app_backup.html
+- index.html
+- login.html
+- admin.html
+- painel.html
+- reset.html
+
+STATUS:
+- Aguardando teste
+
