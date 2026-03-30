@@ -2343,46 +2343,6 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   margin:8px auto !important;
 }
 
-
-/* Dias não trabalhados — dica visível no campo data */
-#dataNaoTrabalhado[type="text"]{
-  color: rgba(255,255,255,0.68);
-}
-
-/* Dias não trabalhados — lançamentos mais compactos, no padrão visual da Meta */
-#listaNaoTrabalhados .list-item,
-#listaNaoTrabalhados .nao-trabalhado-item{
-  width: calc(100% - 24px);
-  margin: 8px auto 0 !important;
-  padding: 6px 10px !important;
-  min-height: 44px !important;
-  height: auto !important;
-  border-radius: 10px;
-  font-size: 13px;
-  line-height: 1.15;
-  align-items: center;
-}
-#listaNaoTrabalhados .list-left{
-  gap: 6px;
-  align-items: center;
-}
-#listaNaoTrabalhados .li-date,
-#listaNaoTrabalhados .li-desc{
-  line-height: 1.15;
-}
-#listaNaoTrabalhados .action-menu{
-  margin-left: 6px;
-}
-#listaNaoTrabalhados .kebab-btn{
-  padding: 2px 5px;
-  font-size: 16px;
-}
-#listaNaoTrabalhados .small-btn{
-  padding: 4px 7px;
-  font-size: 11px;
-  border-radius: 8px;
-}
-
 </style>
 
 <style id="app30-auth-guard-style">
@@ -2630,7 +2590,7 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 </button>
 
     <div id="formNaoTrabalhado" class="collapsible">
-      <input type="text" id="dataNaoTrabalhado" placeholder="Selecione a data" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
+      <input type="date" id="dataNaoTrabalhado">
       <input type="text" id="motivoNaoTrabalhado" placeholder="Motivo (ex: folga, manutenção, médico)">
       <button onclick="addNaoTrabalhado()" class="dias-link-add">Adicionar</button>
     </div>
@@ -3768,15 +3728,12 @@ function toggleForm(id){
 }
 
 function salvarMeta(){
-  const _metaVal = parseFloat(document.getElementById("metaTotal").value);
-  const _dataVal = document.getElementById("dataLimite").value || "";
-  // Só zera se o campo estiver explicitamente vazio
-  dados.metaTotal = (!isNaN(_metaVal) && _metaVal >= 0) ? _metaVal : dados.metaTotal;
-  dados.dataLimite = _dataVal || dados.dataLimite;
+  dados.metaTotal = parseFloat(document.getElementById("metaTotal").value) || 0;
+  dados.dataLimite = document.getElementById("dataLimite").value || "";
   salvar();
   atualizar();
-  try{ atualizarCarro(); }catch(e){}
-  toast("✅ Meta salva.");
+      try{ atualizarCarro(); }catch(e){}
+
 }
 
 function salvarHoras(){
@@ -5306,28 +5263,9 @@ function atualizar(){
 
   if(!Array.isArray(dados.naoTrabalhados)) dados.naoTrabalhados = [];
 
-  // v9 fix definitivo: sincronizar inputs de meta
-  const metaTotalEl = document.getElementById("metaTotal");
-  const dataLimiteEl = document.getElementById("dataLimite");
-  // Só sobrescreve o input se o campo estiver vazio E dados tiver valor
-  // Nunca apaga o que o usuário digitou
-  if(metaTotalEl && document.activeElement !== metaTotalEl){
-    const campoVazio = !metaTotalEl.value || metaTotalEl.value === "0";
-    const dadosTem = dados.metaTotal > 0;
-    if(dadosTem && campoVazio) metaTotalEl.value = dados.metaTotal;
-    // Se campo tem valor mas dados não tem, sincroniza dados com o campo
-    if(metaTotalEl.value && !dadosTem){
-      const v = parseFloat(metaTotalEl.value);
-      if(!isNaN(v) && v > 0) dados.metaTotal = v;
-    }
-  }
-  if(dataLimiteEl && document.activeElement !== dataLimiteEl){
-    const campoVazio = !dataLimiteEl.value;
-    const dadosTem = !!dados.dataLimite;
-    if(dadosTem && campoVazio) dataLimiteEl.value = dados.dataLimite;
-    if(dataLimiteEl.value && !dadosTem) dados.dataLimite = dataLimiteEl.value;
-  }
-  // metaDiariaManual é readonly e calculado — nunca preencher com dados.metaDiariaManual
+  document.getElementById("metaTotal").value = dados.metaTotal || "";
+  document.getElementById("dataLimite").value = dados.dataLimite || "";
+document.getElementById("metaDiariaManual").value = (dados.metaDiariaManual || dados.metaDiariaManual === 0) ? dados.metaDiariaManual : "";
   document.getElementById("ganhoDiarioAtual").value = (dados.ganhoDiarioAtual ?? "");
 
   const modoCombustivel = (dados.combustivelModo === "real") ? "real" : "fixo";
@@ -5358,20 +5296,6 @@ function atualizar(){
   if(fuelKmRodados && document.activeElement !== fuelKmRodados) fuelKmRodados.value = Number(dados?.combustivelReal?.kmRodados || 0) || "";
   if(fuelConsumoMedio && document.activeElement !== fuelConsumoMedio) fuelConsumoMedio.value = Number(dados?.combustivelReal?.consumoMedio || 0) || "";
   if(fuelPrecoLitro && document.activeElement !== fuelPrecoLitro) fuelPrecoLitro.value = Number(dados?.combustivelReal?.precoLitro || 0) || "";
-
-  // v9 fix definitivo: sincronizar inputs de meta com dados ANTES do cálculo
-  // garante que o que está digitado no campo seja usado, mesmo sem clicar Salvar Meta
-  try{
-    const _metaEl = document.getElementById("metaTotal");
-    const _dataEl = document.getElementById("dataLimite");
-    if(_metaEl && _metaEl.value !== ""){
-      const _v = parseFloat(_metaEl.value);
-      if(!isNaN(_v) && _v > 0) dados.metaTotal = _v;
-    }
-    if(_dataEl && _dataEl.value !== ""){
-      dados.dataLimite = _dataEl.value;
-    }
-  }catch(e){}
 
   const bruto = dados.ganhos.reduce((s,g)=>s+g.valor,0);
   const gastosExtras = dados.gastos.reduce((s,g)=>s+g.valor,0);
@@ -5992,25 +5916,7 @@ atualizar();
 
 
 (function(){
-  // v9 fix: atualizar dados.metaTotal e dados.dataLimite em tempo real ao digitar
-// assim o cálculo de metaDiariaManual e metaBruta usa sempre o valor atual do campo
-(function(){
-  function bindMetaInput(id, key, parseFunc){
-    const el = document.getElementById(id);
-    if(!el) return;
-    el.addEventListener('input', function(){
-      const val = parseFunc(el.value);
-      if(!isNaN(val) || key === 'dataLimite'){
-        dados[key] = key === 'dataLimite' ? (el.value || "") : (val || 0);
-        try{ atualizar(); }catch(e){}
-      }
-    });
-  }
-  bindMetaInput('metaTotal', 'metaTotal', parseFloat);
-  bindMetaInput('dataLimite', 'dataLimite', function(v){ return v; });
-})();
-
-function bindExprField(id, storeKey){
+  function bindExprField(id, storeKey){
     const el = document.getElementById(id);
     if(!el) return;
 
