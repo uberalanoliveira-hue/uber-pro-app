@@ -2337,78 +2337,39 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 }
 
 
-/* Dias não trabalhados: o + controla tudo */
-#btnMaisNaoTrab{
-  display:block !important;
-  margin:8px auto !important;
+/* Dias não trabalhados — campo data com dica interna */
+#dataNaoTrabalhado[type="text"]{
+  color: rgba(255,255,255,0.68);
 }
 
-
-/* Dias não trabalhados — swipe completo */
-#listaNaoTrabalhados .swipe-item{
-  position: relative;
-  overflow: hidden;
+/* Dias não trabalhados — lançamentos compactos no padrão visual do card Meta */
+#listaNaoTrabalhados .list-item{
   width: calc(100% - 24px);
   margin: 8px auto 0 !important;
+  padding: 7px 10px !important;
+  min-height: 44px !important;
   border-radius: 10px;
-}
-#listaNaoTrabalhados .swipe-actions{
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 140px;
-  display: flex;
-  z-index: 1;
-}
-#listaNaoTrabalhados .swipe-action{
-  width: 70px;
-  border: none;
-  margin: 0 !important;
-  border-radius: 0 !important;
-  color: #fff !important;
-  font-size: 12px;
-  font-weight: 700;
-  display: flex;
+  font-size: 13px;
+  line-height: 1.15;
   align-items: center;
-  justify-content: center;
 }
-#listaNaoTrabalhados .swipe-action.edit{ background:#64748b !important; }
-#listaNaoTrabalhados .swipe-action.delete{ background:#ef4444 !important; }
-#listaNaoTrabalhados .swipe-content{
-  position: relative;
-  z-index: 2;
-  background: rgba(255,255,255,0.06);
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:10px;
-  padding: 8px 10px !important;
-  min-height: 0 !important;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  transition: transform .18s ease;
-  will-change: transform;
-  touch-action: pan-y;
+#listaNaoTrabalhados .list-left{
+  gap: 6px;
+  align-items: center;
 }
-#listaNaoTrabalhados .swipe-item.open .swipe-content{
-  transform: translateX(-140px);
+#listaNaoTrabalhados .li-date,
+#listaNaoTrabalhados .li-desc{
+  line-height: 1.15;
 }
-#listaNaoTrabalhados .swipe-main{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  min-width:0;
-  flex:1 1 auto;
+#listaNaoTrabalhados .action-menu{
+  margin-left: 6px;
 }
-#listaNaoTrabalhados .swipe-main .li-date,
-#listaNaoTrabalhados .swipe-main .li-desc{
-  line-height:1.15;
+#listaNaoTrabalhados .kebab-btn{
+  padding: 2px 5px;
+  font-size: 16px;
 }
-#listaNaoTrabalhados .swipe-hint{
-  flex:0 0 auto;
-  opacity:.7;
-  font-size:15px;
+#listaNaoTrabalhados .menu-pop button{
+  padding: 9px 10px;
 }
 
 </style>
@@ -2649,16 +2610,16 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
     <input type="date" id="dataLimite">
 
     
-    <div class="label-row" style="display:flex;justify-content:center;align-items:center;margin-top:10px;"><label style="margin:0;">Dias não trabalhados</label></div>
+    <div class="label-row" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-top:10px;" onclick="toggleListaNaoTrab()"><label style="margin:0;">Dias não trabalhados</label><span id="arrowListaNaoTrab" style="font-weight:900;opacity:.9;transform:rotate(-90deg);display:inline-block;">▼</span></div>
     
 <button id="btnMaisNaoTrab" class="secondary"
-        onclick="toggleDiasNaoTrabalhadosTudo()"
+        onclick="toggleForm('formNaoTrabalhado')"
         style="width:22px;height:22px;padding:0;border-radius:6px;display:block;margin:8px auto;font-size:14px;font-weight:900;">
   +
 </button>
 
     <div id="formNaoTrabalhado" class="collapsible">
-      <input type="date" id="dataNaoTrabalhado">
+      <input type="text" id="dataNaoTrabalhado" placeholder="Selecione a data" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
       <input type="text" id="motivoNaoTrabalhado" placeholder="Motivo (ex: folga, manutenção, médico)">
       <button onclick="addNaoTrabalhado()" class="dias-link-add">Adicionar</button>
     </div>
@@ -3918,7 +3879,6 @@ function addNaoTrabalhado(){
 
   document.getElementById("motivoNaoTrabalhado").value = "";
   document.getElementById("formNaoTrabalhado").classList.remove("open");
-  document.getElementById("wrapListaNaoTrab").style.display = "block";
 }
 function editarValorSessaoFinalizada(index){
   window.__editValorCtx = { tipo: 'ganhoHoraSessaoFinalizada', index };
@@ -4021,91 +3981,6 @@ function editarData(tipo, index){
   inpM.style.display = 'none';
   ov.classList.add('show');
   setTimeout(()=>{ try{ inp.focus(); }catch(e){} }, 50);
-}
-
-
-function fecharSwipesNaoTrabalhados(exceptIndex){
-  try{
-    document.querySelectorAll('#listaNaoTrabalhados .swipe-item.open').forEach(function(el){
-      const idx = Number(el.getAttribute('data-index'));
-      if(typeof exceptIndex === 'number' && idx === exceptIndex) return;
-      el.classList.remove('open');
-    });
-  }catch(e){}
-}
-
-function initSwipeNaoTrabalhados(){
-  try{
-    const items = document.querySelectorAll('#listaNaoTrabalhados .swipe-item');
-    items.forEach(function(item){
-      if(item.dataset.swipeBound === '1') return;
-      item.dataset.swipeBound = '1';
-
-      let startX = 0;
-      let startY = 0;
-      let dragging = false;
-
-      item.addEventListener('touchstart', function(e){
-        if(!e.touches || !e.touches[0]) return;
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-        dragging = true;
-      }, {passive:true});
-
-      item.addEventListener('touchmove', function(e){
-        if(!dragging || !e.touches || !e.touches[0]) return;
-        const dx = e.touches[0].clientX - startX;
-        const dy = e.touches[0].clientY - startY;
-        if(Math.abs(dy) > Math.abs(dx)) return;
-        const idx = Number(item.getAttribute('data-index'));
-        if(dx < -26){
-          fecharSwipesNaoTrabalhados(idx);
-          item.classList.add('open');
-          dragging = false;
-        }else if(dx > 26){
-          item.classList.remove('open');
-          dragging = false;
-        }
-      }, {passive:true});
-
-      item.addEventListener('touchend', function(){ dragging = false; }, {passive:true});
-
-      item.addEventListener('click', function(e){
-        const target = e.target;
-        if(target && target.closest('.swipe-action')) return;
-        if(item.classList.contains('open')){
-          item.classList.remove('open');
-        }else{
-          fecharSwipesNaoTrabalhados();
-        }
-      });
-    });
-
-    if(!window.__swipeNaoTrabOutsideBound){
-      document.addEventListener('click', function(e){
-        if(!(e.target && e.target.closest && e.target.closest('#listaNaoTrabalhados .swipe-item'))){
-          fecharSwipesNaoTrabalhados();
-        }
-      }, true);
-      window.__swipeNaoTrabOutsideBound = true;
-    }
-  }catch(e){}
-}
-
-function editarNaoTrabalhado(index){
-  try{
-    const item = (dados.naoTrabalhados || [])[index];
-    if(!item) return;
-    const novaData = prompt('Editar data (AAAA-MM-DD):', item.data || '');
-    if(novaData === null) return;
-    const novoMotivo = prompt('Editar motivo:', item.motivo || 'Dia não trabalhado');
-    if(novoMotivo === null) return;
-    item.data = String(novaData || '').trim() || item.data || '';
-    item.motivo = String(novoMotivo || '').trim() || 'Dia não trabalhado';
-    salvar();
-    atualizar();
-    try{ toast('✅ Dia não trabalhado atualizado.'); }catch(e){}
-  }catch(e){}
 }
 
 function editarMotivoNaoTrabalhado(index){
@@ -5620,19 +5495,20 @@ document.getElementById("listaGastos").innerHTML =
       .sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0))
       .map(item=>{
         const idx = dados.naoTrabalhados.indexOf(item);
-        const motivo = item.motivo || "Dia não trabalhado";
+        const motivo = item.motivo ? (" • " + item.motivo) : "";
         return `
-          <div class="swipe-item" data-index="${idx}">
-            <div class="swipe-actions">
-              <button class="swipe-action edit" onclick="event.stopPropagation(); editarNaoTrabalhado(${idx})">Editar</button>
-              <button class="swipe-action delete" onclick="event.stopPropagation(); excluirItem('naoTrabalhados', ${idx})">Excluir</button>
+          <div class="list-item">
+            <div class="list-left">
+              <span class="li-date">${item.data}</span>
+              <span class="li-desc">${motivo}</span>
             </div>
-            <div class="swipe-content">
-              <div class="swipe-main">
-                <span class="li-date">${item.data}</span>
-                <span class="li-desc">• ${motivo}</span>
+            <div class="action-menu">
+              <button class="kebab-btn" onclick="event.stopPropagation(); toggleItemMenu('menu_nao_${idx}', this)">≡</button>
+              <div class="menu-pop" id="menu_nao_${idx}">
+                <button onclick="editarData('naoTrabalhados', ${idx})">Editar data</button>
+                <button onclick="editarMotivoNaoTrabalhado(${idx})">Editar motivo</button>
+                <button class="danger" onclick="excluirItem('naoTrabalhados', ${idx})">Excluir</button>
               </div>
-              <div class="swipe-hint">≡</div>
             </div>
           </div>`;
       }).join("");
@@ -7085,27 +6961,14 @@ window.addEventListener("load", ()=>{ restoreFromIDBIfNeeded(); });
 
 /* ===== Seta recolher/mostrar lista de Dias Não Trabalhados ===== */
 function toggleListaNaoTrab(){
-  return toggleDiasNaoTrabalhadosTudo();
-}
-
-function toggleDiasNaoTrabalhadosTudo(forceOpen){
-  const form = document.getElementById("formNaoTrabalhado");
-  const wrap = document.getElementById("wrapListaNaoTrab");
+const wrap = document.getElementById("wrapListaNaoTrab");
+  const arrow = document.getElementById("arrowListaNaoTrab");
   const btnMais = document.getElementById("btnMaisNaoTrab");
-  if(!form || !wrap) return;
-
-  const aberto = form.classList.contains("open") || wrap.style.display === "block";
-  const abrir = (typeof forceOpen === "boolean") ? forceOpen : !aberto;
-
-  if(abrir){
-    form.classList.add("open");
-    wrap.style.display = "block";
-  }else{
-    form.classList.remove("open");
-    wrap.style.display = "none";
-  }
-
-  if(btnMais) btnMais.style.display = "block";
+  if(!wrap) return;
+  const hidden = wrap.style.display === "none";
+  wrap.style.display = hidden ? "block" : "none";
+  if(btnMais) btnMais.style.display = hidden ? "block" : "none";
+  if(arrow) arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(-90deg)";
 }
 
 
