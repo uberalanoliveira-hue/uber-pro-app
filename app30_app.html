@@ -2282,100 +2282,6 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 .temas-actions{ padding:0 14px 14px; }
 .temas-actions button{ margin-top:0; }
 
-
-/* Dias não trabalhados: formulário centralizado e ação discreta */
-#formNaoTrabalhado{
-  width: calc(100% - 24px);
-  margin: 10px auto 10px !important;
-}
-#formNaoTrabalhado input{
-  width: 100%;
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-#formNaoTrabalhado .dias-link-add{
-  display:block;
-  width:auto !important;
-  margin: 2px auto 0 !important;
-  padding:0 !important;
-  background:transparent !important;
-  border:none !important;
-  color:var(--accent) !important;
-  text-decoration:underline;
-  font-weight:700;
-  font-size:14px;
-  min-height:auto !important;
-  height:auto !important;
-  border-radius:0 !important;
-  box-shadow:none !important;
-}
-#formNaoTrabalhado .dias-link-add:active{
-  transform:none !important;
-}
-#listaNaoTrabalhados .list-item{
-  width: calc(100% - 24px);
-  margin: 8px auto 0 !important;
-  padding: 6px 10px !important;
-  min-height: 0 !important;
-  border-radius: 10px;
-  font-size: 13px;
-  line-height: 1.15;
-  align-items: center;
-}
-#listaNaoTrabalhados .list-left{
-  gap: 6px;
-  align-items: center;
-}
-#listaNaoTrabalhados .li-date,
-#listaNaoTrabalhados .li-desc{
-  line-height: 1.15;
-}
-#listaNaoTrabalhados .small-btn{
-  padding: 4px 7px;
-  font-size: 11px;
-  border-radius: 8px;
-}
-
-
-/* Dias não trabalhados: o + controla tudo */
-#btnMaisNaoTrab{
-  display:block !important;
-  margin:8px auto !important;
-}
-
-
-/* Dias não trabalhados — refinamento visual sem mexer na lógica da Meta */
-#dataNaoTrabalhado[type="text"]{
-  color: rgba(255,255,255,0.68);
-}
-#listaNaoTrabalhados .list-item,
-#listaNaoTrabalhados .nao-trabalhado-item{
-  width: calc(100% - 24px);
-  margin: 8px auto 0 !important;
-  padding: 6px 10px !important;
-  min-height: 44px !important;
-  height: auto !important;
-  border-radius: 10px;
-  font-size: 13px;
-  line-height: 1.15;
-  align-items: center;
-}
-#listaNaoTrabalhados .list-left{
-  gap: 6px;
-  align-items: center;
-}
-#listaNaoTrabalhados .li-date,
-#listaNaoTrabalhados .li-desc{
-  line-height: 1.15;
-}
-#listaNaoTrabalhados .action-menu{
-  margin-left: 6px;
-}
-#listaNaoTrabalhados .kebab-btn{
-  padding: 2px 5px;
-  font-size: 16px;
-}
-
 </style>
 
 <style id="app30-auth-guard-style">
@@ -2614,18 +2520,18 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
     <input type="date" id="dataLimite">
 
     
-    <div class="label-row" style="display:flex;justify-content:center;align-items:center;margin-top:10px;"><label style="margin:0;">Dias não trabalhados</label></div>
+    <div class="label-row" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-top:10px;" onclick="toggleListaNaoTrab()"><label style="margin:0;">Dias não trabalhados</label><span id="arrowListaNaoTrab" style="font-weight:900;opacity:.9;transform:rotate(-90deg);display:inline-block;">▼</span></div>
     
 <button id="btnMaisNaoTrab" class="secondary"
-        onclick="toggleDiasNaoTrabalhadosTudo()"
+        onclick="toggleForm('formNaoTrabalhado')"
         style="width:22px;height:22px;padding:0;border-radius:6px;display:block;margin:8px auto;font-size:14px;font-weight:900;">
   +
 </button>
 
     <div id="formNaoTrabalhado" class="collapsible">
-      <input type="text" id="dataNaoTrabalhado" placeholder="Selecione a data" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
+      <input type="date" id="dataNaoTrabalhado">
       <input type="text" id="motivoNaoTrabalhado" placeholder="Motivo (ex: folga, manutenção, médico)">
-      <button onclick="addNaoTrabalhado()" class="dias-link-add">Adicionar</button>
+      <button onclick="addNaoTrabalhado()">Salvar</button>
     </div>
     <div id="wrapListaNaoTrab" style="margin-top:10px;;display:none;">
       <div id="listaNaoTrabalhados" style="margin-top:10px;"></div>
@@ -3765,7 +3671,8 @@ function salvarMeta(){
   dados.dataLimite = document.getElementById("dataLimite").value || "";
   salvar();
   atualizar();
-  try{ atualizarCarro(); }catch(e){}
+      try{ atualizarCarro(); }catch(e){}
+
 }
 
 function salvarHoras(){
@@ -3871,13 +3778,17 @@ function addNaoTrabalhado(){
   const motivo = (document.getElementById("motivoNaoTrabalhado").value || "").trim();
   if(!data) return;
 
+  // preserva campos já digitados em Meta antes de salvar dias não trabalhados
+  dados.metaTotal = parseFloat(document.getElementById("metaTotal")?.value) || 0;
+  dados.dataLimite = document.getElementById("dataLimite")?.value || "";
+
   dados.naoTrabalhados.push({data, motivo: motivo || "Dia não trabalhado"});
 
   salvar();
   atualizar();
 
   document.getElementById("motivoNaoTrabalhado").value = "";
-  document.getElementById("wrapListaNaoTrab").style.display = "block";
+  document.getElementById("formNaoTrabalhado").classList.remove("open");
 }
 function editarValorSessaoFinalizada(index){
   window.__editValorCtx = { tipo: 'ganhoHoraSessaoFinalizada', index };
@@ -6960,27 +6871,14 @@ window.addEventListener("load", ()=>{ restoreFromIDBIfNeeded(); });
 
 /* ===== Seta recolher/mostrar lista de Dias Não Trabalhados ===== */
 function toggleListaNaoTrab(){
-  return toggleDiasNaoTrabalhadosTudo();
-}
-
-function toggleDiasNaoTrabalhadosTudo(forceOpen){
-  const form = document.getElementById("formNaoTrabalhado");
-  const wrap = document.getElementById("wrapListaNaoTrab");
+const wrap = document.getElementById("wrapListaNaoTrab");
+  const arrow = document.getElementById("arrowListaNaoTrab");
   const btnMais = document.getElementById("btnMaisNaoTrab");
-  if(!form || !wrap) return;
-
-  const aberto = form.classList.contains("open") || wrap.style.display === "block";
-  const abrir = (typeof forceOpen === "boolean") ? forceOpen : !aberto;
-
-  if(abrir){
-    form.classList.add("open");
-    wrap.style.display = "block";
-  }else{
-    form.classList.remove("open");
-    wrap.style.display = "none";
-  }
-
-  if(btnMais) btnMais.style.display = "block";
+  if(!wrap) return;
+  const hidden = wrap.style.display === "none";
+  wrap.style.display = hidden ? "block" : "none";
+  if(btnMais) btnMais.style.display = hidden ? "block" : "none";
+  if(arrow) arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(-90deg)";
 }
 
 
