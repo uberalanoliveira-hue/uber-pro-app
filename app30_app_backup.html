@@ -1985,6 +1985,39 @@ body[data-tema="amarelo-claro"] .menu-btn{
   margin:8px auto !important;
 }
 
+
+/* Dias não trabalhados — refinamento visual sem mexer na lógica da Meta */
+#dataNaoTrabalhado[type="text"]{
+  color: rgba(255,255,255,0.68);
+}
+#listaNaoTrabalhados .list-item,
+#listaNaoTrabalhados .nao-trabalhado-item{
+  width: calc(100% - 24px);
+  margin: 8px auto 0 !important;
+  padding: 6px 10px !important;
+  min-height: 44px !important;
+  height: auto !important;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.15;
+  align-items: center;
+}
+#listaNaoTrabalhados .list-left{
+  gap: 6px;
+  align-items: center;
+}
+#listaNaoTrabalhados .li-date,
+#listaNaoTrabalhados .li-desc{
+  line-height: 1.15;
+}
+#listaNaoTrabalhados .action-menu{
+  margin-left: 6px;
+}
+#listaNaoTrabalhados .kebab-btn{
+  padding: 2px 5px;
+  font-size: 16px;
+}
+
 </style>
 
 <style id="app30-auth-guard-style">
@@ -2218,7 +2251,7 @@ body[data-tema="amarelo-claro"] .menu-btn{
 </button>
 
     <div id="formNaoTrabalhado" class="collapsible">
-      <input type="date" id="dataNaoTrabalhado">
+      <input type="text" id="dataNaoTrabalhado" placeholder="Selecione a data" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
       <input type="text" id="motivoNaoTrabalhado" placeholder="Motivo (ex: folga, manutenção, médico)">
       <button onclick="addNaoTrabalhado()" class="dias-link-add">Adicionar</button>
     </div>
@@ -3209,8 +3242,7 @@ function salvarMeta(){
   dados.dataLimite = document.getElementById("dataLimite").value || "";
   salvar();
   atualizar();
-      try{ atualizarCarro(); }catch(e){}
-
+  try{ atualizarCarro(); }catch(e){}
 }
 
 function salvarHoras(){
@@ -3316,17 +3348,12 @@ function addNaoTrabalhado(){
   const motivo = (document.getElementById("motivoNaoTrabalhado").value || "").trim();
   if(!data) return;
 
-  // preserva campos já digitados em Meta antes de salvar dias não trabalhados
-  dados.metaTotal = parseFloat(document.getElementById("metaTotal")?.value) || 0;
-  dados.dataLimite = document.getElementById("dataLimite")?.value || "";
-
   dados.naoTrabalhados.push({data, motivo: motivo || "Dia não trabalhado"});
 
   salvar();
   atualizar();
 
   document.getElementById("motivoNaoTrabalhado").value = "";
-  document.getElementById("formNaoTrabalhado").classList.remove("open");
   document.getElementById("wrapListaNaoTrab").style.display = "block";
 }
 function editarValorSessaoFinalizada(index){
