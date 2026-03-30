@@ -75,3 +75,16 @@ O QUE FOI FEITO:
 
 STATUS:
 - Aguardando teste
+
+
+VERSÃO v7 - corrige-versao-visivel
+
+O QUE FOI PEDIDO:
+- Corrigir versão exibida no app (estava aparecendo v3)
+
+O QUE FOI FEITO:
+- Atualizada versão visual em todas as telas para v7
+- Nenhuma alteração de lógica foi feita
+
+STATUS:
+- Aguardando teste
