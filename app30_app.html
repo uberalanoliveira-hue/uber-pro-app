@@ -47,7 +47,7 @@ h1{text-align:center;margin:8px 0 14px;letter-spacing:0.2px;}
   position:sticky; top:0; z-index:50;
   background:linear-gradient(to bottom, rgba(15,23,42,0.92), rgba(15,23,42,0.78));
   backdrop-filter: blur(8px);
-  padding:10px 12px;
+  padding:14px 12px;
   margin:-15px -15px 12px;
   border-bottom:1px solid rgba(255,255,255,0.08);
 }
@@ -57,71 +57,123 @@ h1{text-align:center;margin:8px 0 14px;letter-spacing:0.2px;}
   justify-content:space-between;
   gap:10px;
 }
-.app-title{
-  font-weight:800;
-  font-size:17px;
-  letter-spacing:0.3px;
+.app-title-wrap{
+  display:flex;
+  align-items:center;
+  gap:9px;
 }
+.app-title-text{
+  display:flex;
+  flex-direction:column;
+  line-height:1.2;
+}
+.app-title-name{
+  font-weight:800;
+  font-size:16px;
+  letter-spacing:0.3px;
+  color:var(--text);
+}
+.app-title-accent{
+  color:#22c55e;
+}
+.app-title-tag{
+  font-size:10px;
+  letter-spacing:0.8px;
+  text-transform:uppercase;
+  opacity:0.38;
+  font-weight:400;
+  color:var(--text);
+}
+/* v9 - botão menu tamanho ajustado */
 .menu-btn{
-  width:40px;
-  height:40px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,0.12);
-  background:rgba(255,255,255,0.08);
+  width:36px;
+  height:36px;
+  border-radius:9px;
+  border:1px solid rgba(255,255,255,0.10);
+  background:rgba(255,255,255,0.07);
   color:var(--text);
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:22px;
+  font-size:18px;
   flex:0 0 auto;
+  opacity:0.80;
+  transition:opacity 0.15s, background 0.15s;
 }
-.menu-btn:active{transform:scale(0.98);}
+.menu-btn:hover{opacity:1; background:rgba(255,255,255,0.12);}
+.menu-btn:active{transform:scale(0.97);}
 
 
+/* v9 - menu tamanho ajustado */
 /* Menu overlay */
 .overlay{
   position:fixed; inset:0; z-index:90;
-  background:rgba(0,0,0,0.55);
+  background:rgba(0,0,0,0.35);
   display:none;
 }
 .overlay.show{display:block;}
 .menu-panel{
-  position:fixed; top:64px; right:12px; z-index:100;
-  width:min(320px, calc(100% - 24px));
-  background:rgba(30,41,59,0.98);
+  position:fixed; top:58px; right:10px; z-index:100;
+  width:min(250px, calc(100% - 20px));
+  background:rgba(18,28,44,0.98);
   border:1px solid rgba(255,255,255,0.10);
-  border-radius:16px;
-  box-shadow:0 18px 40px rgba(0,0,0,0.45);
+  border-radius:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.45);
   overflow:hidden;
   display:none;
 }
 .menu-panel.show{display:block;}
 .menu-header{
-  padding:12px 14px;
-  background:linear-gradient(135deg, rgba(96,165,250,0.22), rgba(34,197,94,0.16));
-  border-bottom:1px solid rgba(255,255,255,0.10);
-  font-weight:bold;
+  padding:9px 14px;
+  background:rgba(255,255,255,0.04);
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  font-weight:600;
+  font-size:11px;
+  letter-spacing:0.6px;
+  text-transform:uppercase;
+  opacity:0.5;
 }
 .menu-item{
-  padding:12px 14px;
-  border-bottom:1px solid rgba(255,255,255,0.08);
+  padding:2px 8px;
+  border-bottom:1px solid rgba(255,255,255,0.05);
 }
 .menu-item:last-child{border-bottom:none;}
+/* v9 - menu: tamanho ajustado e botões com diferenciação visual agradável */
 .menu-item button{
   width:100%;
-  padding:10px;
+  padding:8px 10px;
   margin:0;
-  border-radius:12px;
-  border:none;
-  font-size:15px;
-  font-weight:bold;
-  background:rgba(255,255,255,0.10);
-  color:var(--text);
+  border-radius:8px;
+  border:none !important;
+  font-size:14px !important;
+  font-weight:500 !important;
+  background:transparent !important;
+  color:var(--text) !important;
+  text-align:left;
+  opacity:0.90;
+  cursor:pointer;
+  font-family:inherit;
+  transition:background 0.12s, opacity 0.12s;
+  display:flex;
+  align-items:center;
+  gap:8px;
 }
-.menu-item button.primary{background:var(--accent);color:#0b1220;}
-.menu-item button.secondary{background:var(--accent2);color:#0b1220;}
-.menu-item button.danger{background:var(--danger);color:#0b1220;}
-.menu-note{padding:10px 14px; font-size:12px; opacity:0.85; line-height:1.35;}
+.menu-item button:hover{background:rgba(255,255,255,0.07) !important; opacity:1;}
+.menu-item button.primary{
+  color:var(--accent) !important;
+  font-weight:700 !important;
+}
+.menu-item button.secondary{
+  color:var(--accent2) !important;
+  background:transparent !important;
+  font-weight:500 !important;
+}
+.menu-item button.danger{
+  color:var(--danger) !important;
+  opacity:0.80;
+}
+.menu-item button.danger:hover{ opacity:1; }
+.menu-note{padding:5px 12px 7px; font-size:10px; opacity:0.5; line-height:1.3;}
 
 .card{
   background:var(--card);
@@ -167,6 +219,9 @@ button:active{transform:scale(0.99);}
   min-height:auto !important;
   border-radius:0 !important;
   box-shadow:none !important;
+  width:auto !important;
+  text-align:left !important;
+  display:inline !important;
 }
 .btn-historico-link:active{transform:none !important;}
 
@@ -417,20 +472,6 @@ button[onclick="salvarMeta()"]{
   margin-right: auto !important;
 }
 
-
-/* Relógio Uber (dia vira às 04:00) */
-/* Relógio Uber (dia vira às 04:00) */
-.uber-clock{
-  width:100%;
-  text-align:center;
-  font-weight:800;
-  letter-spacing:0.5px;
-  opacity:0.95;
-  margin: 12px 0 16px;
-  padding: 6px 0;
-  font-size: 18px;
-  line-height: 1.4;
-}
 
 
 /* Seções recolhíveis + persistência */
@@ -1286,6 +1327,86 @@ input.negative-value, input.negative-value::placeholder{
 
 
 /* ===== Modal editar valor (teclado numérico) ===== */
+
+
+/* v9 - modal editar data/motivo (substitui prompt nativo que falha no Android) */
+.edit-data-overlay{
+  position:fixed; inset:0; z-index:400;
+  background:rgba(0,0,0,0.55);
+  display:none;
+}
+.edit-data-overlay.show{ display:flex; align-items:center; justify-content:center; padding:16px; }
+.edit-data-modal{
+  width:min(380px, 100%);
+  background:rgba(30,41,59,0.98);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:18px;
+  box-shadow:0 18px 40px rgba(0,0,0,0.45);
+  padding:18px;
+}
+.edit-data-title{ font-weight:900; margin:0 0 12px; font-size:15px; }
+.edit-data-modal input{
+  width:100%;
+  background:var(--input);
+  color:var(--text);
+  border-radius:10px;
+  border:none;
+  padding:10px;
+  font-size:15px;
+  font-family:inherit;
+  margin-bottom:10px;
+}
+.edit-data-actions{ display:flex; gap:10px; margin-top:4px; }
+.edit-data-actions button{ flex:1; height:44px; border-radius:12px; font-size:14px; font-weight:700; border:none; cursor:pointer; font-family:inherit; }
+.edit-data-actions .btn-cancelar{ background:rgba(255,255,255,0.10); color:var(--text); }
+
+/* v8 - modal exportar backup */
+.export-backup-overlay{
+  position:fixed; inset:0; z-index:300;
+  background:rgba(0,0,0,0.55);
+  display:none;
+}
+.export-backup-overlay.show{ display:flex; align-items:center; justify-content:center; padding:16px; }
+.export-backup-modal{
+  width:min(420px, 100%);
+  background:rgba(30,41,59,0.98);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:18px;
+  box-shadow:0 18px 40px rgba(0,0,0,0.45);
+  padding:18px;
+}
+.export-backup-title{ font-weight:900; margin:0 0 4px; font-size:15px; }
+.export-backup-subtitle{ font-size:12px; opacity:0.6; margin:0 0 14px; }
+.export-backup-field label{ display:block; font-size:12px; opacity:0.7; margin-bottom:4px; }
+.export-backup-field input{
+  width:100%;
+  background:var(--input);
+  color:var(--text);
+  border-radius:10px;
+  border:none;
+  padding:10px;
+  font-size:14px;
+  font-family:inherit;
+}
+.export-backup-warning{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:10px;
+  background:rgba(251,113,133,0.10);
+  border:1px solid rgba(251,113,133,0.25);
+  color:#ffb3b3;
+  font-size:12px;
+  line-height:1.45;
+  display:none;
+}
+.export-backup-warning.show{ display:block; }
+.export-backup-actions{ display:flex; gap:10px; margin-top:14px; flex-direction:column; }
+.export-backup-actions button{ height:44px; border-radius:12px; font-size:14px; font-weight:700; border:none; cursor:pointer; font-family:inherit; }
+.export-backup-actions .btn-pasta{ background:var(--accent); color:#0b1220; }
+.export-backup-actions .btn-downloads{ background:rgba(255,255,255,0.10); color:var(--text); border:1px solid rgba(255,255,255,0.12) !important; }
+.export-backup-actions .btn-cancelar{ background:transparent !important; color:var(--text); opacity:0.55; font-weight:500 !important; font-size:13px !important; height:32px !important; }
+.export-backup-actions .btn-cancelar:hover{ opacity:1; }
+
 .editvalor-overlay{
   position:fixed; inset:0; z-index:300;
   background:rgba(0,0,0,0.55);
@@ -1780,62 +1901,65 @@ body[data-tema="meta-claro"]{
   --warn:#ca8a04;
   --danger:#e11d48;
 }
-/* Próximo da linguagem visual de apps executivos escuros, sem copiar marca */
+/* v9 - preto: identidade Uber (preto total + branco puro) */
 body[data-tema="preto-escuro"]{
   --bg:#000000;
-  --card:#121212;
-  --input:#1c1c1e;
+  --card:#111111;
+  --input:#1a1a1a;
   --accent:#ffffff;
-  --accent2:#6b7280;
-  --text:#f5f5f7;
-  --muted:rgba(245,245,247,0.74);
-  --line:rgba(255,255,255,0.10);
-  --warn:#ffd166;
-  --danger:#ff6b6b;
+  --accent2:#999999;
+  --text:#ffffff;
+  --muted:rgba(255,255,255,0.70);
+  --line:rgba(255,255,255,0.08);
+  --warn:#ffffff;
+  --danger:#ff3b30;
 }
 body[data-tema="preto-claro"]{
-  --bg:#f2f2f2;
+  --bg:#f5f5f5;
   --card:#ffffff;
-  --input:#e8e8e8;
-  --accent:#111111;
-  --accent2:#5b5b5b;
-  --text:#111111;
-  --muted:rgba(17,17,17,0.68);
-  --line:rgba(17,17,17,0.08);
-  --warn:#b45309;
-  --danger:#dc2626;
+  --input:#ebebeb;
+  --accent:#000000;
+  --accent2:#555555;
+  --text:#000000;
+  --muted:rgba(0,0,0,0.60);
+  --line:rgba(0,0,0,0.08);
+  --warn:#000000;
+  --danger:#ff3b30;
 }
-/* Próximo da sensação de app amarelo vibrante, sem copiar marca */
+/* v9 - amarelo: identidade 99 (preto + amarelo vibrante) */
 body[data-tema="amarelo-escuro"]{
-  --bg:#161100;
-  --card:#241c00;
-  --input:#332800;
-  --accent:#ffd400;
-  --accent2:#ffe98a;
-  --text:#fffdf5;
-  --muted:rgba(255,253,245,0.76);
-  --line:rgba(255,212,0,0.14);
-  --warn:#ffe066;
-  --danger:#ff7b7b;
+  --bg:#0d0d0d;
+  --card:#1a1a00;
+  --input:#2a2a00;
+  --accent:#ffcc00;
+  --accent2:#ffdd44;
+  --text:#ffffff;
+  --muted:rgba(255,255,255,0.75);
+  --line:rgba(255,204,0,0.15);
+  --warn:#ffcc00;
+  --danger:#ff453a;
 }
 body[data-tema="amarelo-claro"]{
-  --bg:#fff8d9;
-  --card:#fff1a6;
-  --input:#ffe58a;
+  --bg:#fffbe6;
+  --card:#ffffff;
+  --input:#fff3b0;
   --accent:#ffcc00;
-  --accent2:#f59e0b;
-  --text:#2a2110;
-  --muted:rgba(42,33,16,0.72);
-  --line:rgba(42,33,16,0.10);
-  --warn:#a16207;
+  --accent2:#e6a800;
+  --text:#1a1400;
+  --muted:rgba(26,20,0,0.65);
+  --line:rgba(26,20,0,0.10);
+  --warn:#c68a00;
   --danger:#dc2626;
 }
+/* v9 - color-scheme por modo */
 body[data-tema="meta-claro"],
 body[data-tema="preto-claro"],
 body[data-tema="amarelo-claro"]{ color-scheme:light; }
 body[data-tema="meta-escuro"],
 body[data-tema="preto-escuro"],
 body[data-tema="amarelo-escuro"]{ color-scheme:dark; }
+
+/* ── TOPBAR por tema ── */
 body[data-tema$="claro"] .topbar{
   background:linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.84));
   border-bottom:1px solid var(--line);
@@ -1843,50 +1967,266 @@ body[data-tema$="claro"] .topbar{
 body[data-tema$="claro"] .menu-panel{
   background:rgba(255,255,255,0.98);
 }
-body[data-tema="preto-escuro"] .card-header{
-  background:linear-gradient(135deg, rgba(255,255,255,0.13), rgba(255,255,255,0.04));
-}
-body[data-tema="preto-claro"] .card-header{
-  background:linear-gradient(135deg, rgba(17,17,17,0.12), rgba(17,17,17,0.03));
-}
-body[data-tema="amarelo-escuro"] .card-header{
-  background:linear-gradient(135deg, rgba(255,212,0,0.18), rgba(255,245,180,0.06));
-}
-body[data-tema="amarelo-claro"] .card-header{
-  background:linear-gradient(135deg, rgba(255,212,0,0.28), rgba(255,204,0,0.10));
-}
-body[data-tema="preto-escuro"] .quick-balance-panel,
-body[data-tema="preto-escuro"] .quick-balance-display{
-  background-color:#0d0d0d;
-}
-body[data-tema="preto-claro"] .quick-balance-panel{
-  background:#ffffff;
-}
-body[data-tema="amarelo-escuro"] .quick-balance-panel{
-  background:#171300;
-}
-body[data-tema="amarelo-claro"] .quick-balance-panel{
-  background:#fff7d1;
-}
-body[data-tema="preto-escuro"] button,
-body[data-tema="amarelo-escuro"] button,
-body[data-tema="amarelo-claro"] button,
-body[data-tema="preto-claro"] button,
-body[data-tema="meta-claro"] button{
-  color:#0b1220;
-}
-body[data-tema="preto-escuro"] .menu-item button.secondary,
-body[data-tema="preto-claro"] .menu-item button.secondary{
-  background:var(--accent2);
-  color:#fff;
-}
-body[data-tema="meta-claro"] .menu-btn,
-body[data-tema="preto-claro"] .menu-btn,
-body[data-tema="amarelo-claro"] .menu-btn{
-  background:rgba(15,23,42,0.06);
+body[data-tema$="claro"] .menu-item button{ color:var(--text) !important; }
+body[data-tema$="claro"] .menu-item button.primary{ color:var(--accent) !important; }
+body[data-tema$="claro"] .menu-item button.secondary{ color:var(--accent2) !important; }
+body[data-tema$="claro"] .menu-item button.danger{ color:var(--danger) !important; }
+
+/* ── menu-btn por tema claro ── */
+body[data-tema$="claro"] .menu-btn{
+  background:rgba(0,0,0,0.06);
   color:var(--text);
   border-color:var(--line);
 }
+
+/* ════════════════════════════════════════════
+   TEMA: META ESCURO (padrão, nenhum override
+   necessário — o CSS base já é otimizado)
+   ════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════
+   TEMA: META CLARO
+   ════════════════════════════════════════════ */
+body[data-tema="meta-claro"] .card-header{
+  background:linear-gradient(135deg, rgba(59,130,246,0.18), rgba(29,185,84,0.12));
+}
+/* botões globais no claro: texto escuro sobre accent claro */
+body[data-tema="meta-claro"] button{ color:#0f172a; }
+body[data-tema="meta-claro"] button.secondary{ background:var(--accent2); color:#ffffff; }
+/* abas */
+body[data-tema="meta-claro"] .tab-btn{
+  background:rgba(15,23,42,0.06);
+  border-color:rgba(15,23,42,0.14);
+  color:var(--text);
+}
+body[data-tema="meta-claro"] .tab-btn.active{
+  background:rgba(59,130,246,0.18);
+  border-color:rgba(59,130,246,0.40);
+  color:var(--text);
+}
+body[data-tema="meta-claro"] .subtab-btn{
+  background:rgba(15,23,42,0.06);
+  border-color:rgba(15,23,42,0.12);
+  color:var(--text);
+}
+body[data-tema="meta-claro"] .list-item{
+  background:rgba(15,23,42,0.04);
+  border-color:rgba(15,23,42,0.10);
+}
+body[data-tema="meta-claro"] .quick-balance-panel{ background:#ffffff; }
+
+/* ════════════════════════════════════════════
+   TEMA: PRETO ESCURO (identidade Uber)
+   ════════════════════════════════════════════ */
+body[data-tema="preto-escuro"] .card-header{
+  background:rgba(255,255,255,0.05);
+  border-bottom:1px solid rgba(255,255,255,0.07);
+}
+/* botões primários: branco com texto preto */
+body[data-tema="preto-escuro"] button{
+  background:#ffffff;
+  color:#000000;
+}
+body[data-tema="preto-escuro"] button.secondary{
+  background:rgba(255,255,255,0.12);
+  color:#ffffff;
+}
+/* abas principais */
+body[data-tema="preto-escuro"] .tab-btn{
+  background:rgba(255,255,255,0.05);
+  border-color:rgba(255,255,255,0.10);
+  color:#ffffff;
+}
+body[data-tema="preto-escuro"] .tab-btn.active{
+  background:rgba(255,255,255,0.14);
+  border-color:rgba(255,255,255,0.30);
+  color:#ffffff;
+}
+/* sub-abas ganhos/gastos */
+body[data-tema="preto-escuro"] .subtab-btn{
+  background:rgba(255,255,255,0.06);
+  border-color:rgba(255,255,255,0.10);
+  color:#ffffff;
+}
+body[data-tema="preto-escuro"] #btnSubGanhos.active{
+  background:rgba(255,255,255,0.18);
+  color:#ffffff;
+  border-color:rgba(255,255,255,0.30);
+}
+body[data-tema="preto-escuro"] #btnSubGastos.active{
+  background:rgba(255,80,80,0.25);
+  color:#ff8888;
+  border-color:rgba(255,80,80,0.30);
+}
+/* list items */
+body[data-tema="preto-escuro"] .list-item{
+  background:rgba(255,255,255,0.04);
+  border-color:rgba(255,255,255,0.07);
+}
+/* quick balance */
+body[data-tema="preto-escuro"] .quick-balance-panel,
+body[data-tema="preto-escuro"] .quick-balance-display{
+  background-color:#0a0a0a;
+}
+/* inputs */
+body[data-tema="preto-escuro"] input,
+body[data-tema="preto-escuro"] select{
+  background:#1a1a1a;
+  color:#ffffff;
+  border:1px solid rgba(255,255,255,0.10);
+}
+
+/* ════════════════════════════════════════════
+   TEMA: PRETO CLARO (identidade Uber Claro)
+   ════════════════════════════════════════════ */
+body[data-tema="preto-claro"] .card-header{
+  background:rgba(0,0,0,0.06);
+  border-bottom:1px solid rgba(0,0,0,0.08);
+}
+body[data-tema="preto-claro"] button{
+  background:#000000;
+  color:#ffffff;
+}
+body[data-tema="preto-claro"] button.secondary{
+  background:rgba(0,0,0,0.10);
+  color:#000000;
+}
+body[data-tema="preto-claro"] .tab-btn{
+  background:rgba(0,0,0,0.05);
+  border-color:rgba(0,0,0,0.12);
+  color:#000000;
+}
+body[data-tema="preto-claro"] .tab-btn.active{
+  background:rgba(0,0,0,0.14);
+  border-color:rgba(0,0,0,0.30);
+  color:#000000;
+}
+body[data-tema="preto-claro"] .subtab-btn{
+  background:rgba(0,0,0,0.05);
+  border-color:rgba(0,0,0,0.10);
+  color:#000000;
+}
+body[data-tema="preto-claro"] #btnSubGanhos.active{
+  background:rgba(0,0,0,0.16);
+  color:#000000;
+  border-color:rgba(0,0,0,0.28);
+}
+body[data-tema="preto-claro"] #btnSubGastos.active{
+  background:rgba(200,40,40,0.15);
+  color:#c00000;
+  border-color:rgba(200,40,40,0.25);
+}
+body[data-tema="preto-claro"] .list-item{
+  background:rgba(0,0,0,0.03);
+  border-color:rgba(0,0,0,0.08);
+}
+body[data-tema="preto-claro"] .quick-balance-panel{ background:#ffffff; }
+
+/* ════════════════════════════════════════════
+   TEMA: AMARELO ESCURO (identidade 99)
+   ════════════════════════════════════════════ */
+body[data-tema="amarelo-escuro"] .card-header{
+  background:rgba(255,204,0,0.10);
+  border-bottom:1px solid rgba(255,204,0,0.12);
+}
+/* botões primários: amarelo com texto preto */
+body[data-tema="amarelo-escuro"] button{
+  background:#ffcc00;
+  color:#000000;
+}
+body[data-tema="amarelo-escuro"] button.secondary{
+  background:rgba(255,204,0,0.15);
+  color:#ffcc00;
+}
+/* abas */
+body[data-tema="amarelo-escuro"] .tab-btn{
+  background:rgba(255,255,255,0.05);
+  border-color:rgba(255,204,0,0.15);
+  color:#ffffff;
+}
+body[data-tema="amarelo-escuro"] .tab-btn.active{
+  background:rgba(255,204,0,0.18);
+  border-color:rgba(255,204,0,0.40);
+  color:#ffcc00;
+}
+/* sub-abas */
+body[data-tema="amarelo-escuro"] .subtab-btn{
+  background:rgba(255,255,255,0.05);
+  border-color:rgba(255,204,0,0.12);
+  color:#ffffff;
+}
+body[data-tema="amarelo-escuro"] #btnSubGanhos.active{
+  background:rgba(255,204,0,0.22);
+  color:#ffcc00;
+  border-color:rgba(255,204,0,0.35);
+}
+body[data-tema="amarelo-escuro"] #btnSubGastos.active{
+  background:rgba(255,80,80,0.22);
+  color:#ff8888;
+  border-color:rgba(255,80,80,0.30);
+}
+/* list items */
+body[data-tema="amarelo-escuro"] .list-item{
+  background:rgba(255,204,0,0.05);
+  border-color:rgba(255,204,0,0.10);
+}
+/* quick balance */
+body[data-tema="amarelo-escuro"] .quick-balance-panel{
+  background:#0d0d00;
+}
+/* inputs */
+body[data-tema="amarelo-escuro"] input,
+body[data-tema="amarelo-escuro"] select{
+  background:#222200;
+  color:#ffffff;
+  border:1px solid rgba(255,204,0,0.15);
+}
+
+/* ════════════════════════════════════════════
+   TEMA: AMARELO CLARO (identidade 99 Claro)
+   ════════════════════════════════════════════ */
+body[data-tema="amarelo-claro"] .card-header{
+  background:rgba(255,204,0,0.20);
+  border-bottom:1px solid rgba(255,204,0,0.20);
+}
+body[data-tema="amarelo-claro"] button{
+  background:#ffcc00;
+  color:#000000;
+}
+body[data-tema="amarelo-claro"] button.secondary{
+  background:rgba(0,0,0,0.08);
+  color:#1a1400;
+}
+body[data-tema="amarelo-claro"] .tab-btn{
+  background:rgba(0,0,0,0.05);
+  border-color:rgba(0,0,0,0.12);
+  color:#1a1400;
+}
+body[data-tema="amarelo-claro"] .tab-btn.active{
+  background:rgba(255,204,0,0.35);
+  border-color:rgba(200,150,0,0.45);
+  color:#000000;
+}
+body[data-tema="amarelo-claro"] .subtab-btn{
+  background:rgba(0,0,0,0.05);
+  border-color:rgba(0,0,0,0.10);
+  color:#1a1400;
+}
+body[data-tema="amarelo-claro"] #btnSubGanhos.active{
+  background:rgba(255,204,0,0.40);
+  color:#000000;
+  border-color:rgba(180,130,0,0.35);
+}
+body[data-tema="amarelo-claro"] #btnSubGastos.active{
+  background:rgba(200,40,40,0.15);
+  color:#aa0000;
+  border-color:rgba(200,40,40,0.20);
+}
+body[data-tema="amarelo-claro"] .list-item{
+  background:rgba(0,0,0,0.03);
+  border-color:rgba(0,0,0,0.08);
+}
+body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 
 .temas-overlay{
   position:fixed; inset:0; z-index:1500;
@@ -1942,6 +2282,107 @@ body[data-tema="amarelo-claro"] .menu-btn{
 .temas-actions{ padding:0 14px 14px; }
 .temas-actions button{ margin-top:0; }
 
+
+/* Dias não trabalhados: formulário centralizado e ação discreta */
+#formNaoTrabalhado{
+  width: calc(100% - 24px);
+  margin: 10px auto 10px !important;
+}
+#formNaoTrabalhado input{
+  width: 100%;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+#formNaoTrabalhado .dias-link-add{
+  display:block;
+  width:auto !important;
+  margin: 2px auto 0 !important;
+  padding:0 !important;
+  background:transparent !important;
+  border:none !important;
+  color:var(--accent) !important;
+  text-decoration:underline;
+  font-weight:700;
+  font-size:14px;
+  min-height:auto !important;
+  height:auto !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+#formNaoTrabalhado .dias-link-add:active{
+  transform:none !important;
+}
+#listaNaoTrabalhados .list-item{
+  width: calc(100% - 24px);
+  margin: 8px auto 0 !important;
+  padding: 6px 10px !important;
+  min-height: 0 !important;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.15;
+  align-items: center;
+}
+#listaNaoTrabalhados .list-left{
+  gap: 6px;
+  align-items: center;
+}
+#listaNaoTrabalhados .li-date,
+#listaNaoTrabalhados .li-desc{
+  line-height: 1.15;
+}
+#listaNaoTrabalhados .small-btn{
+  padding: 4px 7px;
+  font-size: 11px;
+  border-radius: 8px;
+}
+
+
+/* Dias não trabalhados: o + controla tudo */
+#btnMaisNaoTrab{
+  display:block !important;
+  margin:8px auto !important;
+}
+
+
+/* Dias não trabalhados — dica visível no campo data */
+#dataNaoTrabalhado[type="text"]{
+  color: rgba(255,255,255,0.68);
+}
+
+/* Dias não trabalhados — lançamentos mais compactos, no padrão visual da Meta */
+#listaNaoTrabalhados .list-item,
+#listaNaoTrabalhados .nao-trabalhado-item{
+  width: calc(100% - 24px);
+  margin: 8px auto 0 !important;
+  padding: 6px 10px !important;
+  min-height: 44px !important;
+  height: auto !important;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.15;
+  align-items: center;
+}
+#listaNaoTrabalhados .list-left{
+  gap: 6px;
+  align-items: center;
+}
+#listaNaoTrabalhados .li-date,
+#listaNaoTrabalhados .li-desc{
+  line-height: 1.15;
+}
+#listaNaoTrabalhados .action-menu{
+  margin-left: 6px;
+}
+#listaNaoTrabalhados .kebab-btn{
+  padding: 2px 5px;
+  font-size: 16px;
+}
+#listaNaoTrabalhados .small-btn{
+  padding: 4px 7px;
+  font-size: 11px;
+  border-radius: 8px;
+}
+
 </style>
 
 <style id="app30-auth-guard-style">
@@ -1955,84 +2396,113 @@ body[data-tema="amarelo-claro"] .menu-btn{
 
 <script id="auth-guard">
 (function(){
-  try{
-    var token = localStorage.getItem("sb_token") || "";
-    if(!token){
+  const AUTH_SKEW_MS = 60000;
+
+  function readStoredSession(){
+    try{
+      return {
+        access_token: localStorage.getItem("sb_token") || "",
+        refresh_token: localStorage.getItem("sb_refresh_token") || "",
+        expires_at: Number(localStorage.getItem("sb_expires_at") || 0)
+      };
+    }catch(e){
+      return { access_token:"", refresh_token:"", expires_at:0 };
+    }
+  }
+
+  function saveStoredSession(data){
+    try{
+      if(data && data.access_token) localStorage.setItem("sb_token", data.access_token || "");
+      if(data && data.refresh_token) localStorage.setItem("sb_refresh_token", data.refresh_token || "");
+      if(data && data.expires_at) localStorage.setItem("sb_expires_at", String(data.expires_at || 0));
+    }catch(e){}
+  }
+
+  function hasUsableToken(sess){
+    try{
+      return !!(sess && sess.access_token && Number(sess.expires_at || 0) * 1000 > (Date.now() + AUTH_SKEW_MS));
+    }catch(e){ return false; }
+  }
+
+  async function refreshAccessTokenIfNeeded(force){
+    const sess = readStoredSession();
+    if(!force && hasUsableToken(sess)) return sess.access_token || "";
+    if(!sess.refresh_token) return sess.access_token || "";
+
+    try{
+      const res = await fetch("https://xoqlgwjpmdkiazwpwhmn.supabase.co/auth/v1/token?grant_type=refresh_token", {
+        method: "POST",
+        headers: {
+          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ refresh_token: sess.refresh_token })
+      });
+      const raw = await res.text();
+      let data = null;
+      try{ data = raw ? JSON.parse(raw) : null; }catch(e){ data = null; }
+      if(res.ok && data && data.access_token){
+        saveStoredSession(data);
+        return data.access_token || "";
+      }
+    }catch(e){}
+    return sess.access_token || "";
+  }
+
+  window.mdEnsureActiveSession = refreshAccessTokenIfNeeded;
+
+  (async function(){
+    try{
+      const sess = readStoredSession();
+      if(!sess.access_token && !sess.refresh_token){
+        location.replace("login.html");
+        return;
+      }
+      const token = await refreshAccessTokenIfNeeded(false);
+      if(!token){
+        location.replace("login.html");
+        return;
+      }
+    }catch(e){
       location.replace("login.html");
-      return;
     }
-  }catch(e){
-    location.replace("login.html");
-  }
+  })();
+
+  document.addEventListener("DOMContentLoaded", function(){
+    const hiddenQuickInput = document.getElementById("quickSaldoAtual");
+    if(hiddenQuickInput){
+      hiddenQuickInput.addEventListener("focus", function(){
+        try{ this.blur(); }catch(e){}
+      });
+      hiddenQuickInput.addEventListener("touchstart", function(e){
+        e.preventDefault();
+      }, {passive:false});
+    }
+  });
 })();
-
-document.addEventListener("DOMContentLoaded", function(){
-  const hiddenQuickInput = document.getElementById("quickSaldoAtual");
-  if(hiddenQuickInput){
-    hiddenQuickInput.addEventListener("focus", function(){
-      try{ this.blur(); }catch(e){}
-    });
-    hiddenQuickInput.addEventListener("touchstart", function(e){
-      e.preventDefault();
-    }, {passive:false});
-  }
-});
-
-
-
-const META_TEMA_STORAGE_KEY = "md_tema_premium";
-function temaPadraoMetaDriver(){
-  return "meta-escuro";
-}
-function aplicarTemaPremium(tema){
-  const temaSeguro = tema || temaPadraoMetaDriver();
-  document.body.setAttribute("data-tema", temaSeguro);
-  try{ localStorage.setItem(META_TEMA_STORAGE_KEY, temaSeguro); }catch(e){}
-  try{
-    const metaTheme = document.querySelector('meta[name="theme-color"]');
-    if(metaTheme){
-      const corAtual = getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#0f172a';
-      metaTheme.setAttribute('content', corAtual);
-    }
-  }catch(e){}
-  atualizarEstadoTemaUI();
-}
-function obterTemaPremium(){
-  try{ return localStorage.getItem(META_TEMA_STORAGE_KEY) || temaPadraoMetaDriver(); }catch(e){ return temaPadraoMetaDriver(); }
-}
-function atualizarEstadoTemaUI(){
-  try{
-    const atual = document.body.getAttribute('data-tema') || temaPadraoMetaDriver();
-    document.querySelectorAll('[data-tema-option]').forEach(function(el){
-      el.classList.toggle('active', el.getAttribute('data-tema-option') === atual);
-    });
-  }catch(e){}
-}
-function abrirTemas(){
-  try{ document.getElementById('temasOverlay').classList.add('show'); }catch(e){}
-  try{ document.getElementById('temasPanel').classList.add('show'); }catch(e){}
-  atualizarEstadoTemaUI();
-}
-function fecharTemas(){
-  try{ document.getElementById('temasOverlay').classList.remove('show'); }catch(e){}
-  try{ document.getElementById('temasPanel').classList.remove('show'); }catch(e){}
-}
-function selecionarTema(tema){
-  aplicarTemaPremium(tema);
-}
-window.addEventListener('load', function(){
-  try{ aplicarTemaPremium(obterTemaPremium()); }catch(e){}
-});
-
 </script>
 
 </head>
 <body>
 
-<div id="uberClock" class="uber-clock">--/--/---- --:--:--</div>
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="app-title">🚗 MetaDriver</div>
+    <div class="app-title-wrap">
+      <svg width="32" height="32" viewBox="0 0 28 28" style="flex:0 0 auto;border-radius:7px;">
+        <rect width="28" height="28" rx="7" fill="#0d1b2e"/>
+        <rect width="28" height="28" rx="7" fill="none" stroke="#2563eb" stroke-width="1.5"/>
+        <circle cx="14" cy="13" r="7" fill="none" stroke="#22c55e" stroke-width="2"/>
+        <line x1="14" y1="6" x2="14" y2="20" stroke="#22c55e" stroke-width="2"/>
+        <line x1="7" y1="13" x2="21" y2="13" stroke="#22c55e" stroke-width="2"/>
+        <circle cx="14" cy="13" r="2.5" fill="#22c55e"/>
+        <rect x="6" y="21" width="16" height="4" rx="2" fill="#2563eb"/>
+        <rect x="11" y="22.5" width="6" height="1" rx="0.5" fill="#fff" opacity="0.9"/>
+      </svg>
+      <div class="app-title-text">
+        <div class="app-title-name">Meta<span class="app-title-accent">Driver</span></div>
+        <div class="app-title-tag">controle de ganhos</div>
+      </div>
+    </div>
     <button class="menu-btn" onclick="toggleMenu()" aria-label="Menu">☰</button>
   </div>
 </div>
@@ -2051,7 +2521,7 @@ window.addEventListener('load', function(){
 <div id="overlay" class="overlay" onclick="closeMenu()"></div>
 <div id="menuPanel" class="menu-panel">
   <div class="menu-header">Menu</div>
-  <div class="menu-item"><button class="primary" onclick="exportarBackup(); closeMenu();">Exportar / Backup</button></div>
+  <div class="menu-item"><button class="primary" onclick="abrirExportBackup(); closeMenu();">Exportar / Backup</button></div>
   <div class="menu-item"><button class="secondary" onclick="document.getElementById('importFile').click()">Importar backup</button></div>
   <div class="menu-item"><button class="secondary" onclick="exportarRelatorioPDF(); closeMenu();">Exportar relatório (PDF)</button></div>
   <div class="menu-item"><button class="danger" onclick="openZerar(); closeMenu();">Zerar dados (cuidado)</button></div>
@@ -2151,18 +2621,18 @@ window.addEventListener('load', function(){
     <input type="date" id="dataLimite">
 
     
-    <div class="label-row" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-top:10px;" onclick="toggleListaNaoTrab()"><label style="margin:0;">Dias não trabalhados</label><span id="arrowListaNaoTrab" style="font-weight:900;opacity:.9;transform:rotate(-90deg);display:inline-block;">▼</span></div>
+    <div class="label-row" style="display:flex;justify-content:center;align-items:center;margin-top:10px;"><label style="margin:0;">Dias não trabalhados</label></div>
     
 <button id="btnMaisNaoTrab" class="secondary"
-        onclick="toggleForm('formNaoTrabalhado')"
+        onclick="toggleDiasNaoTrabalhadosTudo()"
         style="width:22px;height:22px;padding:0;border-radius:6px;display:block;margin:8px auto;font-size:14px;font-weight:900;">
   +
 </button>
 
     <div id="formNaoTrabalhado" class="collapsible">
-      <input type="date" id="dataNaoTrabalhado">
+      <input type="text" id="dataNaoTrabalhado" placeholder="Selecione a data" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
       <input type="text" id="motivoNaoTrabalhado" placeholder="Motivo (ex: folga, manutenção, médico)">
-      <button onclick="addNaoTrabalhado()">Salvar</button>
+      <button onclick="addNaoTrabalhado()" class="dias-link-add">Adicionar</button>
     </div>
     <div id="wrapListaNaoTrab" style="margin-top:10px;;display:none;">
       <div id="listaNaoTrabalhados" style="margin-top:10px;"></div>
@@ -2204,8 +2674,12 @@ window.addEventListener('load', function(){
 <div id="ganhosForaResumo" class="muted" style="margin-top:10px;"></div>
 <div id="ganhosForaSessoes" class="muted" style="margin-top:10px;"></div>
 <div style="margin-top:10px;">
-  <button type="button" id="btnHistoricoGanhoHora" class="btn-historico-link" onclick="toggleHistoricoGanhoHora()">Histórico</button>
-  <div id="historicoGanhoHoraWrap" class="muted" style="display:none;margin-top:8px;"></div>
+  <span style="display:inline-flex;align-items:center;gap:8px;">
+    <button type="button" id="btnHistoricoGanhoHora" class="btn-historico-link" onclick="toggleHistoricoGanhoHora()">Histórico</button>
+    <!-- v8 - botão limpar histórico -->
+    <button type="button" onclick="limparHistoricoGanhoHora()" title="Limpar histórico" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--danger);opacity:0.55;padding:0;line-height:1;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.55">🗑</button>
+  </span>
+  <div id="historicoGanhoHoraWrap" class="muted" style="display:none;margin-top:8px;text-align:left;"></div>
 </div>
 </div>
 </div>
@@ -2360,6 +2834,41 @@ window.addEventListener('load', function(){
 
 
 
+
+
+<!-- v9 - modal editar data/motivo de dias não trabalhados -->
+<div id="editDataOverlay" class="edit-data-overlay" onclick="if(event.target.id==='editDataOverlay')fecharEditData()">
+  <div class="edit-data-modal" onclick="event.stopPropagation()">
+    <div class="edit-data-title" id="editDataTitle">Editar data</div>
+    <input type="date" id="editDataInput" />
+    <input type="text" id="editMotivoInput" placeholder="Motivo (ex: folga, manutenção...)" style="display:none;" />
+    <div class="edit-data-actions">
+      <button class="btn-cancelar" onclick="fecharEditData()">Cancelar</button>
+      <button onclick="confirmarEditData()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- v8 - modal exportar backup -->
+<div id="exportBackupOverlay" class="export-backup-overlay" onclick="if(event.target.id==='exportBackupOverlay')fecharExportBackup()">
+  <div class="export-backup-modal" onclick="event.stopPropagation()">
+    <div class="export-backup-title">Exportar Backup</div>
+    <div class="export-backup-subtitle">Escolha o nome do arquivo e onde salvar.</div>
+    <div class="export-backup-field">
+      <label for="exportBackupNome">Nome do arquivo</label>
+      <input id="exportBackupNome" type="text" placeholder="Ex.: MetaDriver_Backup" />
+    </div>
+    <div id="exportBackupAviso" class="export-backup-warning">
+      Seu navegador não suporta seleção de pasta. Use a opção de Downloads.
+    </div>
+    <div class="export-backup-actions">
+      <button class="btn-pasta" type="button" onclick="exportarBackupComPasta()">📁 Escolher pasta e salvar</button>
+      <button class="btn-downloads" type="button" onclick="exportarBackupDownloads()">⬇️ Salvar em Downloads</button>
+      <button class="btn-cancelar" type="button" onclick="fecharExportBackup()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <div id="fullscreenBar" class="fullscreen-bar" role="dialog" aria-live="polite">
   <div class="txt">📲 Para ficar em <b>tela cheia</b> (sem abas), toque em <b>Tela cheia</b>. Alguns celulares exigem 1 toque.</div>
   <button type="button" onclick="enterFullscreen()">Tela cheia</button>
@@ -2459,8 +2968,11 @@ const CLOUD_SUPABASE_URL = "https://xoqlgwjpmdkiazwpwhmn.supabase.co";
 const CLOUD_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA";
 const FIRST_INSTALL_COLLAPSED_KEY = "metadriver_first_install_collapsed_v1";
 const FAB_PREF_KEY = "metadriver_quick_balance_fab_enabled";
+const CLOUD_PENDING_KEY = STORAGE_KEY + "__cloud_pending_v1";
+const CLOUD_LAST_OK_KEY = STORAGE_KEY + "__cloud_last_ok_v1";
 let __cloudSaveTimer = null;
 let __cloudBootStarted = false;
+let __cloudDirty = false; // v9 - flag: só envia pra nuvem se houve mudança real
 
 // ===== Forçar aba inicial: sempre MetaDriver =====
 try{
@@ -2595,11 +3107,23 @@ try{
 }catch(e){}
 try{ reprocessarSessoesGanhoHora(); }catch(e){}
 // Migração desativada (substituída por loadDados com legacyKeys)
+// v9 - salvar com verificação de integridade: confirma que o dado foi realmente gravado
 function salvar(){
   try{
     const payload = JSON.stringify(dados);
+    // Verifica que o payload não é menor que o anterior (proteção contra corrupção)
+    const anterior = localStorage.getItem(STORAGE_KEY);
+    if(anterior && anterior.length > payload.length + 500){
+      // Payload atual é significativamente menor — possível corrupção, aborta
+      console.warn("MetaDriver: payload menor que anterior, salvamento abortado por segurança");
+      return;
+    }
     localStorage.setItem(STORAGE_KEY, payload);
-    // fallback para garantir persistência ao fechar
+    // Verifica se realmente foi gravado
+    const verificacao = localStorage.getItem(STORAGE_KEY);
+    if(verificacao !== payload){
+      throw new Error("Verificação de escrita falhou");
+    }
     idbSet(IDB_KEY, payload);
   }catch(e){
     try{
@@ -2617,13 +3141,62 @@ salvar = function(){
     }
   }catch(e){}
   const r = window.__salvarLocalOriginal.apply(this, arguments);
+  try{
+    if(typeof dados === "object" && dados){
+      cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
+    }
+  }catch(e){}
+  // v9 - marca que há mudança pendente para o intervalo de 60s
+  __cloudDirty = true;
   try{ cloudScheduleSave(); }catch(e){}
   return r;
 }
 
 
 async function cloudGetToken(){
-  try{ return localStorage.getItem("sb_token") || ""; }catch(e){ return ""; }
+  try{
+    if(typeof window.mdEnsureActiveSession === "function"){
+      const renewed = await window.mdEnsureActiveSession(false);
+      if(renewed) return renewed;
+    }
+    return localStorage.getItem("sb_token") || "";
+  }catch(e){
+    try{ return localStorage.getItem("sb_token") || ""; }catch(_){ return ""; }
+  }
+}
+
+function cloudReadPendingSnapshot(){
+  try{
+    const raw = localStorage.getItem(CLOUD_PENDING_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+
+function cloudWritePendingSnapshot(snapshot){
+  try{
+    if(!snapshot || typeof snapshot !== "object") return false;
+    localStorage.setItem(CLOUD_PENDING_KEY, JSON.stringify({
+      updated_at: snapshot.__cloud_updated_at || new Date().toISOString(),
+      payload: snapshot
+    }));
+    return true;
+  }catch(e){ return false; }
+}
+
+function cloudClearPendingSnapshot(expectedTs){
+  try{
+    const cur = cloudReadPendingSnapshot();
+    if(!cur) return;
+    if(!expectedTs || String(cur.updated_at || "") === String(expectedTs || "")){
+      localStorage.removeItem(CLOUD_PENDING_KEY);
+    }
+  }catch(e){}
+}
+
+function cloudMarkLastOk(ts){
+  try{
+    localStorage.setItem(CLOUD_LAST_OK_KEY, String(ts || new Date().toISOString()));
+  }catch(e){}
 }
 
 async function cloudGetUser(token){
@@ -2687,27 +3260,89 @@ async function cloudFetchRow(token, userId){
   return (Array.isArray(rows) && rows.length) ? rows[0] : null;
 }
 
+// v9 - fix crítico: merge inteligente — nunca sobrescreve array local com array menor
+function cloudMergeArrays(local, remote){
+  // Garante que nenhum dado lançado localmente é perdido ao restaurar da nuvem
+  if(!Array.isArray(remote)) return Array.isArray(local) ? local : [];
+  if(!Array.isArray(local) || local.length === 0) return remote;
+  if(remote.length === 0) return local;
+  // Usa o array com mais registros como base, sem descartar o outro
+  const base = remote.length >= local.length ? remote : local;
+  const extra = remote.length >= local.length ? local : remote;
+  // Adiciona itens do menor array que não existam no base (por data+valor ou por chave única)
+  const baseStr = base.map(function(i){ return JSON.stringify(i); });
+  extra.forEach(function(item){
+    if(!baseStr.includes(JSON.stringify(item))){
+      base.push(item);
+    }
+  });
+  return base;
+}
+
 function cloudApplyRemoteData(remoteData){
   try{
     if(!remoteData || typeof remoteData !== "object") return;
-    dados = Object.assign({}, dados || {}, remoteData || {});
+    // Campos de array: sempre mescla, nunca substitui cegamente
+    const arrayFields = ["ganhos","gastos","abastecimentos","naoTrabalhados",
+                         "ganhoHoraSessoes","ganhoHoraHistorico"];
+    const merged = Object.assign({}, remoteData || {});
+    arrayFields.forEach(function(field){
+      merged[field] = cloudMergeArrays(
+        Array.isArray(dados[field]) ? dados[field] : [],
+        Array.isArray(remoteData[field]) ? remoteData[field] : []
+      );
+    });
+    // Campos escalares: usa remoto só se local estiver vazio/zero
+    const scalarPreferLocal = ["metaTotal","dataLimite","metaDiariaManual",
+                               "saldoAtualFora","horarioInicioFora","ganhoHoraDiaRef",
+                               "combustivelPercentual","combustivelModo","tema"];
+    scalarPreferLocal.forEach(function(field){
+      const localVal = dados[field];
+      const hasLocal = localVal !== null && localVal !== undefined && localVal !== "" && localVal !== 0;
+      if(hasLocal) merged[field] = localVal;
+    });
+    // v9 - fix logout: sessão em andamento NUNCA é apagada por sync da nuvem
+    // Se havia sessão local ativa, preserva ela integralmente
+    const sessaoLocalAtiva = String(dados.horarioInicioFora || "").trim();
+    if(sessaoLocalAtiva){
+      merged.horarioInicioFora    = dados.horarioInicioFora;
+      merged.saldoAtualFora       = dados.saldoAtualFora;
+      merged.saldoAnteriorFora    = dados.saldoAnteriorFora;
+      merged.ganhoHoraSessaoDiaRef = dados.ganhoHoraSessaoDiaRef;
+      merged.ganhoHoraDiaRef      = dados.ganhoHoraDiaRef;
+      merged.horasDecorridasFora  = dados.horasDecorridasFora;
+      merged.ganhoHoraAtualFora   = dados.ganhoHoraAtualFora;
+    }
+    dados = merged;
     if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
+    // v9 - religa timer da sessão se ainda estiver em andamento após merge
+    try{
+      if(String(dados.horarioInicioFora || "").trim()){
+        iniciarTimerGanhoHoraTempoReal();
+      }
+    }catch(e){}
     try{ atualizar(); }catch(e){}
     try{ initTabs(); }catch(e){}
   }catch(e){}
 }
 
-async function cloudPushNow(){
+async function cloudPushNow(snapshotOverride){
   try{
     const token = await cloudGetToken();
     if(!token) return false;
     const user = await cloudGetUser(token);
-    if(!user || !user.id || !cloudHasUsefulData(dados)) return false;
+    if(!user || !user.id) return false;
+
+    const pending = snapshotOverride || cloudReadPendingSnapshot();
+    const payload = pending && pending.payload ? pending.payload : dados;
+    const updatedAt = (pending && pending.updated_at) || (payload && payload.__cloud_updated_at) || new Date().toISOString();
+
+    if(!cloudHasUsefulData(payload)) return false;
 
     const body = [{
       user_id: user.id,
-      payload: dados,
-      updated_at: new Date().toISOString()
+      payload: payload,
+      updated_at: updatedAt
     }];
 
     const res = await fetch(
@@ -2723,13 +3358,32 @@ async function cloudPushNow(){
         body: JSON.stringify(body)
       }
     );
-    return res.ok;
+
+    if(res.ok){
+      cloudClearPendingSnapshot(updatedAt);
+      cloudMarkLastOk(updatedAt);
+      return true;
+    }
+    // Push falhou — remarca como sujo para o próximo ciclo de 60s tentar de novo
+    __cloudDirty = true;
+    return false;
   }catch(e){ return false; }
 }
 
+// v9 - fix: delay maior (1s) e retry em caso de falha
+let __cloudSaveRetries = 0;
 function cloudScheduleSave(){
   clearTimeout(__cloudSaveTimer);
-  __cloudSaveTimer = setTimeout(function(){ cloudPushNow(); }, 1200);
+  __cloudSaveTimer = setTimeout(async function(){
+    const ok = await cloudPushNow();
+    if(!ok && __cloudSaveRetries < 4){
+      __cloudSaveRetries++;
+      const delay = Math.min(2000 * __cloudSaveRetries, 10000);
+      setTimeout(function(){ cloudPushNow(); }, delay);
+    } else {
+      __cloudSaveRetries = 0;
+    }
+  }, 1000);
 }
 
 async function cloudBoot(){
@@ -2741,29 +3395,70 @@ async function cloudBoot(){
     const user = await cloudGetUser(token);
     if(!user || !user.id) return;
 
+    const pending = cloudReadPendingSnapshot();
+    const pendingTs = pending && pending.updated_at ? new Date(pending.updated_at).getTime() : 0;
+    const localTs = dados && dados.__cloud_updated_at ? new Date(dados.__cloud_updated_at).getTime() : 0;
+
+    // Primeiro tenta empurrar o que ainda está pendente localmente
+    if(pending && pending.payload && cloudHasUsefulData(pending.payload)){
+      await cloudPushNow(pending);
+    }
+
     const remoteRow = await cloudFetchRow(token, user.id);
     const remoteData = remoteRow && remoteRow.payload ? remoteRow.payload : null;
     const remoteTs = remoteRow && remoteRow.updated_at ? new Date(remoteRow.updated_at).getTime() : 0;
-    const localTs = dados && dados.__cloud_updated_at ? new Date(dados.__cloud_updated_at).getTime() : 0;
 
-    if(remoteData && (remoteTs > localTs || !cloudHasUsefulData(dados))){
+    // v9 - fix: sempre mescla nuvem+local; nunca descarta nenhum dos dois
+    if(remoteData && cloudHasUsefulData(remoteData)){
       cloudApplyRemoteData(remoteData);
-      try{ toast("☁️ Dados restaurados da nuvem."); }catch(e){}
+      // Após merge, salva o resultado consolidado de volta pra nuvem
+      try{
+        cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
+        cloudScheduleSave();
+      }catch(e){}
+      if(remoteTs > Math.max(localTs, pendingTs)){
+        try{ toast("☁️ Dados sincronizados com a nuvem."); }catch(e){}
+      }
       return;
     }
 
+    // Nuvem vazia ou sem dados úteis — envia o local
     if(cloudHasUsefulData(dados)){
-      cloudPushNow();
+      cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
+      cloudScheduleSave();
     }
   }catch(e){}
 }
 
 window.addEventListener("pagehide", function(){ try{ cloudPushNow(); }catch(e){} });
+window.addEventListener("beforeunload", function(){ try{ cloudPushNow(); }catch(e){} });
+window.addEventListener("online", function(){ try{ cloudPushNow(); }catch(e){} });
+// v9 - fix: ao esconder app (minimizar, trocar aba, fechar) salva local E nuvem
 document.addEventListener("visibilitychange", function(){
   try{
-    if(document.visibilityState === "hidden") cloudPushNow();
+    if(document.visibilityState === "hidden"){
+      try{ salvar(); }catch(e){}   // garante localStorage/IDB atualizado
+      cloudPushNow();               // envia pra nuvem
+    }
+    if(document.visibilityState === "visible"){
+      // Reinicia boot apenas se o cloudBoot ainda não foi concluído recentemente
+      __cloudBootStarted = false;
+      cloudBoot();
+    }
   }catch(e){}
 });
+// v9 - save inteligente a cada 60s: só envia pra nuvem se houve mudança real
+setInterval(function(){
+  try{
+    if(document.visibilityState !== "visible") return;
+    if(!__cloudDirty) return; // nenhuma mudança desde o último envio — não faz nada
+    __cloudDirty = false;     // limpa a flag antes de enviar (se falhar, próximo ciclo reenvia via pending)
+    const pending = cloudReadPendingSnapshot();
+    if((pending && pending.payload && cloudHasUsefulData(pending.payload)) || cloudHasUsefulData(dados)){
+      cloudPushNow();
+    }
+  }catch(e){}
+}, 60000);
 
 
 function toast(msg){
@@ -3073,12 +3768,15 @@ function toggleForm(id){
 }
 
 function salvarMeta(){
-  dados.metaTotal = parseFloat(document.getElementById("metaTotal").value) || 0;
-  dados.dataLimite = document.getElementById("dataLimite").value || "";
+  const _metaVal = parseFloat(document.getElementById("metaTotal").value);
+  const _dataVal = document.getElementById("dataLimite").value || "";
+  // Só zera se o campo estiver explicitamente vazio
+  dados.metaTotal = (!isNaN(_metaVal) && _metaVal >= 0) ? _metaVal : dados.metaTotal;
+  dados.dataLimite = _dataVal || dados.dataLimite;
   salvar();
   atualizar();
-      try{ atualizarCarro(); }catch(e){}
-
+  try{ atualizarCarro(); }catch(e){}
+  toast("✅ Meta salva.");
 }
 
 function salvarHoras(){
@@ -3184,6 +3882,12 @@ function addNaoTrabalhado(){
   const motivo = (document.getElementById("motivoNaoTrabalhado").value || "").trim();
   if(!data) return;
 
+  // v9 fix: preservar metaTotal e dataLimite sem zerar se input estiver vazio (card collapsed)
+  const _ntMetaVal = parseFloat(document.getElementById("metaTotal")?.value);
+  if(!isNaN(_ntMetaVal) && _ntMetaVal > 0) dados.metaTotal = _ntMetaVal;
+  const _ntDataVal = document.getElementById("dataLimite")?.value || "";
+  if(_ntDataVal) dados.dataLimite = _ntDataVal;
+
   dados.naoTrabalhados.push({data, motivo: motivo || "Dia não trabalhado"});
 
   salvar();
@@ -3191,6 +3895,7 @@ function addNaoTrabalhado(){
 
   document.getElementById("motivoNaoTrabalhado").value = "";
   document.getElementById("formNaoTrabalhado").classList.remove("open");
+  document.getElementById("wrapListaNaoTrab").style.display = "block";
 }
 function editarValorSessaoFinalizada(index){
   window.__editValorCtx = { tipo: 'ganhoHoraSessaoFinalizada', index };
@@ -3275,27 +3980,70 @@ function confirmEditValor(){
 
 
 
+// v9 - editarData e editarMotivo: modal próprio substituindo prompt() nativo (falha no Android)
+window.__editDataCtx = null;
+
+function editarData(tipo, index){
+  const item = dados[tipo] && dados[tipo][index];
+  if(!item) return;
+  window.__editDataCtx = { tipo, index, modo: 'data' };
+  const ov = document.getElementById('editDataOverlay');
+  const inp = document.getElementById('editDataInput');
+  const inpM = document.getElementById('editMotivoInput');
+  const title = document.getElementById('editDataTitle');
+  if(!ov || !inp) return;
+  title.textContent = 'Editar data';
+  inp.value = item.data || '';
+  inp.style.display = '';
+  inpM.style.display = 'none';
+  ov.classList.add('show');
+  setTimeout(()=>{ try{ inp.focus(); }catch(e){} }, 50);
+}
+
 function editarMotivoNaoTrabalhado(index){
   const item = (dados.naoTrabalhados || [])[index];
   if(!item) return;
-  const atual = item.motivo || "";
-  const novo = prompt("Editar motivo:", atual);
-  if(novo === null) return;
-  item.motivo = String(novo).trim() || "Dia não trabalhado";
-  salvar();
-  atualizar();
+  window.__editDataCtx = { tipo: 'naoTrabalhados', index, modo: 'motivo' };
+  const ov = document.getElementById('editDataOverlay');
+  const inp = document.getElementById('editDataInput');
+  const inpM = document.getElementById('editMotivoInput');
+  const title = document.getElementById('editDataTitle');
+  if(!ov || !inpM) return;
+  title.textContent = 'Editar motivo';
+  inpM.value = item.motivo || '';
+  inp.style.display = 'none';
+  inpM.style.display = '';
+  ov.classList.add('show');
+  setTimeout(()=>{ try{ inpM.focus(); }catch(e){} }, 50);
 }
 
-function editarData(tipo, index){
-  const item = dados[tipo][index];
-  const atual = item.data || hojeISO();
-  const novo = prompt("Nova data (AAAA-MM-DD):", atual);
-  if(novo === null) return;
-  if(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(novo)){
-    item.data = novo;
-    salvar();
-    atualizar();
+function fecharEditData(){
+  const ov = document.getElementById('editDataOverlay');
+  if(ov) ov.classList.remove('show');
+  window.__editDataCtx = null;
+}
+
+function confirmarEditData(){
+  const ctx = window.__editDataCtx;
+  if(!ctx) return;
+  const item = dados[ctx.tipo] && dados[ctx.tipo][ctx.index];
+  if(!item){ fecharEditData(); return; }
+
+  if(ctx.modo === 'data'){
+    const val = (document.getElementById('editDataInput').value || '').trim();
+    if(!val || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(val)){
+      toast('⚠️ Data inválida. Use o seletor de data.');
+      return;
+    }
+    item.data = val;
+  } else {
+    const val = (document.getElementById('editMotivoInput').value || '').trim();
+    item.motivo = val || 'Dia não trabalhado';
   }
+  salvar();
+  atualizar();
+  fecharEditData();
+  toast('✅ Atualizado.');
 }
 
 function excluirItem(tipo, index){
@@ -3304,33 +4052,100 @@ function excluirItem(tipo, index){
   atualizar();
 }
 
-function exportarBackup(){
+// v9 - funções de tema (corrigido: funções estavam ausentes)
+function aplicarTema(tema){
+  document.body.setAttribute('data-tema', tema || 'meta-escuro');
+  document.querySelectorAll('[data-tema-option]').forEach(function(el){
+    el.classList.toggle('active', el.dataset.temaOption === tema);
+  });
+}
+function selecionarTema(tema){
+  dados.tema = tema;
+  aplicarTema(tema);
+  salvar();
+}
+function abrirTemas(){
+  const overlay = document.getElementById('temasOverlay');
+  const panel = document.getElementById('temasPanel');
+  if(overlay) overlay.classList.add('show');
+  if(panel) panel.classList.add('show');
+  aplicarTema(dados.tema || 'meta-escuro');
+}
+function fecharTemas(){
+  const overlay = document.getElementById('temasOverlay');
+  const panel = document.getElementById('temasPanel');
+  if(overlay) overlay.classList.remove('show');
+  if(panel) panel.classList.remove('show');
+}
+
+// v8 - exportar backup agora abre modal com opção de nome e escolha de pasta
+function getExportBackupBlob(){
+  const payload = {
+    app: "MetaDriver",
+    version: "8",
+    exported_at: new Date().toISOString(),
+    storage_key: STORAGE_KEY,
+    dados
+  };
+  return new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+}
+function getExportBackupNome(){
+  const val = (document.getElementById("exportBackupNome")?.value || "").trim().replace(/\.json$/i,"");
+  return (val || "MetaDriver_Backup") + ".json";
+}
+function abrirExportBackup(){
+  const now = new Date();
+  const pad = n => String(n).padStart(2,"0");
+  const stamp = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
+  const el = document.getElementById("exportBackupNome");
+  if(el) el.value = `MetaDriver_Backup_${stamp}`;
+  const aviso = document.getElementById("exportBackupAviso");
+  if(aviso) aviso.classList.remove("show");
+  const ov = document.getElementById("exportBackupOverlay");
+  if(ov) ov.classList.add("show");
+}
+function fecharExportBackup(){
+  const ov = document.getElementById("exportBackupOverlay");
+  if(ov) ov.classList.remove("show");
+}
+async function exportarBackupComPasta(){
+  if(!window.showSaveFilePicker){
+    const aviso = document.getElementById("exportBackupAviso");
+    if(aviso) aviso.classList.add("show");
+    return;
+  }
   try{
-    const payload = {
-      app: "MetaDriver",
-      version: "6.3",
-      exported_at: new Date().toISOString(),
-      storage_key: STORAGE_KEY,
-      dados
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+    const handle = await window.showSaveFilePicker({
+      suggestedName: getExportBackupNome(),
+      types:[{description:"Arquivo JSON", accept:{"application/json":[".json"]}}]
+    });
+    const writable = await handle.createWritable();
+    await writable.write(getExportBackupBlob());
+    await writable.close();
+    fecharExportBackup();
+    toast("✅ Backup salvo na pasta escolhida.");
+  }catch(e){
+    if(e.name !== "AbortError") toast("❌ Não foi possível salvar: " + e.message);
+  }
+}
+function exportarBackupDownloads(){
+  try{
+    const blob = getExportBackupBlob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    const stamp = new Date();
-    const y = stamp.getFullYear();
-    const m = String(stamp.getMonth()+1).padStart(2,"0");
-    const d = String(stamp.getDate()).padStart(2,"0");
     a.href = url;
-    a.download = `backup_controle_uber_${y}-${m}-${d}.json`;
+    a.download = getExportBackupNome();
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    toast("✅ Backup exportado com sucesso.");
+    fecharExportBackup();
+    toast("✅ Backup exportado para Downloads.");
   }catch(e){
     toast("❌ Não consegui exportar o backup.");
   }
 }
+function exportarBackup(){ abrirExportBackup(); }
 
 function importarBackup(ev){
   const file = ev.target.files && ev.target.files[0];
@@ -3447,6 +4262,11 @@ safe.naoTrabalhados = (safe.naoTrabalhados || []).map(n => ({
 function zerarTudo(){
   const ok = confirm("Tem certeza? Isso vai apagar TODOS os dados deste aparelho.");
   if(!ok) return;
+  try{ pararTimerGanhoHoraTempoReal(); }catch(e){}
+  try{
+    localStorage.removeItem(CLOUD_PENDING_KEY);
+    localStorage.removeItem(CLOUD_LAST_OK_KEY);
+  }catch(e){}
   dados = {
     ganhos: [],
     gastos: [],
@@ -3579,6 +4399,69 @@ function toggleHistoricoDiaGanhoHora(diaUber){
   dados.ganhoHoraHistoricoExpandidos[dia] = !dados.ganhoHoraHistoricoExpandidos[dia];
   salvar();
   atualizar();
+}
+
+
+// v8 - editar horário de sessões no histórico
+function editarHorarioSessaoHistorico(diaUber, indice, campo){
+  const item = (dados.ganhoHoraHistorico || []).find(function(h){ return String((h && h.diaUber) || '').trim() === String(diaUber || '').trim(); });
+  if(!item || !Array.isArray(item.sessoes) || !item.sessoes[indice]) return;
+  const sessao = item.sessoes[indice];
+  const rotulo = campo === 'inicio' ? 'hora de início' : 'hora de término';
+  const atual = String(sessao[campo] || '').trim() || '00:00';
+  const novo = prompt('Digite a nova ' + rotulo + ' no formato HH:MM', atual);
+  if(novo == null) return;
+  const valor = String(novo).trim();
+  if(!/^([01]?\d|2[0-3]):[0-5]\d$/.test(valor)){
+    toast('Hora inválida. Use HH:MM.');
+    return;
+  }
+  sessao[campo] = valor;
+  // Recalcular tempo decorrido da sessão
+  try{
+    const ini = sessao.inicio ? sessao.inicio.split(':').map(Number) : [0,0];
+    const fim = sessao.fim ? sessao.fim.split(':').map(Number) : [0,0];
+    let diffMin = (fim[0]*60+fim[1]) - (ini[0]*60+ini[1]);
+    if(diffMin < 0) diffMin += 24*60;
+    sessao.tempoDecorrido = diffMin / 60;
+    if(sessao.tempoDecorrido > 0){
+      const ganhoSessao = Number(sessao.valorTotal||0) - Number(sessao.saldoAnterior||0);
+      sessao.ganhoSessao = ganhoSessao;
+      sessao.ganhoHora = ganhoSessao / sessao.tempoDecorrido;
+    }
+  }catch(e){}
+  salvar();
+  atualizar();
+  toast('✅ Sessão do histórico atualizada.');
+}
+
+// v8 - excluir sessão do histórico
+function excluirSessaoHistorico(diaUber, indice){
+  if(!confirm('Excluir esta sessão do histórico?')) return;
+  const idx = (dados.ganhoHoraHistorico || []).findIndex(function(h){ return String((h && h.diaUber) || '').trim() === String(diaUber || '').trim(); });
+  if(idx === -1) return;
+  dados.ganhoHoraHistorico[idx].sessoes.splice(indice, 1);
+  // Remove dia se ficou sem sessões
+  if(!dados.ganhoHoraHistorico[idx].sessoes.length){
+    dados.ganhoHoraHistorico.splice(idx, 1);
+  }
+  salvar();
+  atualizar();
+  toast('✅ Sessão do histórico excluída.');
+}
+
+// v8 - limpar todo o histórico
+function limparHistoricoGanhoHora(){
+  if(!dados.ganhoHoraHistorico || !dados.ganhoHoraHistorico.length){
+    toast('Histórico já está vazio.');
+    return;
+  }
+  if(!confirm('Apagar todo o histórico de sessões? Esta ação não pode ser desfeita.')) return;
+  dados.ganhoHoraHistorico = [];
+  dados.ganhoHoraHistoricoAberto = false;
+  salvar();
+  atualizar();
+  toast('✅ Histórico apagado.');
 }
 
 function editarValorSessaoHistorico(diaUber, indice){
@@ -3872,6 +4755,16 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
     iniciarTimerGanhoHoraTempoReal();
   }else{
     pararTimerGanhoHoraTempoReal();
+    dados.horarioInicioFora = "";
+    dados.ganhoHoraSessaoDiaRef = "";
+    dados.horasDecorridasFora = 0;
+    dados.ganhoHoraAtualFora = 0;
+    try{
+      const saldoAnteriorEl = document.getElementById("saldoAnteriorFora");
+      const horarioInicioEl = document.getElementById("horarioInicioFora");
+      if(saldoAnteriorEl) saldoAnteriorEl.value = String(dados.saldoAnteriorFora || 0);
+      if(horarioInicioEl) horarioInicioEl.value = "";
+    }catch(e){}
   }
 
   if(!opts.skipSave){ salvar(); }
@@ -3923,14 +4816,15 @@ function ensureGanhoHoraDiaAtual(){
   dados.saldoAtualFora = saldoAtualAntesVirada;
   dados.ganhoDiarioAtual = saldoAtualAntesVirada;
   dados.saldoAnteriorFora = saldoAtualAntesVirada;
-  dados.horarioInicioFora = horaAtual;
-  dados.ganhoHoraSessaoDiaRef = diaAtualUber;
+  // v8 - fix: ao virar 4h não inicia nova sessão automaticamente, usuário deve usar o botão Iniciar
+  dados.horarioInicioFora = "";
+  dados.ganhoHoraSessaoDiaRef = "";
   dados.horasDecorridasFora = 0;
   dados.ganhoHoraAtualFora = 0;
   salvar();
   atualizar();
   try{
-    toast("✅ Virou 4h: resumo do dia anterior salvo e nova sessão iniciada.");
+    toast("✅ Virou 4h: dia anterior salvo. Use Iniciar sessão para começar.");
   }catch(e){}
   return true;
 }
@@ -3988,7 +4882,7 @@ function salvarGanhosForaTempoReal(){
 
 function finalizarSessaoGanhoHora(){
   ensureGanhoHoraDiaAtual();
-  finalizarSessaoGanhoHoraInterno();
+  finalizarSessaoGanhoHoraInterno({ naoIniciarProxima: true });
 }
 
 let ganhoHoraTempoRealTimer = null;
@@ -4100,6 +4994,11 @@ function updateFuelModeUI(){
   const fuelPercentFields = document.getElementById("fuelPercentFields");
   if(fuelRealFields) fuelRealFields.style.display = modo === "real" ? "grid" : "none";
   if(fuelPercentFields) fuelPercentFields.style.display = modo === "fixo" ? "block" : "none";
+  // impede voltar sozinho para % do bruto ao atualizar a tela
+  if(dados && dados.combustivelModo !== modo){
+    dados.combustivelModo = modo;
+    try{ salvar(); }catch(e){}
+  }
 }
 
 function setFuelConfigCollapsed(collapsed){
@@ -4287,6 +5186,8 @@ function exportarRelatorioPDF(){
 }
 
 function atualizar(){
+  // v9 - aplicar tema salvo a cada atualização
+  try{ aplicarTema(dados.tema || 'meta-escuro'); }catch(e){}
   try{
     const metaDiaInput = document.getElementById("metaDiariaManual");
     const ganhoDiaInput = document.getElementById("ganhoDiarioAtual");
@@ -4379,6 +5280,7 @@ function atualizar(){
         return da < db ? 1 : da > db ? -1 : 0;
       });
       historicoWrap.style.display = dados.ganhoHoraHistoricoAberto ? "block" : "none";
+      historicoWrap.style.textAlign = "left";
       if(!historico.length){
         historicoWrap.innerHTML = dados.ganhoHoraHistoricoAberto ? "<div style='padding-top:6px'>Sem histórico.</div>" : "";
       }else{
@@ -4395,9 +5297,9 @@ function atualizar(){
             const valorSessClass = Number(s.valorTotal || 0) < 0 ? "dangerText" : "warning";
             const ghSessClass = Number(s.ganhoHora || 0) < 0 ? "dangerText" : "warning";
             const tempoSess = Number(s.tempoDecorrido || 0);
-            return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);position:relative;padding-right:40px"><div class="action-menu" style="position:absolute;top:8px;right:0"><button class="kebab-btn" type="button" onclick="event.stopPropagation(); toggleItemMenu('menu_hist_sessao_${dia}_${idxSess}', this)">≡</button><div class="menu-pop" id="menu_hist_sessao_${dia}_${idxSess}"><button type="button" onclick="editarValorSessaoHistorico('${dia}', ${idxSess})">Editar valor</button></div></div><b>${getNomeSessao(idxSess + 1)} sessão</b><br>Hora de início: ${s.inicio || '-'}<br>Hora de término: ${s.fim || '-'}<br>Valor total: <span class="${valorSessClass}">R$ ${Number(s.valorTotal || 0).toFixed(2)}</span><br>Ganho por hora: <span class="${ghSessClass}">R$ ${Number(s.ganhoHora || 0).toFixed(2)}</span><br>Tempo decorrido: <span class="warning">${formatHorasMinutos(tempoSess)}</span></div>`;
+            return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);position:relative;padding-right:40px"><div class="action-menu" style="position:absolute;top:8px;right:0"><button class="kebab-btn" type="button" onclick="event.stopPropagation(); toggleItemMenu('menu_hist_sessao_${dia}_${idxSess}', this)">≡</button><div class="menu-pop" id="menu_hist_sessao_${dia}_${idxSess}"><!-- v8 - menu completo sessão histórico --><button type="button" onclick="editarHorarioSessaoHistorico('${dia}', ${idxSess}, 'inicio')">Editar hora de início</button><button type="button" onclick="editarHorarioSessaoHistorico('${dia}', ${idxSess}, 'fim')">Editar hora de término</button><button type="button" onclick="editarValorSessaoHistorico('${dia}', ${idxSess})">Editar valor</button><button type="button" class="danger" onclick="excluirSessaoHistorico('${dia}', ${idxSess})">Excluir sessão</button></div></div><b>${getNomeSessao(idxSess + 1)} sessão</b><br>Hora de início: ${s.inicio || '-'}<br>Hora de término: ${s.fim || '-'}<br>Valor total: <span class="${valorSessClass}">R$ ${Number(s.valorTotal || 0).toFixed(2)}</span><br>Ganho por hora: <span class="${ghSessClass}">R$ ${Number(s.ganhoHora || 0).toFixed(2)}</span><br>Tempo decorrido: <span class="warning">${formatHorasMinutos(tempoSess)}</span></div>`;
           }).join('') : "<div style='padding-top:6px'>Sem sessões salvas nesse dia.</div>") : '';
-          return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)"><button type="button" class="btn-historico-link" onclick="toggleHistoricoDiaGanhoHora('${dia}')">${dia}</button><br>Total: <span class="${totalClass}">R$ ${total.toFixed(2)}</span> | <span class="warning">${formatHorasMinutos(horasItem)}</span> | <span class="${ghClass}">R$ ${ganhoHoraItem.toFixed(2)}/h</span>${aberto ? `<div style="margin-top:8px">${detalhes}</div>` : ''}</div>`;
+          return `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);text-align:left"><button type="button" class="btn-historico-link" onclick="toggleHistoricoDiaGanhoHora('${dia}')">${dia}</button><br>Total: <span class="${totalClass}">R$ ${total.toFixed(2)}</span> | <span class="warning">${formatHorasMinutos(horasItem)}</span> | <span class="${ghClass}">R$ ${ganhoHoraItem.toFixed(2)}/h</span>${aberto ? `<div style="margin-top:8px">${detalhes}</div>` : ''}</div>`;
         }).join("");
       }
     }
@@ -4406,9 +5308,31 @@ function atualizar(){
 
   if(!Array.isArray(dados.naoTrabalhados)) dados.naoTrabalhados = [];
 
-  document.getElementById("metaTotal").value = dados.metaTotal || "";
-  document.getElementById("dataLimite").value = dados.dataLimite || "";
-document.getElementById("metaDiariaManual").value = (dados.metaDiariaManual || dados.metaDiariaManual === 0) ? dados.metaDiariaManual : "";
+  // v9 fix definitivo: sincronizar inputs de meta — sempre repõe campo vazio com dados
+  const metaTotalEl = document.getElementById("metaTotal");
+  const dataLimiteEl = document.getElementById("dataLimite");
+  if(metaTotalEl){
+    const campoVazio = !metaTotalEl.value || metaTotalEl.value === "0";
+    const campoAtivo = document.activeElement === metaTotalEl;
+    if(dados.metaTotal > 0 && campoVazio && !campoAtivo){
+      // Repõe o campo (pode ter sumido por card collapsed no Android)
+      metaTotalEl.value = dados.metaTotal;
+    } else if(!campoVazio && !campoAtivo){
+      // Campo tem valor — sincroniza com dados
+      const v = parseFloat(metaTotalEl.value);
+      if(!isNaN(v) && v > 0) dados.metaTotal = v;
+    }
+  }
+  if(dataLimiteEl){
+    const campoVazio = !dataLimiteEl.value;
+    const campoAtivo = document.activeElement === dataLimiteEl;
+    if(dados.dataLimite && campoVazio && !campoAtivo){
+      dataLimiteEl.value = dados.dataLimite;
+    } else if(!campoVazio && !campoAtivo){
+      dados.dataLimite = dataLimiteEl.value;
+    }
+  }
+  // metaDiariaManual é readonly e calculado — nunca preencher com dados.metaDiariaManual
   document.getElementById("ganhoDiarioAtual").value = (dados.ganhoDiarioAtual ?? "");
 
   const modoCombustivel = (dados.combustivelModo === "real") ? "real" : "fixo";
@@ -4439,6 +5363,42 @@ document.getElementById("metaDiariaManual").value = (dados.metaDiariaManual || d
   if(fuelKmRodados && document.activeElement !== fuelKmRodados) fuelKmRodados.value = Number(dados?.combustivelReal?.kmRodados || 0) || "";
   if(fuelConsumoMedio && document.activeElement !== fuelConsumoMedio) fuelConsumoMedio.value = Number(dados?.combustivelReal?.consumoMedio || 0) || "";
   if(fuelPrecoLitro && document.activeElement !== fuelPrecoLitro) fuelPrecoLitro.value = Number(dados?.combustivelReal?.precoLitro || 0) || "";
+
+  // v9 fix definitivo: sincronizar inputs de meta com dados ANTES do cálculo
+  // garante que o que está digitado no campo seja usado, mesmo sem clicar Salvar Meta
+  try{
+    const _metaEl = document.getElementById("metaTotal");
+    const _dataEl = document.getElementById("dataLimite");
+    // Só atualiza dados se o input tiver valor válido — nunca zera com input vazio
+    if(_metaEl && _metaEl.value !== ""){
+      const _v = parseFloat(_metaEl.value);
+      if(!isNaN(_v) && _v > 0) dados.metaTotal = _v;
+    }
+    // Se dados.metaTotal está perdido mas o input está vazio (card collapsed),
+    // tenta recuperar do localStorage diretamente
+    if((!dados.metaTotal || dados.metaTotal === 0)){
+      try{
+        const _raw = localStorage.getItem("controleUberProDados");
+        if(_raw){
+          const _parsed = JSON.parse(_raw);
+          if(_parsed && Number(_parsed.metaTotal) > 0) dados.metaTotal = Number(_parsed.metaTotal);
+          if(_parsed && _parsed.dataLimite) dados.dataLimite = dados.dataLimite || _parsed.dataLimite;
+        }
+      }catch(e){}
+    }
+    if(_dataEl && _dataEl.value !== ""){
+      dados.dataLimite = _dataEl.value;
+    } else if(!dados.dataLimite){
+      // Tenta recuperar dataLimite do localStorage se perdido
+      try{
+        const _raw = localStorage.getItem("controleUberProDados");
+        if(_raw){
+          const _parsed = JSON.parse(_raw);
+          if(_parsed && _parsed.dataLimite) dados.dataLimite = _parsed.dataLimite;
+        }
+      }catch(e){}
+    }
+  }catch(e){}
 
   const bruto = dados.ganhos.reduce((s,g)=>s+g.valor,0);
   const gastosExtras = dados.gastos.reduce((s,g)=>s+g.valor,0);
@@ -5038,6 +5998,12 @@ function bootApp(){
   try{ ensureGanhoHoraDiaAtual(); }catch(e){}
   try{ setInterval(function(){ try{ ensureGanhoHoraDiaAtual(); }catch(e){} }, 15000); }catch(e){}
   try{ updateUberClock(); setInterval(updateUberClock, 1000); }catch(e){}
+  // v9 - fix logout: se havia sessão em andamento, retoma o timer automaticamente
+  try{
+    if(String(dados.horarioInicioFora || "").trim()){
+      iniciarTimerGanhoHoraTempoReal();
+    }
+  }catch(e){}
   setTimeout(function(){ try{ cloudBoot(); }catch(e){} }, 500);
 }
 if(document.readyState === "loading"){
@@ -5053,7 +6019,25 @@ atualizar();
 
 
 (function(){
-  function bindExprField(id, storeKey){
+  // v9 fix: atualizar dados.metaTotal e dados.dataLimite em tempo real ao digitar
+// assim o cálculo de metaDiariaManual e metaBruta usa sempre o valor atual do campo
+(function(){
+  function bindMetaInput(id, key, parseFunc){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('input', function(){
+      const val = parseFunc(el.value);
+      if(!isNaN(val) || key === 'dataLimite'){
+        dados[key] = key === 'dataLimite' ? (el.value || "") : (val || 0);
+        try{ atualizar(); }catch(e){}
+      }
+    });
+  }
+  bindMetaInput('metaTotal', 'metaTotal', parseFloat);
+  bindMetaInput('dataLimite', 'dataLimite', function(v){ return v; });
+})();
+
+function bindExprField(id, storeKey){
     const el = document.getElementById(id);
     if(!el) return;
 
@@ -5197,8 +6181,10 @@ function salvarKmAtual(){
   }
 
   dados.carro.kmAtual = { km: kmNum, data: data };
+  dados.carro.snooze = {};
   salvar();
   atualizarCarro();
+  forceMaintenancePopupCheck();
   try{ toggleKmAtualForm(true); }catch(e){}
 }
 
@@ -5257,10 +6243,12 @@ function addManutencao(){
 
   dados.carro.manut = (dados.carro.manut||[]);
   dados.carro.manut.push(item);
+  dados.carro.snooze = {};
   salvar();
   atualizarCarro();
+  forceMaintenancePopupCheck();
   // recolhe form se existir
-  try{ toggleManutForm(false); }catch(e){}
+  try{ toggleManutForm(true); }catch(e){}
 }
 
 
@@ -5293,7 +6281,9 @@ function editManut(id){
   const plan = confirm("Essa é uma PRÓXIMA manutenção (avisar ao atingir o KM)?\nOK = Sim / Cancelar = Não");
   m.planejada = !!plan;
 
+  dados.carro.snooze = {};
   salvar(); atualizarCarro();
+  forceMaintenancePopupCheck();
 }
 
 function delManut(id){
@@ -5301,6 +6291,7 @@ function delManut(id){
   dados.carro.manut = dados.carro.manut.filter(x=>x.id!==id);
   delete dados.carro.snooze[id];
   salvar(); atualizarCarro();
+  forceMaintenancePopupCheck();
 }
 
 
@@ -5335,6 +6326,7 @@ function toggleManutConcluida(id, checked){
 
   salvar();
   atualizarCarro();
+  forceMaintenancePopupCheck();
 }
 
 
@@ -5362,6 +6354,7 @@ function markDone(id){
   delete dados.carro.snooze[id];
   salvar(); atualizarCarro();
   dismissCarPopup();
+  forceMaintenancePopupCheck();
   toast("✅ Marcado como feito!");
 }
 
@@ -5477,6 +6470,19 @@ function maybeCarPopup(){
 
 
 
+
+function forceMaintenancePopupCheck(){
+  try{
+    ensureCarro();
+    // alterações de KM/manutenção devem voltar a disparar alerta visual e popup
+    if(!dados.carro || typeof dados.carro !== "object") return;
+    dados.carro.snooze = {};
+    setTimeout(function(){
+      try{ maybeCarPopup(); }catch(e){}
+      try{ atualizarIndicadorAbaManutencao(); }catch(e){}
+    }, 80);
+  }catch(e){}
+}
 
 function showCarPopup(list, kmAtual){
   kmAtual = parseKm(kmAtual);
@@ -5876,6 +6882,7 @@ function atualizarIndicadorAbaManutencao(){
   document.addEventListener("DOMContentLoaded", ()=>{
     setTimeout(_apply, 150);
     setTimeout(_apply, 600);
+    setTimeout(function(){ try{ maybeCarPopup(); }catch(e){} }, 900);
   });
   window.addEventListener("load", ()=>{
     setTimeout(_apply, 200);
@@ -5966,9 +6973,25 @@ function zerarControleUber(){
   dados.dataLimite = "";
   dados.metaDiariaManual = 0;
   dados.ganhoDiarioAtual = 0;
+  dados.saldoAtualFora = 0;
+  dados.horarioInicioFora = "";
+  dados.horasDecorridasFora = 0;
+  dados.ganhoHoraAtualFora = 0;
+  dados.saldoAnteriorFora = 0;
+  dados.ganhoHoraSessoes = [];
+  dados.ganhoHoraHistorico = [];
+  dados.ganhoHoraHistoricoAberto = false;
+  dados.ganhoHoraHistoricoExpandidos = {};
+  dados.ganhoHoraDiaRef = dataUberISO();
+  dados.ganhoHoraSessaoDiaRef = "";
   dados.combustivelModo = "fixo";
   dados.combustivelPercentual = 0.30;
   dados.combustivelReal = { kmRodados: 0, consumoMedio: 0, precoLitro: 0 };
+  try{ pararTimerGanhoHoraTempoReal(); }catch(e){}
+  try{
+    localStorage.removeItem(CLOUD_PENDING_KEY);
+    localStorage.removeItem(CLOUD_LAST_OK_KEY);
+  }catch(e){}
 }
 
 function zerarManutencaoCarro(){
@@ -6031,14 +7054,27 @@ window.addEventListener("load", ()=>{ restoreFromIDBIfNeeded(); });
 
 /* ===== Seta recolher/mostrar lista de Dias Não Trabalhados ===== */
 function toggleListaNaoTrab(){
-const wrap = document.getElementById("wrapListaNaoTrab");
-  const arrow = document.getElementById("arrowListaNaoTrab");
+  return toggleDiasNaoTrabalhadosTudo();
+}
+
+function toggleDiasNaoTrabalhadosTudo(forceOpen){
+  const form = document.getElementById("formNaoTrabalhado");
+  const wrap = document.getElementById("wrapListaNaoTrab");
   const btnMais = document.getElementById("btnMaisNaoTrab");
-  if(!wrap) return;
-  const hidden = wrap.style.display === "none";
-  wrap.style.display = hidden ? "block" : "none";
-  if(btnMais) btnMais.style.display = hidden ? "block" : "none";
-  if(arrow) arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(-90deg)";
+  if(!form || !wrap) return;
+
+  const aberto = form.classList.contains("open") || wrap.style.display === "block";
+  const abrir = (typeof forceOpen === "boolean") ? forceOpen : !aberto;
+
+  if(abrir){
+    form.classList.add("open");
+    wrap.style.display = "block";
+  }else{
+    form.classList.remove("open");
+    wrap.style.display = "none";
+  }
+
+  if(btnMais) btnMais.style.display = "block";
 }
 
 
@@ -6068,8 +7104,14 @@ function logoutApp(){
 }
 
 
-/* ===== Logout robusto do app ===== */
-function forceLogout(){
+/* ===== Logout robusto do app (v9: salva na nuvem antes de sair) ===== */
+async function forceLogout(){
+  try{ closeMenu(); }catch(e){}
+  // v9 - garante push pra nuvem antes de limpar token e sair
+  try{
+    if(typeof salvar === "function") salvar();
+    await cloudPushNow();
+  }catch(e){}
   try{
     const keysToRemove = [];
     for(let i=0;i<localStorage.length;i++){
@@ -6081,12 +7123,11 @@ function forceLogout(){
     keysToRemove.forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
     try{ sessionStorage.clear(); }catch(e){}
   }catch(e){}
-  try{ closeMenu(); }catch(e){}
   const target = "login.html?logout=1&t=" + Date.now();
   try{ window.location.replace(target); }catch(e){}
   setTimeout(function(){
     try{ window.location.href = target; }catch(e){}
-  }, 120);
+  }, 300);
 }
 function logoutApp(){
   forceLogout();
