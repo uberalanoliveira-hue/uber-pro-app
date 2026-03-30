@@ -196,3 +196,17 @@ O QUE FOI FEITO:
 
 STATUS:
 - Aguardando teste
+
+
+VERSÃO v14 - fix-rolagem-real
+
+O QUE FOI PEDIDO:
+- Corrigir definitivamente a rolagem ao minimizar e voltar ao app
+
+O QUE FOI FEITO:
+- Implementada restauração baseada em render real do DOM
+- Uso de múltiplos frames (requestAnimationFrame) para garantir posição correta
+- Salvamento no scroll e ao minimizar
+
+STATUS:
+- Aguardando teste

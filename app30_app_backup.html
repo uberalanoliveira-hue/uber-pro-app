@@ -15,7 +15,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v13.0.6</title>
+<title>MetaDriver v14.0.6</title>
 
 <style>
 :root{
@@ -4400,7 +4400,51 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v13 · backup</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v14 · backup</div>
+
+<script>
+// mdScrollV14 - restore after render
+(function(){
+  const KEY = "md_scroll_v14";
+
+  function save(){
+    try{
+      localStorage.setItem(KEY, window.scrollY || 0);
+    }catch(e){}
+  }
+
+  function restore(){
+    try{
+      const y = parseInt(localStorage.getItem(KEY) || "0", 10);
+      if(!y) return;
+
+      let attempts = 0;
+      function tryRestore(){
+        window.scrollTo(0, y);
+        attempts++;
+        if(attempts < 10){
+          requestAnimationFrame(tryRestore);
+        }
+      }
+      tryRestore();
+    }catch(e){}
+  }
+
+  window.addEventListener("scroll", save, {passive:true});
+  window.addEventListener("visibilitychange", ()=>{
+    if(document.visibilityState === "hidden") save();
+    if(document.visibilityState === "visible") restore();
+  });
+
+  window.addEventListener("load", ()=>{
+    setTimeout(restore, 50);
+    setTimeout(restore, 150);
+    setTimeout(restore, 300);
+  });
+
+})();
+</script>
+
 </body>
     </html>  `);
   w.document.close();
@@ -6334,6 +6378,50 @@ window.addEventListener("load", function(){
     <button type="button" class="secondary" onclick="fecharSaldoAtualButtonMenu()">Fechar</button>
   </div>
 </div>
+
+
+<script>
+// mdScrollV14 - restore after render
+(function(){
+  const KEY = "md_scroll_v14";
+
+  function save(){
+    try{
+      localStorage.setItem(KEY, window.scrollY || 0);
+    }catch(e){}
+  }
+
+  function restore(){
+    try{
+      const y = parseInt(localStorage.getItem(KEY) || "0", 10);
+      if(!y) return;
+
+      let attempts = 0;
+      function tryRestore(){
+        window.scrollTo(0, y);
+        attempts++;
+        if(attempts < 10){
+          requestAnimationFrame(tryRestore);
+        }
+      }
+      tryRestore();
+    }catch(e){}
+  }
+
+  window.addEventListener("scroll", save, {passive:true});
+  window.addEventListener("visibilitychange", ()=>{
+    if(document.visibilityState === "hidden") save();
+    if(document.visibilityState === "visible") restore();
+  });
+
+  window.addEventListener("load", ()=>{
+    setTimeout(restore, 50);
+    setTimeout(restore, 150);
+    setTimeout(restore, 300);
+  });
+
+})();
+</script>
 
 </body>
 </html>
