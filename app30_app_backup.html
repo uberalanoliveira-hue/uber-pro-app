@@ -15,7 +15,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v10.0.6</title>
+<title>MetaDriver v7.0.6</title>
 
 <style>
 :root{
@@ -2010,15 +2010,6 @@ body[data-tema="amarelo-claro"] .menu-btn{
   font-weight:700;
   letter-spacing:.2px;
   opacity:.95;
-}
-
-
-/* mdStickyV9 */
-.tabs-wrap{
-  position:sticky;
-  top:0;
-  z-index:9999;
-  background:#0f172a;
 }
 
 </style>
@@ -4409,32 +4400,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v10 · backup</div>
-
-<script>
-// mdScrollV9
-(function(){
-  const KEY="md_scroll_v9";
-
-  function save(){
-    localStorage.setItem(KEY, window.scrollY || 0);
-  }
-
-  function restore(){
-    const y = parseInt(localStorage.getItem(KEY)||"0",10);
-    setTimeout(()=>window.scrollTo(0,y),50);
-    setTimeout(()=>window.scrollTo(0,y),150);
-  }
-
-  window.addEventListener("scroll", save, {passive:true});
-  window.addEventListener("visibilitychange", ()=>{
-    if(document.visibilityState==="hidden") save();
-    if(document.visibilityState==="visible") restore();
-  });
-  window.addEventListener("load", restore);
-})();
-</script>
-
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v11 · backup</div>
 </body>
     </html>  `);
   w.document.close();
@@ -6362,31 +6328,6 @@ window.addEventListener("load", function(){
     <button type="button" class="secondary" onclick="fecharSaldoAtualButtonMenu()">Fechar</button>
   </div>
 </div>
-
-
-<script>
-// mdScrollV9
-(function(){
-  const KEY="md_scroll_v9";
-
-  function save(){
-    localStorage.setItem(KEY, window.scrollY || 0);
-  }
-
-  function restore(){
-    const y = parseInt(localStorage.getItem(KEY)||"0",10);
-    setTimeout(()=>window.scrollTo(0,y),50);
-    setTimeout(()=>window.scrollTo(0,y),150);
-  }
-
-  window.addEventListener("scroll", save, {passive:true});
-  window.addEventListener("visibilitychange", ()=>{
-    if(document.visibilityState==="hidden") save();
-    if(document.visibilityState==="visible") restore();
-  });
-  window.addEventListener("load", restore);
-})();
-</script>
 
 </body>
 </html>
