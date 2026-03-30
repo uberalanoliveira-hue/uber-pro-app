@@ -3768,12 +3768,15 @@ function toggleForm(id){
 }
 
 function salvarMeta(){
-  dados.metaTotal = parseFloat(document.getElementById("metaTotal").value) || 0;
-  dados.dataLimite = document.getElementById("dataLimite").value || "";
+  const _metaVal = parseFloat(document.getElementById("metaTotal").value);
+  const _dataVal = document.getElementById("dataLimite").value || "";
+  // Só zera se o campo estiver explicitamente vazio
+  dados.metaTotal = (!isNaN(_metaVal) && _metaVal >= 0) ? _metaVal : dados.metaTotal;
+  dados.dataLimite = _dataVal || dados.dataLimite;
   salvar();
   atualizar();
-      try{ atualizarCarro(); }catch(e){}
-
+  try{ atualizarCarro(); }catch(e){}
+  toast("✅ Meta salva.");
 }
 
 function salvarHoras(){
@@ -5303,18 +5306,28 @@ function atualizar(){
 
   if(!Array.isArray(dados.naoTrabalhados)) dados.naoTrabalhados = [];
 
-  // v9 fix: sincronizar inputs de meta com dados sem apagar o que o usuário digitou
-  // Se o campo está ativo (usuário digitando), não sobrescreve
+  // v9 fix definitivo: sincronizar inputs de meta
   const metaTotalEl = document.getElementById("metaTotal");
   const dataLimiteEl = document.getElementById("dataLimite");
+  // Só sobrescreve o input se o campo estiver vazio E dados tiver valor
+  // Nunca apaga o que o usuário digitou
   if(metaTotalEl && document.activeElement !== metaTotalEl){
-    metaTotalEl.value = dados.metaTotal || "";
+    const campoVazio = !metaTotalEl.value || metaTotalEl.value === "0";
+    const dadosTem = dados.metaTotal > 0;
+    if(dadosTem && campoVazio) metaTotalEl.value = dados.metaTotal;
+    // Se campo tem valor mas dados não tem, sincroniza dados com o campo
+    if(metaTotalEl.value && !dadosTem){
+      const v = parseFloat(metaTotalEl.value);
+      if(!isNaN(v) && v > 0) dados.metaTotal = v;
+    }
   }
   if(dataLimiteEl && document.activeElement !== dataLimiteEl){
-    dataLimiteEl.value = dados.dataLimite || "";
+    const campoVazio = !dataLimiteEl.value;
+    const dadosTem = !!dados.dataLimite;
+    if(dadosTem && campoVazio) dataLimiteEl.value = dados.dataLimite;
+    if(dataLimiteEl.value && !dadosTem) dados.dataLimite = dataLimiteEl.value;
   }
-  // metaDiariaManual é calculado em tempo real — nunca preencher com dados.metaDiariaManual (sempre 0)
-  // o cálculo real acontece mais abaixo no atualizar()
+  // metaDiariaManual é readonly e calculado — nunca preencher com dados.metaDiariaManual
   document.getElementById("ganhoDiarioAtual").value = (dados.ganhoDiarioAtual ?? "");
 
   const modoCombustivel = (dados.combustivelModo === "real") ? "real" : "fixo";
@@ -5345,6 +5358,20 @@ function atualizar(){
   if(fuelKmRodados && document.activeElement !== fuelKmRodados) fuelKmRodados.value = Number(dados?.combustivelReal?.kmRodados || 0) || "";
   if(fuelConsumoMedio && document.activeElement !== fuelConsumoMedio) fuelConsumoMedio.value = Number(dados?.combustivelReal?.consumoMedio || 0) || "";
   if(fuelPrecoLitro && document.activeElement !== fuelPrecoLitro) fuelPrecoLitro.value = Number(dados?.combustivelReal?.precoLitro || 0) || "";
+
+  // v9 fix definitivo: sincronizar inputs de meta com dados ANTES do cálculo
+  // garante que o que está digitado no campo seja usado, mesmo sem clicar Salvar Meta
+  try{
+    const _metaEl = document.getElementById("metaTotal");
+    const _dataEl = document.getElementById("dataLimite");
+    if(_metaEl && _metaEl.value !== ""){
+      const _v = parseFloat(_metaEl.value);
+      if(!isNaN(_v) && _v > 0) dados.metaTotal = _v;
+    }
+    if(_dataEl && _dataEl.value !== ""){
+      dados.dataLimite = _dataEl.value;
+    }
+  }catch(e){}
 
   const bruto = dados.ganhos.reduce((s,g)=>s+g.valor,0);
   const gastosExtras = dados.gastos.reduce((s,g)=>s+g.valor,0);
