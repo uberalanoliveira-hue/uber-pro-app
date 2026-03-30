@@ -1979,17 +1979,24 @@ body[data-tema="amarelo-claro"] .menu-btn{
 }
 
 
-/* Dias não trabalhados — campo data com dica interna */
+/* Dias não trabalhados: o + controla tudo */
+#btnMaisNaoTrab{
+  display:block !important;
+  margin:8px auto !important;
+}
+
+
+/* Dias não trabalhados — refinamento visual sem mexer na lógica da Meta */
 #dataNaoTrabalhado[type="text"]{
   color: rgba(255,255,255,0.68);
 }
-
-/* Dias não trabalhados — lançamentos compactos no padrão visual do card Meta */
-#listaNaoTrabalhados .list-item{
+#listaNaoTrabalhados .list-item,
+#listaNaoTrabalhados .nao-trabalhado-item{
   width: calc(100% - 24px);
   margin: 8px auto 0 !important;
-  padding: 7px 10px !important;
+  padding: 6px 10px !important;
   min-height: 44px !important;
+  height: auto !important;
   border-radius: 10px;
   font-size: 13px;
   line-height: 1.15;
@@ -2009,9 +2016,6 @@ body[data-tema="amarelo-claro"] .menu-btn{
 #listaNaoTrabalhados .kebab-btn{
   padding: 2px 5px;
   font-size: 16px;
-}
-#listaNaoTrabalhados .menu-pop button{
-  padding: 9px 10px;
 }
 
 </style>
@@ -2238,10 +2242,10 @@ body[data-tema="amarelo-claro"] .menu-btn{
     <input type="date" id="dataLimite">
 
     
-    <div class="label-row" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-top:10px;" onclick="toggleListaNaoTrab()"><label style="margin:0;">Dias não trabalhados</label><span id="arrowListaNaoTrab" style="font-weight:900;opacity:.9;transform:rotate(-90deg);display:inline-block;">▼</span></div>
+    <div class="label-row" style="display:flex;justify-content:center;align-items:center;margin-top:10px;"><label style="margin:0;">Dias não trabalhados</label></div>
     
 <button id="btnMaisNaoTrab" class="secondary"
-        onclick="toggleForm('formNaoTrabalhado')"
+        onclick="toggleDiasNaoTrabalhadosTudo()"
         style="width:22px;height:22px;padding:0;border-radius:6px;display:block;margin:8px auto;font-size:14px;font-weight:900;">
   +
 </button>
@@ -2763,12 +2767,7 @@ function cloudMarkLastOk(ts){
 }
 
 async function cloudGetUser(token){
-  const res = await fetch(CLOUD_SUPABASE_URL + "/auth/v1/user", {
-    headers: {
-      "apikey": CLOUD_SUPABASE_KEY,
-      "Authorization": "Bearer " + token
-    }
-  });
+  const res = await // fetch disabled
   if(!res.ok) throw new Error("Falha ao obter usuário");
   return await res.json();
 }
@@ -2893,7 +2892,7 @@ async function cloudBoot(){
 
     // Se a nuvem tiver algo mais novo, restaura
     if(remoteData && (remoteTs > Math.max(localTs, pendingTs) || !cloudHasUsefulData(dados))){
-      cloudApplyRemoteData(remoteData);
+      // cloud apply disabled
       try{ toast("☁️ Dados restaurados da nuvem."); }catch(e){}
       return;
     }
@@ -2909,12 +2908,7 @@ async function cloudBoot(){
 window.addEventListener("pagehide", function(){ try{ cloudPushNow(); }catch(e){} });
 window.addEventListener("beforeunload", function(){ try{ cloudPushNow(); }catch(e){} });
 window.addEventListener("online", function(){ try{ cloudPushNow(); }catch(e){} });
-document.addEventListener("visibilitychange", function(){
-  try{
-    if(document.visibilityState === "hidden") cloudPushNow();
-    if(document.visibilityState === "visible") cloudBoot();
-  }catch(e){}
-});
+// visibility sync disabled
 setInterval(function(){
   try{
     if(document.visibilityState === "visible"){
@@ -3238,8 +3232,7 @@ function salvarMeta(){
   dados.dataLimite = document.getElementById("dataLimite").value || "";
   salvar();
   atualizar();
-      try{ atualizarCarro(); }catch(e){}
-
+  try{ atualizarCarro(); }catch(e){}
 }
 
 function salvarHoras(){
@@ -3345,17 +3338,13 @@ function addNaoTrabalhado(){
   const motivo = (document.getElementById("motivoNaoTrabalhado").value || "").trim();
   if(!data) return;
 
-  // preserva campos já digitados em Meta antes de salvar dias não trabalhados
-  dados.metaTotal = parseFloat(document.getElementById("metaTotal")?.value) || 0;
-  dados.dataLimite = document.getElementById("dataLimite")?.value || "";
-
   dados.naoTrabalhados.push({data, motivo: motivo || "Dia não trabalhado"});
 
   salvar();
   atualizar();
 
   document.getElementById("motivoNaoTrabalhado").value = "";
-  document.getElementById("formNaoTrabalhado").classList.remove("open");
+  document.getElementById("wrapListaNaoTrab").style.display = "block";
 }
 function editarValorSessaoFinalizada(index){
   window.__editValorCtx = { tipo: 'ganhoHoraSessaoFinalizada', index };
@@ -5158,7 +5147,7 @@ function bootApp(){
   try{ ensureGanhoHoraDiaAtual(); }catch(e){}
   try{ setInterval(function(){ try{ ensureGanhoHoraDiaAtual(); }catch(e){} }, 15000); }catch(e){}
   try{ updateUberClock(); setInterval(updateUberClock, 1000); }catch(e){}
-  setTimeout(function(){ try{ cloudBoot(); }catch(e){} }, 500);
+  setTimeout(function(){ try{ // cloudBoot disabled for test }catch(e){} }, 500);
 }
 if(document.readyState === "loading"){
   document.addEventListener("DOMContentLoaded", ()=>{ bootApp(); try{ initTabs(); }catch(e){} });
@@ -6190,14 +6179,27 @@ window.addEventListener("load", ()=>{ restoreFromIDBIfNeeded(); });
 
 /* ===== Seta recolher/mostrar lista de Dias Não Trabalhados ===== */
 function toggleListaNaoTrab(){
-const wrap = document.getElementById("wrapListaNaoTrab");
-  const arrow = document.getElementById("arrowListaNaoTrab");
+  return toggleDiasNaoTrabalhadosTudo();
+}
+
+function toggleDiasNaoTrabalhadosTudo(forceOpen){
+  const form = document.getElementById("formNaoTrabalhado");
+  const wrap = document.getElementById("wrapListaNaoTrab");
   const btnMais = document.getElementById("btnMaisNaoTrab");
-  if(!wrap) return;
-  const hidden = wrap.style.display === "none";
-  wrap.style.display = hidden ? "block" : "none";
-  if(btnMais) btnMais.style.display = hidden ? "block" : "none";
-  if(arrow) arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(-90deg)";
+  if(!form || !wrap) return;
+
+  const aberto = form.classList.contains("open") || wrap.style.display === "block";
+  const abrir = (typeof forceOpen === "boolean") ? forceOpen : !aberto;
+
+  if(abrir){
+    form.classList.add("open");
+    wrap.style.display = "block";
+  }else{
+    form.classList.remove("open");
+    wrap.style.display = "none";
+  }
+
+  if(btnMais) btnMais.style.display = "block";
 }
 
 
