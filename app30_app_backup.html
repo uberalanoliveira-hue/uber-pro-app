@@ -1985,6 +1985,46 @@ body[data-tema="amarelo-claro"] .menu-btn{
   margin:8px auto !important;
 }
 
+
+/* Dias não trabalhados — dica visível no campo data */
+#dataNaoTrabalhado[type="text"]{
+  color: rgba(255,255,255,0.68);
+}
+
+/* Dias não trabalhados — lançamentos mais compactos, no padrão visual da Meta */
+#listaNaoTrabalhados .list-item,
+#listaNaoTrabalhados .nao-trabalhado-item{
+  width: calc(100% - 24px);
+  margin: 8px auto 0 !important;
+  padding: 6px 10px !important;
+  min-height: 44px !important;
+  height: auto !important;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.15;
+  align-items: center;
+}
+#listaNaoTrabalhados .list-left{
+  gap: 6px;
+  align-items: center;
+}
+#listaNaoTrabalhados .li-date,
+#listaNaoTrabalhados .li-desc{
+  line-height: 1.15;
+}
+#listaNaoTrabalhados .action-menu{
+  margin-left: 6px;
+}
+#listaNaoTrabalhados .kebab-btn{
+  padding: 2px 5px;
+  font-size: 16px;
+}
+#listaNaoTrabalhados .small-btn{
+  padding: 4px 7px;
+  font-size: 11px;
+  border-radius: 8px;
+}
+
 </style>
 
 <style id="app30-auth-guard-style">
@@ -2218,7 +2258,7 @@ body[data-tema="amarelo-claro"] .menu-btn{
 </button>
 
     <div id="formNaoTrabalhado" class="collapsible">
-      <input type="date" id="dataNaoTrabalhado">
+      <input type="text" id="dataNaoTrabalhado" placeholder="Selecione a data" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
       <input type="text" id="motivoNaoTrabalhado" placeholder="Motivo (ex: folga, manutenção, médico)">
       <button onclick="addNaoTrabalhado()" class="dias-link-add">Adicionar</button>
     </div>
@@ -2631,7 +2671,8 @@ let dados = loadDados() || {
     kmRodados: 0,
     consumoMedio: 0,
     precoLitro: 0
-  }
+  },
+  metaBaseSnapshot: null
 };
 
 if(typeof dados.saldoAtualButtonAtivo !== "boolean"){ dados.saldoAtualButtonAtivo = getQuickBalanceFabPref ? getQuickBalanceFabPref() : true; }
@@ -3207,10 +3248,20 @@ function toggleForm(id){
 function salvarMeta(){
   dados.metaTotal = parseFloat(document.getElementById("metaTotal").value) || 0;
   dados.dataLimite = document.getElementById("dataLimite").value || "";
+
+  // Salva um marco inicial da meta atual.
+  // Assim a Meta considera o progresso a partir do momento em que a meta foi definida,
+  // e não todo o histórico antigo do app.
+  dados.metaBaseSnapshot = {
+    ganhosTotal: (dados.ganhos || []).reduce((s,g)=>s+Number(g.valor||0), 0),
+    gastosTotal: (dados.gastos || []).reduce((s,g)=>s+Number(g.valor||0), 0),
+    abastecimentosTotal: (dados.abastecimentos || []).reduce((s,a)=>s+Number(a.valor||0), 0),
+    savedAt: new Date().toISOString()
+  };
+
   salvar();
   atualizar();
-      try{ atualizarCarro(); }catch(e){}
-
+  try{ atualizarCarro(); }catch(e){}
 }
 
 function salvarHoras(){
@@ -3598,7 +3649,8 @@ function zerarTudo(){
     ganhoHoraSessaoDiaRef: "",
     combustivelModo: "fixo",
     combustivelPercentual: 0.30,
-    combustivelReal: { kmRodados: 0, consumoMedio: 0, precoLitro: 0 }
+    combustivelReal: { kmRodados: 0, consumoMedio: 0, precoLitro: 0 },
+    metaBaseSnapshot: null
   };
   salvar();
   atualizar();
@@ -4557,33 +4609,39 @@ let diasCalendario = 0;
   if(box){
     box.textContent = diasNaoTrabalhadosNoPeriodo > 0 ? (diasRestantes + " (−" + diasNaoTrabalhadosNoPeriodo + ")") : String(diasRestantes);
   }
-const fuelCfg = getCombustivelConfig(bruto);
-  const combustivelDisponivel = fuelCfg.combustivelEstimado;
-  const totalAbastecido = dados.abastecimentos.reduce((s,a)=>s+a.valor,0);
-  const saldoCombustivel = combustivelDisponivel - totalAbastecido;
+const __metaBase = dados.metaBaseSnapshot || { ganhosTotal: 0, gastosTotal: 0, abastecimentosTotal: 0 };
 
-  const liquido = bruto - combustivelDisponivel - gastosExtras;
+  // Totais considerados só a partir do momento em que a meta atual foi salva
+  const brutoPeriodoMeta = Math.max(0, bruto - Number(__metaBase.ganhosTotal || 0));
+  const gastosExtrasPeriodoMeta = Math.max(0, gastosExtras - Number(__metaBase.gastosTotal || 0));
+  const totalAbastecidoPeriodoMeta = Math.max(0, dados.abastecimentos.reduce((s,a)=>s+a.valor,0) - Number(__metaBase.abastecimentosTotal || 0));
+
+  const fuelCfg = getCombustivelConfig(brutoPeriodoMeta);
+  const combustivelDisponivel = fuelCfg.combustivelEstimado;
+  const saldoCombustivel = combustivelDisponivel - totalAbastecidoPeriodoMeta;
+
+  const liquido = brutoPeriodoMeta - combustivelDisponivel - gastosExtrasPeriodoMeta;
 
   // Regra correta:
-  // líquido = bruto * 0,70 - gastosExtras
-  // então o bruto necessário para atingir a meta e repor gastos é:
-  // (meta líquida desejada + gastos extras) / 0,70
+  // líquido = bruto * (1 - taxa combustível) - gastos extras do período da meta
   const divisorMeta = Math.max(0.05, 1 - Number(fuelCfg.taxaCombustivel || 0));
-  const metaBrutaComGastos = ((dados.metaTotal || 0) + gastosExtras) > 0
-    ? (((dados.metaTotal || 0) + gastosExtras) / divisorMeta)
+  const metaBrutaComGastos = ((dados.metaTotal || 0) + gastosExtrasPeriodoMeta) > 0
+    ? (((dados.metaTotal || 0) + gastosExtrasPeriodoMeta) / divisorMeta)
     : 0;
 
-  // Meta bruta restante:
-  // quanto ainda falta em bruto para completar a meta total necessária
-  const metaRestante = Math.max(0, metaBrutaComGastos - bruto);
+  // Meta bruta restante no período da meta atual
+  const metaRestante = Math.max(0, metaBrutaComGastos - brutoPeriodoMeta);
 
   const ganhosHoje = (dados.ganhos || [])
     .filter(g => isHojeRegistro(g && g.data))
     .reduce((s, g) => s + Number(g.valor || 0), 0);
 
-  const brutoSemHoje = Math.max(0, bruto - ganhosHoje);
+  // Mantém a regra de ignorar o dia atual para calcular a meta diária automática,
+  // mas sempre dentro do período da meta atual.
+  const ganhosHojeNoPeriodoMeta = Math.min(brutoPeriodoMeta, ganhosHoje);
+  const brutoSemHoje = Math.max(0, brutoPeriodoMeta - ganhosHojeNoPeriodoMeta);
   const combustivelSemHoje = brutoSemHoje * Number(fuelCfg.taxaCombustivel || 0);
-  const liquidoSemHoje = brutoSemHoje - combustivelSemHoje - gastosExtras;
+  const liquidoSemHoje = brutoSemHoje - combustivelSemHoje - gastosExtrasPeriodoMeta;
   const faltanteLiquidoSemHoje = Math.max(0, (dados.metaTotal || 0) - liquidoSemHoje);
   const metaRestanteSemHoje = (faltanteLiquidoSemHoje > 0) ? (faltanteLiquidoSemHoje / divisorMeta) : 0;
   const metaDiariaAuto = (diasRestantes > 0) ? (metaRestanteSemHoje / diasRestantes) : 0;
