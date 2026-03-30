@@ -75,12 +75,27 @@ button{
   opacity:.8;
   line-height:1.4;
 }
+
+.version-badge{
+  display:inline-block;
+  margin:0 auto 12px;
+  padding:6px 12px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.08);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.3px;
+  opacity:.95;
+}
+
 </style>
 </head>
 <body>
 <div class="wrap">
   <img class="logo-img" src="icon-512.png" alt="Logo MetaDriver">
   <div class="title">MetaDriver</div>
+  <div class="version-badge" id="appVersionBadge">Versão v5</div>
   <div class="sub" id="subText">Instale o aplicativo para usar da forma correta.</div>
   <button id="installBtn" type="button">Instalar aplicativo</button>
   <button id="fallbackBtn" type="button">Entrar</button>
@@ -188,6 +203,17 @@ if ('serviceWorker' in navigator) {
     }
   }catch(e){}
 })();
+</script>
+
+
+<script>
+const INSTALL_SCREEN_VERSION = "v5";
+try{
+  document.addEventListener("DOMContentLoaded", function(){
+    var badge = document.getElementById("appVersionBadge");
+    if(badge) badge.textContent = "Versão " + INSTALL_SCREEN_VERSION;
+  });
+}catch(e){}
 </script>
 
 </body>

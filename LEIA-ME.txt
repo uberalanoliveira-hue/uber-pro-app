@@ -58,3 +58,19 @@ ARQUIVOS ALTERADOS:
 STATUS:
 - Aguardando teste
 
+VERSÃO v5 - versao-na-tela-instalacao
+O QUE FOI PEDIDO:
+- Mostrar sempre a versão atual na tela de instalação
+- Usar isso para confirmar visualmente se a atualização carregou
+
+O QUE FOI FEITO:
+- Adicionada indicação visível da versão na tela de instalação
+- A tela de instalação agora mostra "Versão v5"
+- A versão foi colocada em badge próprio para facilitar leitura e validação de update
+
+ARQUIVOS ALTERADOS:
+- index.html
+
+STATUS:
+- Aguardando teste
+
