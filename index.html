@@ -183,7 +183,7 @@ if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.
 );
 }
 </script>
-<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v11 · instalação</div>
+<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v13 · instalação</div>
 
 <script>
 let deferredPrompt = null;
@@ -220,7 +220,7 @@ window.addEventListener('beforeinstallprompt', function(e){
   e.preventDefault();
   deferredPrompt = e;
   try{
-    document.getElementById('subText').textContent = 'Versão v11 pronta para instalar ou abrir.';
+    document.getElementById('subText').textContent = 'Versão v13 pronta para instalar ou abrir.';
     document.getElementById('noteText').textContent = 'Se o botão não abrir o prompt, use “Abrir app” ou instale pelo menu do navegador.';
   }catch(e){}
 });
@@ -259,7 +259,7 @@ document.getElementById('showStepsBtn').addEventListener('click', showManualStep
 
 try{
   var badge = document.getElementById('versionDebugBadge');
-  if(badge) badge.textContent = 'MetaDriver v11 · instalação';
+  if(badge) badge.textContent = 'MetaDriver v13 · instalação';
 }catch(e){}
 </script>
 </body>

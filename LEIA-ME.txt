@@ -164,3 +164,35 @@ ARQUIVOS ALTERADOS:
 
 STATUS:
 - Aguardando teste
+
+VERSÃO v12 - fix-rolagem-meta-inputs-e-botoes
+
+O QUE FOI PEDIDO:
+- Corrigir rolagem, travar botões do topo e permitir alterar meta líquida/data limite normalmente
+
+O QUE FOI FEITO:
+- Foi gerada uma tentativa de correção
+
+STATUS:
+- Com problema
+- App deixou de funcionar
+- Deve ser desconsiderada
+
+
+REENVIO DA BASE ESTÁVEL:
+- Este pacote reenvia a base estável da v11
+- Os arquivos foram colocados dentro de uma subpasta para facilitar organização
+
+
+
+VERSÃO v13 - fix-campos-meta
+
+O QUE FOI PEDIDO:
+- Corrigir os campos Meta líquida desejada e Data limite que não deixavam alterar
+
+O QUE FOI FEITO:
+- Evitado sobrescrever os campos enquanto o usuário está digitando
+- Agora os valores só são atualizados quando o campo não está em foco
+
+STATUS:
+- Aguardando teste
