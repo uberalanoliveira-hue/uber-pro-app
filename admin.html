@@ -649,5 +649,25 @@ initAdmin();
 })();
 </script>
 
+
+
+
+<div id="saldoAtualButtonMenuOverlay" class="quick-balance-overlay" onclick="fecharSaldoAtualButtonMenu()"></div>
+
+<div id="saldoAtualButtonMenuPanel" class="quick-balance-panel" role="dialog" aria-modal="true" aria-labelledby="saldoAtualButtonMenuTitle">
+  <div id="saldoAtualButtonMenuTitle" class="quick-balance-title">Botão de saldo atual</div>
+  <div class="quick-balance-sub">Ative ou desative o botão flutuante. Mesmo desligado, a atualização do saldo atual continua normal pela seção <b>Ganho por hora</b>.</div>
+  <div style="display:grid;gap:10px;">
+    <label class="fuel-radio" style="display:flex;align-items:center;gap:10px;">
+      <input type="checkbox" id="toggleSaldoAtualButtonCheckbox" onchange="salvarPreferenciaSaldoAtualButton()">
+      <span>Ativar botão flutuante</span>
+    </label>
+  </div>
+  <div class="quick-balance-actions" style="margin-top:12px;">
+    <button type="button" onclick="salvarPreferenciaSaldoAtualButton()">Salvar</button>
+    <button type="button" class="secondary" onclick="fecharSaldoAtualButtonMenu()">Fechar</button>
+  </div>
+</div>
+
 </body>
 </html>

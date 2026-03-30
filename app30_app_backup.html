@@ -1978,6 +1978,13 @@ body[data-tema="amarelo-claro"] .menu-btn{
   border-radius: 8px;
 }
 
+
+/* Dias não trabalhados: + controla formulário e lançamentos; sem triângulo */
+#btnMaisNaoTrab{
+  display:block;
+  margin:8px auto !important;
+}
+
 </style>
 
 <style id="app30-auth-guard-style">
@@ -2205,7 +2212,7 @@ body[data-tema="amarelo-claro"] .menu-btn{
     <div class="label-row" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-top:10px;" onclick="toggleListaNaoTrab()"><label style="margin:0;">Dias não trabalhados</label><span id="arrowListaNaoTrab" style="font-weight:900;opacity:.9;transform:rotate(-90deg);display:inline-block;">▼</span></div>
     
 <button id="btnMaisNaoTrab" class="secondary"
-        onclick="toggleForm('formNaoTrabalhado')"
+        onclick="toggleDiasNaoTrabTudo()"
         style="width:22px;height:22px;padding:0;border-radius:6px;display:block;margin:8px auto;font-size:14px;font-weight:900;">
   +
 </button>
@@ -3320,6 +3327,7 @@ function addNaoTrabalhado(){
 
   document.getElementById("motivoNaoTrabalhado").value = "";
   document.getElementById("formNaoTrabalhado").classList.remove("open");
+  document.getElementById("wrapListaNaoTrab").style.display = "block";
 }
 function editarValorSessaoFinalizada(index){
   window.__editValorCtx = { tipo: 'ganhoHoraSessaoFinalizada', index };
@@ -6154,14 +6162,29 @@ window.addEventListener("load", ()=>{ restoreFromIDBIfNeeded(); });
 
 /* ===== Seta recolher/mostrar lista de Dias Não Trabalhados ===== */
 function toggleListaNaoTrab(){
-const wrap = document.getElementById("wrapListaNaoTrab");
-  const arrow = document.getElementById("arrowListaNaoTrab");
+  return toggleDiasNaoTrabTudo();
+}
+
+function toggleDiasNaoTrabTudo(force){
+  const form = document.getElementById("formNaoTrabalhado");
+  const wrap = document.getElementById("wrapListaNaoTrab");
   const btnMais = document.getElementById("btnMaisNaoTrab");
-  if(!wrap) return;
-  const hidden = wrap.style.display === "none";
-  wrap.style.display = hidden ? "block" : "none";
-  if(btnMais) btnMais.style.display = hidden ? "block" : "none";
-  if(arrow) arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(-90deg)";
+  if(!form || !wrap) return;
+
+  const currentlyOpen = form.classList.contains("open") || wrap.style.display === "block";
+  const shouldOpen = typeof force === "boolean" ? force : !currentlyOpen;
+
+  if(shouldOpen){
+    form.classList.add("open");
+    wrap.style.display = "block";
+  }else{
+    form.classList.remove("open");
+    wrap.style.display = "none";
+  }
+
+  if(btnMais){
+    btnMais.style.display = "block";
+  }
 }
 
 
