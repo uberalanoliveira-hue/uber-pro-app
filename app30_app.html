@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v15</title>
+<title>MetaDriver v16</title>
 
 <style>
 :root{
@@ -510,7 +510,17 @@ input.negative-value, input.negative-value::placeholder{
 
 
 /* ===== Abas ===== */
-.tabs-wrap{ padding:0 12px 12px; }
+/* v15 - abas fixas abaixo da topbar */
+.tabs-wrap{
+  padding:0 12px 10px;
+  position:sticky;
+  top:64px;
+  z-index:49;
+  background:var(--bg);
+  margin:0 -15px;
+  padding-left:15px;
+  padding-right:15px;
+}
 .tabs-bar{ display:flex; gap:10px; margin-top:6px; }
 .tab-btn{
   flex:1;
@@ -2952,6 +2962,9 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   }catch(e){}
 })();
 
+// v15 - impede o browser de rolar pro topo ao minimizar/voltar ao PWA
+if('scrollRestoration' in history){ history.scrollRestoration = 'manual'; }
+
 const STORAGE_KEY = "controleUberProDados";
 const CLOUD_TABLE = "app_cloud_data";
 const CLOUD_SUPABASE_URL = "https://xoqlgwjpmdkiazwpwhmn.supabase.co";
@@ -3421,10 +3434,6 @@ async function cloudBoot(){
 }
 
 window.addEventListener("pagehide", function(){
-  try{
-    const _sy = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
-    sessionStorage.setItem("md_scroll_y", String(_sy));
-  }catch(e){}
   try{ cloudPushNow(); }catch(e){}
 });
 window.addEventListener("beforeunload", function(){ try{ cloudPushNow(); }catch(e){} });
@@ -3433,7 +3442,7 @@ window.addEventListener("online", function(){ try{ cloudPushNow(); }catch(e){} }
 document.addEventListener("visibilitychange", function(){
   try{
     if(document.visibilityState === "hidden"){
-      // v14 - salva posição de scroll antes de minimizar (PWA Android usa documentElement)
+      // v15 - scroll: apenas salva, não precisa mais forçar restauração
       try{
         const _sy = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
         sessionStorage.setItem("md_scroll_y", String(_sy));
@@ -3442,22 +3451,7 @@ document.addEventListener("visibilitychange", function(){
       cloudPushNow();
     }
     if(document.visibilityState === "visible"){
-      // v14 - restaura posição de scroll ao voltar (PWA Android)
-      try{
-        const sy = parseInt(sessionStorage.getItem("md_scroll_y") || "0", 10);
-        if(sy > 0){
-          setTimeout(function(){
-            window.scrollTo(0, sy);
-            document.documentElement.scrollTop = sy;
-            document.body.scrollTop = sy;
-          }, 100);
-          setTimeout(function(){
-            window.scrollTo(0, sy);
-            document.documentElement.scrollTop = sy;
-            document.body.scrollTop = sy;
-          }, 350);
-        }
-      }catch(e){}
+      // v15 - scroll restaurado via scrollRestoration=manual, sem forçar
       __cloudBootStarted = false;
       cloudBoot();
     }
@@ -5191,7 +5185,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v15 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v16 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -5975,22 +5969,7 @@ if(document.readyState === "loading"){
 window.addEventListener("pageshow", ()=>{
   try{ initSectionCollapse(); }catch(e){}
   try{ applyQuickBalanceFabStateHard(); }catch(e){}
-  // v14 - restaura scroll no pageshow (bfcache, PWA Android)
-  try{
-    const sy = parseInt(sessionStorage.getItem("md_scroll_y") || "0", 10);
-    if(sy > 0){
-      setTimeout(function(){
-        window.scrollTo(0, sy);
-        document.documentElement.scrollTop = sy;
-        document.body.scrollTop = sy;
-      }, 100);
-      setTimeout(function(){
-        window.scrollTo(0, sy);
-        document.documentElement.scrollTop = sy;
-        document.body.scrollTop = sy;
-      }, 350);
-    }
-  }catch(e){}
+  // v15 - scrollRestoration=manual cuida disso
 });
 
 try{ ensureGanhoHoraDiaAtual(); }catch(e){}

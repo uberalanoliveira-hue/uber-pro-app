@@ -244,3 +244,27 @@ ARQUIVOS ALTERADOS:
 
 STATUS:
 - Aguardando teste
+
+
+VERSÃO v16 - fix-scroll-sem-piscao-e-abas-fixas
+
+O QUE FOI PEDIDO:
+- O scroll resolvia mas piscava (ia pro topo e voltava) — queria que ele simplesmente não fosse pro topo
+- Os botões MetaDriver e Manutenção do carro deveriam ficar fixos fora da rolagem da página
+
+O QUE FOI FEITO:
+- Removida toda a lógica de forçar restauração de scroll (era ela que causava o piscão)
+- Adicionado history.scrollRestoration = 'manual' no início do script — impede o browser de rolar pro topo ao minimizar/voltar, sem precisar forçar nada
+- Removidos os timeouts de scrollTo e as atribuições de scrollTop — não são mais necessários
+- Tabs (MetaDriver / Manutenção do carro) agora têm position:sticky top:64px — ficam presas abaixo da topbar durante a rolagem, fora do fluxo de scroll
+
+ARQUIVOS ALTERADOS:
+- app30_app.html
+- index.html
+- login.html
+- admin.html
+- painel.html
+- reset.html
+
+STATUS:
+- Aguardando teste
