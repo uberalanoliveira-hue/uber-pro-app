@@ -18,9 +18,9 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v20</title>
+<title>MetaDriver v20.2</title>
 <script>
-// v20 - restauração de rolagem realmente persistente ao minimizar/restaurar no Android/PWA
+// v20.2 - restauração de rolagem persistente + sem scroll forçado no init
 (function(){
   var KEY_Y = 'md_scroll_y';
   var KEY_X = 'md_scroll_x';
@@ -5287,7 +5287,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v20 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v20.2 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -6651,7 +6651,9 @@ function snoozeCarPopup(){
   const KEY = "controleUberPro_activeTab_v7_2_6";
 
   // substitui switchTab por uma versão simples e confiável
-  window.switchTab = function(which){
+  window.switchTab = function(which, opts){
+    opts = opts || {};
+    const preserveScroll = !!opts.preserveScroll;
     const tabUber = document.getElementById("tabUber");
     const tabCarro = document.getElementById("tabCarro");
     const bU = document.getElementById("tabBtnUber");
@@ -6681,7 +6683,9 @@ function snoozeCarPopup(){
       try{ localStorage.setItem(KEY, "uber"); }catch(e){}
       try{ atualizar && atualizar(); }catch(e){}
     }
-    window.scrollTo(0,0);
+    if(!preserveScroll){
+      window.scrollTo(0,0);
+    }
   };
 
   function init(){
@@ -6698,7 +6702,7 @@ function snoozeCarPopup(){
       tabCarro.classList.add("hidden");
       tabUber.classList.remove("hidden");
     }
-    window.switchTab(t === "carro" ? "carro" : "uber");
+    window.switchTab(t === "carro" ? "carro" : "uber", { preserveScroll:true });
   }
 
   document.addEventListener("DOMContentLoaded", ()=>{ try{ bindCarCollapsibles(); }catch(e){} });
@@ -6708,7 +6712,7 @@ document.addEventListener("DOMContentLoaded", init);
 document.addEventListener("DOMContentLoaded", ()=>{
   try{ localStorage.setItem("controleUberPro_activeTab_v7_2_6", "uber"); }catch(e){}
   try{ localStorage.setItem("controleUberPro_activeTab_v7_2_0", "uber"); }catch(e){}
-  try{ window.switchTab && window.switchTab("uber"); }catch(e){}
+  try{ window.switchTab && window.switchTab("uber", { preserveScroll:true }); }catch(e){}
 }, true);
 
 })();
