@@ -15,7 +15,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v13.0.6</title>
+<title>MetaDriver v7.0.6</title>
 
 <style>
 :root{
@@ -5162,7 +5162,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v13 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v7 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -5291,14 +5291,8 @@ function atualizar(){
 
   if(!Array.isArray(dados.naoTrabalhados)) dados.naoTrabalhados = [];
 
-  const elMeta = document.getElementById("metaTotal");
-if(elMeta && document.activeElement !== elMeta){
-  elMeta.value = dados.metaTotal || "";
-}
-  const elData = document.getElementById("dataLimite");
-if(elData && document.activeElement !== elData){
-  elData.value = dados.dataLimite || "";
-}
+  document.getElementById("metaTotal").value = dados.metaTotal || "";
+  document.getElementById("dataLimite").value = dados.dataLimite || "";
 document.getElementById("metaDiariaManual").value = (dados.metaDiariaManual || dados.metaDiariaManual === 0) ? dados.metaDiariaManual : "";
   document.getElementById("ganhoDiarioAtual").value = (dados.ganhoDiarioAtual ?? "");
 

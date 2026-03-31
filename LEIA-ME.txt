@@ -44,34 +44,22 @@ O QUE FOI FEITO:
 - Não foi aplicado auto update agressivo
 - Base usada: versão estável funcional enviada pelo usuário
 
-STATUS:
-- Base de desenvolvimento sem SW
+ARQUIVOS ALTERADOS:
+- app30_app.html
+- app30_app_backup.html
+- login.html
+- admin.html
+- painel.html
+- reset.html
+- index.html
+- sw.js
 
-
-VERSÃO v4 - auto-update
-
-O QUE FOI PEDIDO:
-- Implementar auto update automático
-
-O QUE FOI FEITO:
-- Tentativa de auto update agressivo
-
-STATUS:
-- Com problema
-- App deixou de funcionar
-
-
-VERSÃO v5 - versao-na-tela-instalacao
-
-O QUE FOI PEDIDO:
-- Mostrar versão na tela de instalação
-
-O QUE FOI FEITO:
-- Tentativa baseada na v4
+OBSERVAÇÕES:
+- Durante o desenvolvimento, a atualização passa a depender do navegador buscar os arquivos normais do GitHub, sem cache agressivo do PWA
+- Quando o app for para clientes, o Service Worker pode ser reintroduzido corretamente
 
 STATUS:
-- Inválida
-- Herdou problemas da v4
+- Aguardando teste
 
 
 VERSÃO v6 - remove-sw (numeração corrigida)
@@ -81,118 +69,46 @@ O QUE FOI PEDIDO:
 - Manter sequência após v5
 
 O QUE FOI FEITO:
-- Mesma build estável com remoção de Service Worker
+- Esta versão é a mesma build estável com remoção de Service Worker
 - Apenas renumerada corretamente para v6
+- Histórico mantido sem perda
 
 STATUS:
-- Base para continuação
+- Aguardando teste
 
 
 VERSÃO v7 - corrige-versao-visivel
 
 O QUE FOI PEDIDO:
-- Corrigir versão exibida no app
+- Corrigir versão exibida no app (estava aparecendo v3)
 
 O QUE FOI FEITO:
-- Atualizada versão visual em várias telas para v7
+- Atualizada versão visual em todas as telas para v7
+- Nenhuma alteração de lógica foi feita
 
 STATUS:
-- OK
-
+- Aguardando teste
 
 VERSÃO v8 - fix-install-dev-mode
 
 O QUE FOI PEDIDO:
-- Corrigir o botão de instalação
-- Melhorar o fallback de desenvolvimento
+- Corrigir o botão de instalação, que não estava funcionando para teste
+- Melhorar o fluxo de desenvolvimento sem depender totalmente do prompt automático de instalação
 
 O QUE FOI FEITO:
-- Adicionado fallback com “Abrir app” e “Como instalar”
-- Atualizada indicação visual da versão para v8 na instalação
-
-STATUS:
-- Base funcional
-
-
-VERSÃO v9 - fix-rolagem-e-botoes
-
-O QUE FOI PEDIDO:
-- Corrigir rolagem
-- Fixar botões MetaDriver e Manutenção do carro
-
-O QUE FOI FEITO:
-- Tentativa de correção
-
-STATUS:
-- Com problema
-- App desconfigurado / inválido
-
-
-VERSÃO v10 - alinha-versao-telas
-
-O QUE FOI PEDIDO:
-- Alinhar versão visual nas telas
-
-O QUE FOI FEITO:
-- Tentativa baseada na v9
-
-STATUS:
-- Inválida
-- Herdou problemas da v9
-
-
-VERSÃO v11 - rollback-v8-com-versao-v11
-
-O QUE FOI PEDIDO:
-- Recuperar o app funcional após a v10 quebrar o app
-- Manter a base estável da v8
-- Corrigir apenas a versão visível para v11, sem mexer na lógica
-
-O QUE FOI FEITO:
-- Base retomada a partir da v8 funcional
-- Atualizada apenas a identificação visual da versão para v11
-- Nenhuma alteração de lógica foi aplicada
+- Reforçado o comportamento do botão de instalação na tela de instalação
+- Quando o prompt automático não existir, agora aparece fallback de desenvolvimento
+- Adicionado botão “Abrir app” para entrar direto no app sem depender do install prompt
+- Adicionado botão “Como instalar” com instruções manuais
+- Atualizada a indicação visual da versão na tela de instalação para v8
 
 ARQUIVOS ALTERADOS:
 - index.html
-- login.html
-- app30_app.html
-- app30_app_backup.html
-- admin.html
-- painel.html
-- reset.html
+
+OBSERVAÇÕES:
+- Em modo de desenvolvimento, o prompt automático de instalação pode não aparecer no Chrome dependendo do estado do PWA
+- Esta versão não força instalação; ela melhora o fallback quando o prompt não vier
 
 STATUS:
 - Aguardando teste
 
-VERSÃO v12 - fix-rolagem-meta-inputs-e-botoes
-
-O QUE FOI PEDIDO:
-- Corrigir rolagem, travar botões do topo e permitir alterar meta líquida/data limite normalmente
-
-O QUE FOI FEITO:
-- Foi gerada uma tentativa de correção
-
-STATUS:
-- Com problema
-- App deixou de funcionar
-- Deve ser desconsiderada
-
-
-REENVIO DA BASE ESTÁVEL:
-- Este pacote reenvia a base estável da v11
-- Os arquivos foram colocados dentro de uma subpasta para facilitar organização
-
-
-
-VERSÃO v13 - fix-campos-meta
-
-O QUE FOI PEDIDO:
-- Corrigir os campos Meta líquida desejada e Data limite que não deixavam alterar
-
-O QUE FOI FEITO:
-- Evitado sobrescrever os campos enquanto o usuário está digitando
-- Agora os valores só são atualizados quando o campo não está em foco
-
-STATUS:
-- Aguardando teste
