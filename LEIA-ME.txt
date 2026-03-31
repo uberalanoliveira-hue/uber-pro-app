@@ -270,7 +270,7 @@ STATUS:
 - Aguardando teste
 
 
-VERSÃO v17 - fix-abas-fixas-z-index
+VERSÃO v18 - fix-abas-fixas-z-index
 
 O QUE FOI PEDIDO:
 - Confirmar que os botões MetaDriver e Manutenção do carro ficam fixos como a topbar
@@ -282,6 +282,31 @@ O QUE FOI FEITO:
 - Adicionado cálculo dinâmico da altura real da topbar via JS no bootApp para o sticky das tabs ser preciso independente do dispositivo
 - Ajustado margin da topbar para não criar gap entre topbar e tabs
 - Adicionada sombra nas tabs para separação visual do conteúdo
+
+ARQUIVOS ALTERADOS:
+- app30_app.html
+- index.html
+- login.html
+- admin.html
+- painel.html
+- reset.html
+
+STATUS:
+- Aguardando teste
+
+
+VERSÃO v18 - fix-scroll-sem-piscao-v2
+
+O QUE FOI PEDIDO:
+- A rolagem ainda voltava pro topo ao minimizar e reabrir
+- history.scrollRestoration = 'manual' não funcionou no PWA standalone Android
+
+O QUE FOI FEITO:
+- Nova estratégia: esconder o body (visibility:hidden) ANTES de qualquer renderização, via script inline no <head>, se houver posição de scroll salva
+- Ao voltar ao app (visibilitychange visible / pageshow): restaura o scroll e SÓ ENTÃO torna o body visível
+- Isso elimina o piscão porque o usuário nunca vê o topo — a página aparece já na posição correta
+- bootApp garante que visibility é sempre restaurado mesmo em casos sem scroll salvo
+- Removido o scrollRestoration duplicado que havia sido deixado no meio do script
 
 ARQUIVOS ALTERADOS:
 - app30_app.html

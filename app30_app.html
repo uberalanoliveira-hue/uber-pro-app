@@ -18,7 +18,20 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v17</title>
+<title>MetaDriver v18</title>
+<script>
+// v17 - esconde body ANTES de renderizar se há posição de scroll salva
+// evita o piscão de ir pro topo e depois voltar
+(function(){
+  try{
+    if('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    const sy = parseInt(sessionStorage.getItem('md_scroll_y') || '0', 10);
+    if(sy > 0){
+      document.documentElement.style.visibility = 'hidden';
+    }
+  }catch(e){}
+})();
+</script>
 
 <style>
 :root{
@@ -2960,9 +2973,6 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   }catch(e){}
 })();
 
-// v15 - impede o browser de rolar pro topo ao minimizar/voltar ao PWA
-if('scrollRestoration' in history){ history.scrollRestoration = 'manual'; }
-
 const STORAGE_KEY = "controleUberProDados";
 const CLOUD_TABLE = "app_cloud_data";
 const CLOUD_SUPABASE_URL = "https://xoqlgwjpmdkiazwpwhmn.supabase.co";
@@ -3449,7 +3459,18 @@ document.addEventListener("visibilitychange", function(){
       cloudPushNow();
     }
     if(document.visibilityState === "visible"){
-      // v15 - scroll restaurado via scrollRestoration=manual, sem forçar
+      // v17 - restaura scroll sem piscão: body estava hidden, restaura posição, mostra
+      try{
+        const sy = parseInt(sessionStorage.getItem('md_scroll_y') || '0', 10);
+        if(sy > 0){
+          window.scrollTo(0, sy);
+          document.documentElement.scrollTop = sy;
+          document.body.scrollTop = sy;
+        }
+        document.documentElement.style.visibility = '';
+      }catch(e){
+        document.documentElement.style.visibility = '';
+      }
       __cloudBootStarted = false;
       cloudBoot();
     }
@@ -5183,7 +5204,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v17 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v18 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -5945,6 +5966,8 @@ window.addEventListener("pageshow", function(){ try{ applyQuickBalanceFabStateHa
 setInterval(function(){ try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} }, 800);
 
 function bootApp(){
+  // v17 - garante visibilidade mesmo se scroll não precisou ser restaurado
+  try{ document.documentElement.style.visibility = ''; }catch(e){}
   // v16 - calcular altura real da topbar e aplicar nas tabs para sticky preciso
   try{
     const topbar = document.querySelector('.topbar');
@@ -5976,7 +5999,18 @@ if(document.readyState === "loading"){
 window.addEventListener("pageshow", ()=>{
   try{ initSectionCollapse(); }catch(e){}
   try{ applyQuickBalanceFabStateHard(); }catch(e){}
-  // v15 - scrollRestoration=manual cuida disso
+  // v17 - restaura scroll no pageshow sem piscão
+  try{
+    const sy = parseInt(sessionStorage.getItem('md_scroll_y') || '0', 10);
+    if(sy > 0){
+      window.scrollTo(0, sy);
+      document.documentElement.scrollTop = sy;
+      document.body.scrollTop = sy;
+    }
+    document.documentElement.style.visibility = '';
+  }catch(e){
+    document.documentElement.style.visibility = '';
+  }
 });
 
 try{ ensureGanhoHoraDiaAtual(); }catch(e){}
