@@ -6,9 +6,6 @@
 <title>MetaDriver</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
 :root{color-scheme:dark}
@@ -186,7 +183,7 @@ if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.
 );
 }
 </script>
-<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v18 · instalação</div>
+<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v13 · instalação</div>
 
 <script>
 let deferredPrompt = null;
@@ -223,7 +220,7 @@ window.addEventListener('beforeinstallprompt', function(e){
   e.preventDefault();
   deferredPrompt = e;
   try{
-    document.getElementById('subText').textContent = 'Versão v18 pronta para instalar ou abrir.';
+    document.getElementById('subText').textContent = 'Versão v13 pronta para instalar ou abrir.';
     document.getElementById('noteText').textContent = 'Se o botão não abrir o prompt, use “Abrir app” ou instale pelo menu do navegador.';
   }catch(e){}
 });
@@ -262,7 +259,7 @@ document.getElementById('showStepsBtn').addEventListener('click', showManualStep
 
 try{
   var badge = document.getElementById('versionDebugBadge');
-  if(badge) badge.textContent = 'MetaDriver v18 · instalação';
+  if(badge) badge.textContent = 'MetaDriver v13 · instalação';
 }catch(e){}
 </script>
 </body>

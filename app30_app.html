@@ -5,9 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 
 <!-- Fullscreen hints (works when installed to home screen / PWA) -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -18,20 +15,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v18</title>
-<script>
-// v17 - esconde body ANTES de renderizar se há posição de scroll salva
-// evita o piscão de ir pro topo e depois voltar
-(function(){
-  try{
-    if('scrollRestoration' in history) history.scrollRestoration = 'manual';
-    const sy = parseInt(sessionStorage.getItem('md_scroll_y') || '0', 10);
-    if(sy > 0){
-      document.documentElement.style.visibility = 'hidden';
-    }
-  }catch(e){}
-})();
-</script>
+<title>MetaDriver v13.0.6</title>
 
 <style>
 :root{
@@ -64,7 +48,7 @@ h1{text-align:center;margin:8px 0 14px;letter-spacing:0.2px;}
   background:linear-gradient(to bottom, rgba(15,23,42,0.92), rgba(15,23,42,0.78));
   backdrop-filter: blur(8px);
   padding:14px 12px;
-  margin:-15px -15px 0;
+  margin:-15px -15px 12px;
   border-bottom:1px solid rgba(255,255,255,0.08);
 }
 .topbar-inner{
@@ -523,15 +507,7 @@ input.negative-value, input.negative-value::placeholder{
 
 
 /* ===== Abas ===== */
-/* v15 - abas fixas abaixo da topbar */
-.tabs-wrap{
-  padding:8px 15px 10px;
-  position:sticky;
-  top:64px;
-  z-index:48;
-  background:var(--bg);
-  margin:0 -15px;
-}
+.tabs-wrap{ padding:0 12px 12px; }
 .tabs-bar{ display:flex; gap:10px; margin-top:6px; }
 .tab-btn{
   flex:1;
@@ -3441,36 +3417,18 @@ async function cloudBoot(){
   }catch(e){}
 }
 
-window.addEventListener("pagehide", function(){
-  try{ cloudPushNow(); }catch(e){}
-});
+window.addEventListener("pagehide", function(){ try{ cloudPushNow(); }catch(e){} });
 window.addEventListener("beforeunload", function(){ try{ cloudPushNow(); }catch(e){} });
 window.addEventListener("online", function(){ try{ cloudPushNow(); }catch(e){} });
 // v9 - fix: ao esconder app (minimizar, trocar aba, fechar) salva local E nuvem
 document.addEventListener("visibilitychange", function(){
   try{
     if(document.visibilityState === "hidden"){
-      // v15 - scroll: apenas salva, não precisa mais forçar restauração
-      try{
-        const _sy = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
-        sessionStorage.setItem("md_scroll_y", String(_sy));
-      }catch(e){}
-      try{ salvar(); }catch(e){}
-      cloudPushNow();
+      try{ salvar(); }catch(e){}   // garante localStorage/IDB atualizado
+      cloudPushNow();               // envia pra nuvem
     }
     if(document.visibilityState === "visible"){
-      // v17 - restaura scroll sem piscão: body estava hidden, restaura posição, mostra
-      try{
-        const sy = parseInt(sessionStorage.getItem('md_scroll_y') || '0', 10);
-        if(sy > 0){
-          window.scrollTo(0, sy);
-          document.documentElement.scrollTop = sy;
-          document.body.scrollTop = sy;
-        }
-        document.documentElement.style.visibility = '';
-      }catch(e){
-        document.documentElement.style.visibility = '';
-      }
+      // Reinicia boot apenas se o cloudBoot ainda não foi concluído recentemente
       __cloudBootStarted = false;
       cloudBoot();
     }
@@ -5204,7 +5162,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v18 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v13 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -5966,17 +5924,6 @@ window.addEventListener("pageshow", function(){ try{ applyQuickBalanceFabStateHa
 setInterval(function(){ try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} }, 800);
 
 function bootApp(){
-  // v17 - garante visibilidade mesmo se scroll não precisou ser restaurado
-  try{ document.documentElement.style.visibility = ''; }catch(e){}
-  // v16 - calcular altura real da topbar e aplicar nas tabs para sticky preciso
-  try{
-    const topbar = document.querySelector('.topbar');
-    const tabsWrap = document.querySelector('.tabs-wrap');
-    if(topbar && tabsWrap){
-      const h = topbar.getBoundingClientRect().height;
-      tabsWrap.style.top = h + 'px';
-    }
-  }catch(e){}
   try{ ensureFirstInstallCollapsed(); }catch(e){}
   try{ initSectionCollapse(); }catch(e){}
   try{ ensureGanhoHoraDiaAtual(); }catch(e){}
@@ -5996,22 +5943,7 @@ if(document.readyState === "loading"){
   bootApp();
 }
 // Em alguns celulares, ao voltar para o app (bfcache), reaplica o estado
-window.addEventListener("pageshow", ()=>{
-  try{ initSectionCollapse(); }catch(e){}
-  try{ applyQuickBalanceFabStateHard(); }catch(e){}
-  // v17 - restaura scroll no pageshow sem piscão
-  try{
-    const sy = parseInt(sessionStorage.getItem('md_scroll_y') || '0', 10);
-    if(sy > 0){
-      window.scrollTo(0, sy);
-      document.documentElement.scrollTop = sy;
-      document.body.scrollTop = sy;
-    }
-    document.documentElement.style.visibility = '';
-  }catch(e){
-    document.documentElement.style.visibility = '';
-  }
-});
+window.addEventListener("pageshow", ()=>{ try{ initSectionCollapse(); }catch(e){} try{ applyQuickBalanceFabStateHard(); }catch(e){} });
 
 try{ ensureGanhoHoraDiaAtual(); }catch(e){}
 atualizar();
