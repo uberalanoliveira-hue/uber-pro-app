@@ -981,64 +981,42 @@ input.negative-value, input.negative-value::placeholder{
   padding:12px;
   border-radius:18px;
 }
-.meta-total-panel .quick-balance-title{
-  font-size:16px;
-  margin-bottom:4px;
-}
-.meta-total-panel .quick-balance-sub{
-  font-size:11px;
-  margin-bottom:8px;
-}
-.meta-total-panel .quick-balance-display{
-  height:auto;
-  min-height:72px;
-  margin-bottom:8px;
-  border-radius:16px;
-}
-.meta-total-panel .quick-balance-display-inner{
-  border-radius:14px;
-}
-.meta-total-panel .quick-balance-display-top{
-  padding:8px 10px;
-  font-size:11px;
-}
-.meta-total-panel .quick-balance-display-bottom{
-  padding:8px 10px;
-}
-.meta-total-panel .quick-balance-value{
-  font-size:34px;
+.meta-total-panel{
+  padding:8px;
 }
 .meta-total-panel .quick-balance-keypad{
-  gap:8px;
+  gap:6px;
   height:auto;
 }
 .meta-total-panel .quick-balance-key{
-  min-height:52px;
-  font-size:24px;
-  border-radius:14px;
+  min-height:44px;
+  font-size:22px;
+  border-radius:12px;
 }
 .meta-total-panel .quick-balance-actions{
+  display:grid;
   grid-template-columns:1fr 1fr;
-  gap:8px;
-  margin-top:8px;
+  gap:6px;
+  margin-top:6px;
 }
 .meta-total-panel .quick-balance-actions button{
-  min-height:48px;
-  font-size:16px;
-  border-radius:14px;
+  min-height:42px;
+  font-size:15px;
+  border-radius:12px;
 }
 @media (max-width:420px){
   .meta-total-panel{
     left:10px;
     right:10px;
-    padding:10px;
-  }
-  .meta-total-panel .quick-balance-value{
-    font-size:30px;
+    padding:8px;
   }
   .meta-total-panel .quick-balance-key{
-    min-height:48px;
-    font-size:22px;
+    min-height:42px;
+    font-size:20px;
+  }
+  .meta-total-panel .quick-balance-actions button{
+    min-height:40px;
+    font-size:14px;
   }
 }
 @media (min-width:700px){
@@ -5468,7 +5446,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v20.8 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v20.8.4 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -5928,10 +5906,11 @@ function positionMetaTotalKeypad(){
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
   const margin = viewportWidth <= 420 ? 10 : 12;
-  const left = Math.max(margin, Math.min(cardRect.left, viewportWidth - margin - 220));
-  const right = Math.max(margin, viewportWidth - Math.max(cardRect.right, left + 220));
-  const top = Math.max(rect.bottom + 8, margin);
-  const maxHeight = Math.max(220, viewportHeight - top - 8);
+  const minPanelWidth = 220;
+  const left = Math.max(margin, Math.min(cardRect.left, viewportWidth - margin - minPanelWidth));
+  const right = Math.max(margin, viewportWidth - Math.max(cardRect.right, left + minPanelWidth));
+  const top = Math.max(rect.bottom + 6, margin);
+  const maxHeight = Math.max(170, viewportHeight - top - 8);
   panel.style.left = left + 'px';
   panel.style.right = right + 'px';
   panel.style.top = top + 'px';
@@ -7610,17 +7589,7 @@ window.addEventListener("load", function(){
 
 
 <div id="metaTotalOverlay" class="quick-balance-overlay meta-total-overlay" onclick="toggleMetaTotalKeypad(false)"></div>
-<div id="metaTotalPanel" class="quick-balance-panel meta-total-panel" role="dialog" aria-modal="true" aria-labelledby="metaTotalTitle">
-  <div id="metaTotalTitle" class="quick-balance-title">Meta líquida desejada</div>
-  <div class="quick-balance-sub">Digite apenas números. Ao tocar em um número, o valor atual é substituído.</div>
-  <div class="quick-balance-display">
-    <div class="quick-balance-display-inner">
-      <div class="quick-balance-display-top">Meta líquida</div>
-      <div class="quick-balance-display-bottom">
-        <div id="metaTotalValue" class="quick-balance-value">R$ 0,00</div>
-      </div>
-    </div>
-  </div>
+<div id="metaTotalPanel" class="quick-balance-panel meta-total-panel" role="dialog" aria-modal="true" aria-label="Teclado numérico da meta líquida">
   <input type="text" id="metaTotalHiddenInput" class="quick-balance-hidden-input" inputmode="none" readonly tabindex="-1" aria-hidden="true" placeholder="0">
   <div class="quick-balance-keypad">
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('1')">1</button>
@@ -7632,12 +7601,12 @@ window.addEventListener("load", function(){
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('7')">7</button>
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('8')">8</button>
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('9')">9</button>
-    <button type="button" class="quick-balance-key" onclick="clearMetaTotal()">C</button>
+    <button type="button" class="quick-balance-key" onclick="clearMetaTotal()">Limpar</button>
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('0')">0</button>
     <button type="button" class="quick-balance-key" onclick="backspaceMetaTotal()">⌫</button>
   </div>
   <div class="quick-balance-actions">
-    <button type="button" class="secondary" onclick="clearMetaTotal()">Limpar</button>
+    <button type="button" class="secondary" onclick="backspaceMetaTotal()">Apagar</button>
     <button type="button" onclick="confirmMetaTotalKeypad()">OK</button>
   </div>
 </div>
