@@ -2772,7 +2772,7 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
       </div>
   <div class="card-body">
     <label>Meta líquida desejada (R$)</label>
-    <input type="number" id="metaTotal" inputmode="decimal">
+    <input type="text" id="metaTotal" inputmode="none" autocomplete="off" readonly onclick="openMetaTotalKeypad()" onfocus="this.blur(); openMetaTotalKeypad();">
     <label>Data limite para atingir a Meta</label>
     <input type="date" id="dataLimite">
 
@@ -5770,6 +5770,110 @@ document.getElementById("listaGastos").innerHTML =
 
 
 
+function syncMetaAutoFromInputs(){
+  try{
+    const metaInput = document.getElementById("metaTotal");
+    const dataInput = document.getElementById("dataLimite");
+    dados.metaTotal = parseFloat(String(metaInput?.value || "").replace(",", ".")) || 0;
+    dados.dataLimite = dataInput?.value || "";
+    dados.metaSalva = !!(Number(dados.metaTotal || 0) > 0 || String(dados.dataLimite || '').trim());
+    try{ atualizar(); }catch(e){}
+    try{ salvar(); }catch(e){}
+  }catch(e){}
+}
+
+let metaTotalReplaceOnNextInput = false;
+
+function formatMetaTotalDisplay(valueStr){
+  const n = parseFloat(String(valueStr || "").replace(",", ".")) || 0;
+  return "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function refreshMetaTotalDisplay(){
+  const input = document.getElementById("metaTotalHiddenInput");
+  const view = document.getElementById("metaTotalValue");
+  if(input && view){
+    view.textContent = formatMetaTotalDisplay(input.value);
+  }
+}
+
+function applyMetaTotalValue(){
+  const hidden = document.getElementById("metaTotalHiddenInput");
+  const visible = document.getElementById("metaTotal");
+  if(!hidden || !visible) return;
+  visible.value = String(hidden.value || "");
+  syncMetaAutoFromInputs();
+}
+
+function appendMetaTotalKey(key){
+  const input = document.getElementById("metaTotalHiddenInput");
+  if(!input) return;
+  let current = String(input.value || "");
+  if(metaTotalReplaceOnNextInput){
+    current = "";
+    metaTotalReplaceOnNextInput = false;
+  }
+  if(!/^[0-9]$/.test(String(key))) return;
+  current += String(key);
+  current = current.replace(/^0+(?=\d)/, "");
+  input.value = current;
+  refreshMetaTotalDisplay();
+  applyMetaTotalValue();
+}
+
+function backspaceMetaTotal(){
+  const input = document.getElementById("metaTotalHiddenInput");
+  if(!input) return;
+  if(metaTotalReplaceOnNextInput){
+    input.value = "";
+    metaTotalReplaceOnNextInput = false;
+  }else{
+    input.value = String(input.value || "").slice(0, -1);
+  }
+  refreshMetaTotalDisplay();
+  applyMetaTotalValue();
+}
+
+function clearMetaTotal(){
+  const input = document.getElementById("metaTotalHiddenInput");
+  if(!input) return;
+  input.value = "";
+  metaTotalReplaceOnNextInput = false;
+  refreshMetaTotalDisplay();
+  applyMetaTotalValue();
+}
+
+function toggleMetaTotalKeypad(forceOpen){
+  const panel = document.getElementById("metaTotalPanel");
+  const overlay = document.getElementById("metaTotalOverlay");
+  const hidden = document.getElementById("metaTotalHiddenInput");
+  const visible = document.getElementById("metaTotal");
+  if(!panel || !overlay || !hidden || !visible) return;
+  const abrir = (typeof forceOpen === "boolean") ? forceOpen : !panel.classList.contains("show");
+  panel.classList.toggle("show", abrir);
+  overlay.classList.toggle("show", abrir);
+  if(abrir){
+    hidden.value = String(visible.value || "");
+    metaTotalReplaceOnNextInput = true;
+    refreshMetaTotalDisplay();
+  }else{
+    metaTotalReplaceOnNextInput = false;
+  }
+}
+
+function openMetaTotalKeypad(){
+  toggleMetaTotalKeypad(true);
+}
+
+function confirmMetaTotalKeypad(){
+  const el = document.getElementById("metaTotal");
+  applyMetaTotalValue();
+  toggleMetaTotalKeypad(false);
+  try{ if(el) el.blur(); }catch(e){}
+  try{ document.activeElement && document.activeElement.blur && document.activeElement.blur(); }catch(e){}
+}
+
+
 function formatQuickBalanceDisplay(valueStr){
   const n = parseFloat(String(valueStr || "").replace(",", ".")) || 0;
   return "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -6217,17 +6321,8 @@ atualizar();
   metaIds.forEach(function(id){
     const el = document.getElementById(id);
     if(!el) return;
-
-    function syncMetaAuto(){
-      dados.metaTotal = parseFloat(document.getElementById("metaTotal")?.value) || 0;
-      dados.dataLimite = document.getElementById("dataLimite")?.value || "";
-      dados.metaSalva = !!(Number(dados.metaTotal || 0) > 0 || String(dados.dataLimite || '').trim());
-      try{ atualizar(); }catch(e){}
-      try{ salvar(); }catch(e){}
-    }
-
-    el.addEventListener("input", syncMetaAuto);
-    el.addEventListener("change", syncMetaAuto);
+    el.addEventListener("input", syncMetaAutoFromInputs);
+    el.addEventListener("change", syncMetaAutoFromInputs);
   });
 
   const ganhoIds = ["saldoAtualFora", "horarioInicioFora"];
@@ -7397,6 +7492,41 @@ window.addEventListener("load", function(){
   </div>
 </div>
 
+
+
+
+<div id="metaTotalOverlay" class="quick-balance-overlay" onclick="toggleMetaTotalKeypad(false)"></div>
+<div id="metaTotalPanel" class="quick-balance-panel" role="dialog" aria-modal="true" aria-labelledby="metaTotalTitle">
+  <div id="metaTotalTitle" class="quick-balance-title">Meta líquida desejada</div>
+  <div class="quick-balance-sub">Digite apenas números. Ao tocar em um número, o valor atual é substituído.</div>
+  <div class="quick-balance-display">
+    <div class="quick-balance-display-inner">
+      <div class="quick-balance-display-top">Meta líquida</div>
+      <div class="quick-balance-display-bottom">
+        <div id="metaTotalValue" class="quick-balance-value">R$ 0,00</div>
+      </div>
+    </div>
+  </div>
+  <input type="text" id="metaTotalHiddenInput" class="quick-balance-hidden-input" inputmode="none" readonly tabindex="-1" aria-hidden="true" placeholder="0">
+  <div class="quick-balance-keypad">
+    <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('1')">1</button>
+    <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('2')">2</button>
+    <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('3')">3</button>
+    <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('4')">4</button>
+    <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('5')">5</button>
+    <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('6')">6</button>
+    <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('7')">7</button>
+    <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('8')">8</button>
+    <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('9')">9</button>
+    <button type="button" class="quick-balance-key" onclick="clearMetaTotal()">C</button>
+    <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('0')">0</button>
+    <button type="button" class="quick-balance-key" onclick="backspaceMetaTotal()">⌫</button>
+  </div>
+  <div class="quick-balance-actions">
+    <button type="button" class="secondary" onclick="clearMetaTotal()">Limpar</button>
+    <button type="button" onclick="confirmMetaTotalKeypad()">OK</button>
+  </div>
+</div>
 
 <div id="saldoAtualButtonMenuOverlay" class="quick-balance-overlay" onclick="fecharSaldoAtualButtonMenu()"></div>
 <div id="saldoAtualButtonMenuPanel" class="quick-balance-panel" role="dialog" aria-modal="true" aria-labelledby="saldoAtualButtonMenuTitle">
