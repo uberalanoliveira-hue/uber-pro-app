@@ -18,9 +18,9 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v20.5</title>
+<title>MetaDriver v20.8</title>
 <script>
-// v20.5 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
+// v20.8 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
   var KEY_Y = 'md_scroll_y';
   var KEY_X = 'md_scroll_x';
@@ -2800,8 +2800,6 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 </div>
 <div class="divider"></div>
 
-    <button onclick="salvarMeta()">Salvar Meta</button>
-
     <div id="statusMeta" class="muted" style="margin-top:10px;"></div>
   </div>
 </div>
@@ -3240,7 +3238,9 @@ let dados = loadDados() || {
     kmRodados: 0,
     consumoMedio: 0,
     precoLitro: 0
-  }
+  },
+  metaSalva: false,
+  ganhoHoraSessaoAtiva: false
 };
 
 if(typeof dados.saldoAtualButtonAtivo !== "boolean"){ dados.saldoAtualButtonAtivo = getQuickBalanceFabPref ? getQuickBalanceFabPref() : true; }
@@ -3253,6 +3253,8 @@ if(typeof dados.ganhoHoraHistoricoAberto !== "boolean") dados.ganhoHoraHistorico
 if(!dados.ganhoHoraHistoricoExpandidos || typeof dados.ganhoHoraHistoricoExpandidos !== "object") dados.ganhoHoraHistoricoExpandidos = {};
 if(!dados.ganhoHoraDiaRef) dados.ganhoHoraDiaRef = dataUberISO();
 if(typeof dados.ganhoHoraSessaoDiaRef !== "string") dados.ganhoHoraSessaoDiaRef = "";
+dados.metaSalva = !!(Number(dados.metaTotal || 0) > 0 || String(dados.dataLimite || '').trim());
+if(typeof dados.ganhoHoraSessaoAtiva !== "boolean") dados.ganhoHoraSessaoAtiva = false;
 try{
   const sessoesDiaAtualBoot = Array.isArray(dados.ganhoHoraSessoes) ? dados.ganhoHoraSessoes.filter(function(s){
     const diaRef = String((s && s.diaRef) || '').trim();
@@ -3309,100 +3311,6 @@ salvar = function(){
   try{ cloudScheduleSave(); }catch(e){}
   return r;
 }
-
-
-function mdCapturePersistentInputsFromUI(){
-  try{
-    const num = function(id, fallback){
-      const el = document.getElementById(id);
-      if(!el) return fallback;
-      const raw = String(el.value == null ? '' : el.value).replace(',', '.').trim();
-      if(raw === '') return fallback;
-      const n = Number(raw);
-      return Number.isFinite(n) ? n : fallback;
-    };
-    const str = function(id, fallback){
-      const el = document.getElementById(id);
-      if(!el) return fallback;
-      return String(el.value == null ? '' : el.value);
-    };
-    if(typeof dados !== 'object' || !dados) return false;
-    let changed = false;
-    const setIfDiff = function(field, value){
-      if(mdCanonicalStringify(dados[field]) !== mdCanonicalStringify(value)){
-        dados[field] = value;
-        changed = true;
-      }
-    };
-
-    setIfDiff('metaTotal', num('metaTotal', Number(dados.metaTotal || 0)));
-    setIfDiff('dataLimite', str('dataLimite', dados.dataLimite || ''));
-    setIfDiff('ganhoHoraManual', num('ganhoHoraManual', Number(dados.ganhoHoraManual || 40)) || 40);
-    setIfDiff('saldoAtualFora', num('saldoAtualFora', Number(dados.saldoAtualFora || 0)));
-    setIfDiff('horarioInicioFora', str('horarioInicioFora', dados.horarioInicioFora || ''));
-
-    const combustivelModoEl = document.querySelector('input[name="combustivelModo"]:checked');
-    if(combustivelModoEl) setIfDiff('combustivelModo', combustivelModoEl.value || dados.combustivelModo || 'fixo');
-    setIfDiff('combustivelPercentual', num('percentualCombustivel', Number(dados.combustivelPercentual || 0.30)));
-
-    const combustivelReal = Object.assign({}, dados.combustivelReal || {});
-    let combustivelRealChanged = false;
-    [['fuelKmRodados','kmRodados'],['fuelConsumoMedio','consumoMedio'],['fuelPrecoLitro','precoLitro']].forEach(function(pair){
-      const next = num(pair[0], Number(combustivelReal[pair[1]] || 0));
-      if(Number(combustivelReal[pair[1]] || 0) !== Number(next || 0)){
-        combustivelReal[pair[1]] = next;
-        combustivelRealChanged = true;
-      }
-    });
-    if(combustivelRealChanged){
-      dados.combustivelReal = combustivelReal;
-      changed = true;
-    }
-    return changed;
-  }catch(e){ return false; }
-}
-
-let __mdPersistentInputSaveTimer = null;
-function mdSchedulePersistentInputSave(){
-  try{ clearTimeout(__mdPersistentInputSaveTimer); }catch(e){}
-  __mdPersistentInputSaveTimer = setTimeout(function(){
-    try{
-      const changed = mdCapturePersistentInputsFromUI();
-      if(changed){
-        salvar();
-        try{ atualizar(); }catch(e){}
-      }
-    }catch(e){}
-  }, 180);
-}
-
-function mdBindPersistentInputAutosave(){
-  try{
-    if(window.__mdPersistentInputAutosaveBound) return;
-    window.__mdPersistentInputAutosaveBound = true;
-    const ids = [
-      'metaTotal','dataLimite','saldoAtualFora','horarioInicioFora','ganhoHoraManual',
-      'percentualCombustivel','fuelKmRodados','fuelConsumoMedio','fuelPrecoLitro'
-    ];
-    ids.forEach(function(id){
-      const el = document.getElementById(id);
-      if(!el) return;
-      ['input','change','blur'].forEach(function(evt){
-        el.addEventListener(evt, mdSchedulePersistentInputSave, { passive: true });
-      });
-    });
-    document.querySelectorAll('input[name="combustivelModo"]').forEach(function(el){
-      ['change','blur'].forEach(function(evt){
-        el.addEventListener(evt, mdSchedulePersistentInputSave, { passive: true });
-      });
-    });
-  }catch(e){}
-}
-
-document.addEventListener('DOMContentLoaded', function(){
-  try{ mdBindPersistentInputAutosave(); }catch(e){}
-  setTimeout(function(){ try{ mdBindPersistentInputAutosave(); }catch(e){} }, 600);
-});
 
 
 async function cloudGetToken(){
@@ -3512,7 +3420,7 @@ async function cloudFetchRow(token, userId){
   return (Array.isArray(rows) && rows.length) ? rows[0] : null;
 }
 
-// v20.5 - stringify canônico para impedir duplicações por ordem de chaves diferente
+// v20.8 - stringify canônico para impedir duplicações por ordem de chaves diferente
 function mdCanonicalStringify(value){
   try{
     const seen = new WeakSet();
@@ -3741,12 +3649,7 @@ document.addEventListener("visibilitychange", function(){
         var _sy = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
         localStorage.setItem('md_scroll_y', String(_sy));
       }catch(e){}
-      try{
-        const ae = document.activeElement;
-        if(ae && typeof ae.blur === 'function') ae.blur();
-      }catch(e){}
-      try{ mdCapturePersistentInputsFromUI(); }catch(e){}
-      // v20.5 - ao minimizar, captura os campos editáveis atuais antes do salvamento local
+      // v20.8 - salva localmente sem gerar nova sincronização/merge ao apenas minimizar o app
       try{ if(typeof window.__salvarLocalOriginal === "function") window.__salvarLocalOriginal(); }catch(e){}
     }
     if(document.visibilityState === "visible"){
@@ -4081,6 +3984,7 @@ function toggleForm(id){
 function salvarMeta(){
   dados.metaTotal = parseFloat(document.getElementById("metaTotal").value) || 0;
   dados.dataLimite = document.getElementById("dataLimite").value || "";
+  dados.metaSalva = !!(Number(dados.metaTotal || 0) > 0 || String(dados.dataLimite || '').trim());
   salvar();
   atualizar();
       try{ atualizarCarro(); }catch(e){}
@@ -4917,7 +4821,7 @@ function reprocessarSessoesGanhoHora(){
   }
   syncSaldoAnteriorSessaoAtual();
 
-  const temSessaoEmAndamento = String(dados.horarioInicioFora || '').trim();
+  const temSessaoEmAndamento = !!dados.ganhoHoraSessaoAtiva && !!String(dados.horarioInicioFora || '').trim();
   if(temSessaoEmAndamento){
     const saldoAtual = Number(dados.saldoAtualFora || 0);
     const saldoAnterior = Number(dados.saldoAnteriorFora || 0);
@@ -5042,6 +4946,7 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
     dados.ganhoHoraAtualFora = 0;
   }else{
     dados.horarioInicioFora = "";
+    dados.ganhoHoraSessaoAtiva = false;
     dados.ganhoHoraSessaoDiaRef = "";
     syncSaldoAnteriorSessaoAtual();
     dados.horasDecorridasFora = 0;
@@ -5062,6 +4967,7 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
   }else{
     pararTimerGanhoHoraTempoReal();
     dados.horarioInicioFora = "";
+    dados.ganhoHoraSessaoAtiva = false;
     dados.ganhoHoraSessaoDiaRef = "";
     dados.horasDecorridasFora = 0;
     dados.ganhoHoraAtualFora = 0;
@@ -5101,7 +5007,7 @@ function ensureGanhoHoraDiaAtual(){
 
   const saldoAtualAntesVirada = Number(dados.saldoAtualFora || 0);
   const horaAtual = String(agora.getHours()).padStart(2,'0') + ':' + String(agora.getMinutes()).padStart(2,'0');
-  const temSessaoEmAndamento = String(dados.horarioInicioFora || '').trim();
+  const temSessaoEmAndamento = !!dados.ganhoHoraSessaoAtiva && !!String(dados.horarioInicioFora || '').trim();
   if(temSessaoEmAndamento){
     try{
       finalizarSessaoGanhoHoraInterno({
@@ -5150,6 +5056,7 @@ function salvarGanhosForaTempoReal(){
   dados.ganhoDiarioAtual = saldoAtual;
   dados.horarioInicioFora = horario;
   dados.ganhoHoraSessaoDiaRef = horario ? String(dados.ganhoHoraDiaRef || dataUberISO()) : "";
+  dados.ganhoHoraSessaoAtiva = !!horario;
 
   const saldoBase = saldoAtual - saldoAnterior;
 
@@ -5486,7 +5393,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v20.5 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v20.8 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -5513,16 +5420,17 @@ function atualizar(){
     const horaInput = document.getElementById("horarioInicioFora");
     const resumoEl = document.getElementById("ganhosForaResumo");
 
+    const sessaoAtiva = !!dados.ganhoHoraSessaoAtiva && !!String(dados.horarioInicioFora || '').trim();
     const saldoAnterior = syncSaldoAnteriorSessaoAtual();
     const saldoAtual = Number(dados.saldoAtualFora || 0);
-    const horario = dados.horarioInicioFora || "";
-    const horas = Number(dados.horasDecorridasFora || 0);
-    const ganhoHora = Number(dados.ganhoHoraAtualFora || 0);
-    const valorSessaoAtual = saldoAtual - saldoAnterior;
+    const horario = sessaoAtiva ? (dados.horarioInicioFora || "") : "";
+    const horas = sessaoAtiva ? Number(dados.horasDecorridasFora || 0) : 0;
+    const ganhoHora = sessaoAtiva ? Number(dados.ganhoHoraAtualFora || 0) : 0;
+    const valorSessaoAtual = sessaoAtiva ? (saldoAtual - saldoAnterior) : 0;
 
     const saldoAnteriorInput = document.getElementById("saldoAnteriorFora");
     if(saldoAnteriorInput && document.activeElement !== saldoAnteriorInput){
-      saldoAnteriorInput.value = saldoAnterior ? String(dados.saldoAnteriorFora) : "";
+      saldoAnteriorInput.value = sessaoAtiva && saldoAnterior ? String(dados.saldoAnteriorFora) : "";
     }
     if(saldoInput && document.activeElement !== saldoInput){
       saldoInput.value = saldoAtual ? String(dados.saldoAtualFora) : "";
@@ -5533,7 +5441,7 @@ function atualizar(){
 
     if(resumoEl){
       const sessoes = Array.isArray(dados.ganhoHoraSessoes) ? dados.ganhoHoraSessoes : [];
-      if(String(horario || '').trim()){
+      if(sessaoAtiva && String(horario || '').trim()){
         const indiceAtual = sessoes.length + 1;
         const tituloSessao = getNomeSessao(indiceAtual) + " sessão";
         const valorClass = valorSessaoAtual < 0 ? "dangerText" : "warning";
@@ -5623,7 +5531,8 @@ if(elMeta && document.activeElement !== elMeta){
 if(elData && document.activeElement !== elData){
   elData.value = dados.dataLimite || "";
 }
-document.getElementById("metaDiariaManual").value = (dados.metaDiariaManual || dados.metaDiariaManual === 0) ? dados.metaDiariaManual : "";
+const metaSalvaAgora = !!dados.metaSalva;
+document.getElementById("metaDiariaManual").value = metaSalvaAgora && (dados.metaDiariaManual || dados.metaDiariaManual === 0) ? dados.metaDiariaManual : "";
   document.getElementById("ganhoDiarioAtual").value = (dados.ganhoDiarioAtual ?? "");
 
   const modoCombustivel = (dados.combustivelModo === "real") ? "real" : "fixo";
@@ -5714,28 +5623,36 @@ const fuelCfg = getCombustivelConfig(bruto);
   try{
     const metaDiaInput = document.getElementById("metaDiariaManual");
     if(metaDiaInput){
-      metaDiaInput.value = metaDiariaAuto.toFixed(2);
+      metaDiaInput.value = metaSalvaAgora ? metaDiariaAuto.toFixed(2) : "";
       metaDiaInput.readOnly = true;
     }
   }catch(e){}
 
-  const metaDia = Math.max(0, metaDiariaAuto || 0);
+  const metaDia = metaSalvaAgora ? Math.max(0, metaDiariaAuto || 0) : 0;
   const ganhoDia = Math.max(0, dados.ganhoDiarioAtual || 0);
   const ganhoHoraRef = Math.max(0, Number(dados.ganhoHoraManual || 40));
   const horasNecessarias = (ganhoHoraRef > 0) ? (metaDia / ganhoHoraRef) : 0;
   const horasRestantes = (ganhoHoraRef > 0) ? (Math.max(0, metaDia - ganhoDia) / ganhoHoraRef) : 0;
 
       
-  document.getElementById("statusMeta").innerHTML =
-    "Dias restantes: <span class='" + (diasRestantes < 0 ? "dangerText" : "warning") + "'>" + diasRestantes + "</span><br>" +
-    "Meta bruta necessária total (" + (fuelCfg.modo === "real" ? "combustível real" : "30% combustível") + "): <span class='" + (metaBrutaComGastos < 0 ? "dangerText" : "warning") + "'>R$ " + metaBrutaComGastos.toFixed(2) + "</span><br>" +
-    "Meta bruta restante: <span class='" + (metaRestante < 0 ? "dangerText" : "warning") + "'>R$ " + metaRestante.toFixed(2) + "</span><br>" +
-    "Meta diária (automática): <span class='" + (metaDiariaAuto < 0 ? "dangerText" : "warning") + "'>R$ " + metaDiariaAuto.toFixed(2) + "</span>";
+  if(metaSalvaAgora){
+    document.getElementById("statusMeta").innerHTML =
+      "Dias restantes: <span class='" + (diasRestantes < 0 ? "dangerText" : "warning") + "'>" + diasRestantes + "</span><br>" +
+      "Meta bruta necessária total (" + (fuelCfg.modo === "real" ? "combustível real" : "30% combustível") + "): <span class='" + (metaBrutaComGastos < 0 ? "dangerText" : "warning") + "'>R$ " + metaBrutaComGastos.toFixed(2) + "</span><br>" +
+      "Meta bruta restante: <span class='" + (metaRestante < 0 ? "dangerText" : "warning") + "'>R$ " + metaRestante.toFixed(2) + "</span><br>" +
+      "Meta diária (automática): <span class='" + (metaDiariaAuto < 0 ? "dangerText" : "warning") + "'>R$ " + metaDiariaAuto.toFixed(2) + "</span>";
+  }else{
+    document.getElementById("statusMeta").innerHTML = "";
+  }
   const valorRestanteHoras = (metaDia - ganhoDia);
-  document.getElementById("horasResumo").innerHTML =
-    "Tempo para atingir a meta diária: <span class='" + (horasNecessarias < 0 ? "dangerText" : "warning") + "'>" + formatHorasMinutos(horasNecessarias) + "</span><br>" +
-    "Valor restante: <span class='" + (valorRestanteHoras < 0 ? "dangerText" : "warning") + "'>R$ " + valorRestanteHoras.toFixed(2) + "</span><br>" +
-    "Tempo restante: <span class='" + (horasRestantes < 0 ? "dangerText" : "warning") + "'>" + formatHorasMinutos(horasRestantes) + "</span>";
+  if(metaSalvaAgora){
+    document.getElementById("horasResumo").innerHTML =
+      "Tempo para atingir a meta diária: <span class='" + (horasNecessarias < 0 ? "dangerText" : "warning") + "'>" + formatHorasMinutos(horasNecessarias) + "</span><br>" +
+      "Valor restante: <span class='" + (valorRestanteHoras < 0 ? "dangerText" : "warning") + "'>R$ " + valorRestanteHoras.toFixed(2) + "</span><br>" +
+      "Tempo restante: <span class='" + (horasRestantes < 0 ? "dangerText" : "warning") + "'>" + formatHorasMinutos(horasRestantes) + "</span>";
+  }else{
+    document.getElementById("horasResumo").innerHTML = "";
+  }
 
   document.getElementById("fuelResumo").innerHTML =
     "Modo combustível: <span class='warning'>" + (fuelCfg.modo === "real" ? "Real" : (Math.round(fuelCfg.percentualSelecionado * 100) + "% do bruto")) + "</span><br>" +
@@ -6291,6 +6208,39 @@ window.addEventListener("pageshow", ()=>{
 try{ ensureGanhoHoraDiaAtual(); }catch(e){}
 atualizar();
 
+(function(){
+  const metaIds = ["metaTotal", "dataLimite"];
+  metaIds.forEach(function(id){
+    const el = document.getElementById(id);
+    if(!el) return;
+
+    function syncMetaAuto(){
+      dados.metaTotal = parseFloat(document.getElementById("metaTotal")?.value) || 0;
+      dados.dataLimite = document.getElementById("dataLimite")?.value || "";
+      dados.metaSalva = !!(Number(dados.metaTotal || 0) > 0 || String(dados.dataLimite || '').trim());
+      try{ salvar(); }catch(e){}
+      try{ atualizar(); }catch(e){}
+    }
+
+    el.addEventListener("input", syncMetaAuto);
+    el.addEventListener("change", syncMetaAuto);
+  });
+
+  const ganhoIds = ["saldoAtualFora", "horarioInicioFora"];
+  ganhoIds.forEach(function(id){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener("input", function(){
+      if(dados.ganhoHoraSessaoAtiva) return;
+      try{
+        const resumoEl = document.getElementById("ganhosForaResumo");
+        const saldoAnteriorInput = document.getElementById("saldoAnteriorFora");
+        if(resumoEl) resumoEl.innerHTML = "";
+        if(saldoAnteriorInput) saldoAnteriorInput.value = "";
+      }catch(e){}
+    });
+  });
+})();
 
 (function(){
   function bindExprField(id, storeKey){
