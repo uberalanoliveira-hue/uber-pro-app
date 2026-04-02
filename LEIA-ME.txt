@@ -342,3 +342,35 @@ ARQUIVOS ALTERADOS:
 
 STATUS:
 - Aguardando teste
+
+
+VERSÃO v20 - integracao-v20-chatgpt-com-fixes
+
+FEEDBACK DAS VERSÕES ANTERIORES DE SCROLL (v14 a v19):
+- Nenhuma resolveu o problema de scroll — o Android mata o processo do PWA ao minimizar
+- sessionStorage é destruído quando o processo morre — era a causa raiz
+- O ChatGPT implementou uma solução de scroll mais robusta na v20.8.8 com RAF e burst
+
+ANÁLISE DA v20.8.8 (ChatGPT):
+- O que foi prometido e NÃO entregue: fila de operações, soft delete, tabelas separadas no Supabase, IDs por registro, indicador visual de sync
+- O que foi entregue e está bom: __rev + __updated_at + __device_id, anel de backups (12 entradas), mdPickBestSnapshot, deduplicação canônica, scroll com requestAnimationFrame e burst
+- Bugs encontrados: cloudBoot aplicava remoto cegamente ignorando comparação, salvar() bloqueava remoções legítimas, visibilitychange não chamava cloudBoot, storageGet priorizava sessionStorage (destruído pelo Android)
+
+O QUE FOI FEITO (v20 final):
+- Base: v20.8.8 do ChatGPT (tem o melhor da arquitetura de sync)
+- Bug 1 corrigido: cloudBoot agora compara __rev e score antes de aplicar remoto — local mais recente não é sobrescrito
+- Bug 2 corrigido: salvar() não bloqueia mais remoções legítimas — só loga aviso se payload cair mais de 40%
+- Bug 3 corrigido: visibilitychange visible agora chama cloudBoot — sincroniza ao voltar ao app
+- Bug 4 corrigido: storageGet agora prioriza localStorage (sobrevive ao processo morto) em vez de sessionStorage
+
+ARQUIVOS ALTERADOS:
+- app30_app.html
+- index.html
+- login.html
+- admin.html
+- painel.html
+- reset.html
+- LEIA-ME.txt
+
+STATUS:
+- Aguardando teste

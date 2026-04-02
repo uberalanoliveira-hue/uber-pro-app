@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v20.8</title>
+<title>MetaDriver v20.8.8</title>
 <script>
 // v20.8 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -965,6 +965,59 @@ input.negative-value, input.negative-value::placeholder{
   height:1px;
   opacity:0;
   pointer-events:none;
+}
+
+
+.meta-total-overlay{
+  background:transparent;
+}
+.meta-total-panel{
+  left:12px;
+  right:12px;
+  bottom:auto;
+  top:auto;
+  max-width:none;
+  width:auto;
+  padding:12px;
+  border-radius:18px;
+}
+.meta-total-panel{
+  padding:8px;
+}
+.meta-total-panel .quick-balance-keypad{
+  gap:6px;
+  height:auto;
+}
+.meta-total-panel .quick-balance-key{
+  min-height:44px;
+  font-size:22px;
+  border-radius:12px;
+}
+.meta-total-panel .quick-balance-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+  margin-top:6px;
+}
+.meta-total-panel .quick-balance-actions button{
+  min-height:42px;
+  font-size:15px;
+  border-radius:12px;
+}
+@media (max-width:420px){
+  .meta-total-panel{
+    left:10px;
+    right:10px;
+    padding:8px;
+  }
+  .meta-total-panel .quick-balance-key{
+    min-height:42px;
+    font-size:20px;
+  }
+  .meta-total-panel .quick-balance-actions button{
+    min-height:40px;
+    font-size:14px;
+  }
 }
 @media (min-width:700px){
   .quick-balance-panel{
@@ -3124,6 +3177,9 @@ const FIRST_INSTALL_COLLAPSED_KEY = "metadriver_first_install_collapsed_v1";
 const FAB_PREF_KEY = "metadriver_quick_balance_fab_enabled";
 const CLOUD_PENDING_KEY = STORAGE_KEY + "__cloud_pending_v1";
 const CLOUD_LAST_OK_KEY = STORAGE_KEY + "__cloud_last_ok_v1";
+const CLOUD_BACKUP_KEY = STORAGE_KEY + "__cloud_backup_ring_v2";
+const LOCAL_BACKUP_KEY = STORAGE_KEY + "__local_backup_ring_v2";
+const META_SCHEMA_VERSION = 2;
 let __cloudSaveTimer = null;
 let __cloudBootStarted = false;
 let __cloudBootDoneOnce = false;
@@ -3189,6 +3245,18 @@ function loadDados(){
   try{
     const direct = localStorage.getItem(STORAGE_KEY);
     if(direct) return JSON.parse(direct);
+
+    try{
+      const backupRaw = localStorage.getItem(LOCAL_BACKUP_KEY);
+      const backupRing = backupRaw ? JSON.parse(backupRaw) : [];
+      if(Array.isArray(backupRing) && backupRing.length){
+        const firstValid = backupRing.find(function(item){ return item && item.snapshot && typeof item.snapshot === "object"; });
+        if(firstValid && firstValid.snapshot){
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(firstValid.snapshot));
+          return firstValid.snapshot;
+        }
+      }
+    }catch(e){}
 
     // tenta chaves antigas (para não perder dados ao atualizar o arquivo)
     const legacyKeys = [
@@ -3266,29 +3334,157 @@ try{
 }catch(e){}
 try{ mdSanitizeDuplicatedData(); }catch(e){}
 try{ reprocessarSessoesGanhoHora(); }catch(e){}
+
+function mdNowIso(){
+  return new Date().toISOString();
+}
+
+function mdEnsureDeviceId(){
+  try{
+    let id = localStorage.getItem("md_device_id_v1") || "";
+    if(!id){
+      id = "md-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem("md_device_id_v1", id);
+    }
+    return id;
+  }catch(e){
+    return "md-device";
+  }
+}
+
+function mdUsefulScore(obj){
+  try{
+    if(!obj || typeof obj !== "object") return 0;
+    let score = 0;
+    ["ganhos","gastos","abastecimentos","naoTrabalhados","ganhoHoraSessoes","ganhoHoraHistorico"].forEach(function(k){
+      if(Array.isArray(obj[k])) score += obj[k].length * 10;
+    });
+    ["metaTotal","metaDiariaManual","ganhoDiarioAtual","saldoAtualFora","saldoAnteriorFora","horasDecorridasFora","ganhoHoraAtualFora"].forEach(function(k){
+      if(Number(obj[k] || 0) !== 0) score += 3;
+    });
+    ["dataLimite","horarioInicioFora","ganhoHoraDiaRef","ganhoHoraSessaoDiaRef","tema"].forEach(function(k){
+      if(String(obj[k] || "").trim()) score += 2;
+    });
+    if(obj.combustivelReal && typeof obj.combustivelReal === "object") score += 2;
+    return score + Number(obj.__rev || 0);
+  }catch(e){ return 0; }
+}
+
+function mdEnsureDataMeta(obj){
+  if(!obj || typeof obj !== "object") return obj;
+  if(typeof obj.__schema_version !== "number") obj.__schema_version = META_SCHEMA_VERSION;
+  if(typeof obj.__rev !== "number" || !isFinite(obj.__rev)) obj.__rev = 0;
+  if(!obj.__device_id) obj.__device_id = mdEnsureDeviceId();
+  if(!obj.__updated_at) obj.__updated_at = mdNowIso();
+  if(!obj.__cloud_updated_at) obj.__cloud_updated_at = obj.__updated_at;
+  return obj;
+}
+
+function mdCreateBackupEntry(snapshot, reason){
+  try{
+    return {
+      ts: (snapshot && snapshot.__updated_at) || mdNowIso(),
+      rev: Number(snapshot && snapshot.__rev || 0),
+      reason: reason || "save",
+      score: mdUsefulScore(snapshot),
+      snapshot: JSON.parse(JSON.stringify(snapshot || {}))
+    };
+  }catch(e){ return null; }
+}
+
+function mdReadBackupRing(key){
+  try{
+    const raw = localStorage.getItem(key);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){ return []; }
+}
+
+function mdWriteBackupRing(key, ring){
+  try{
+    localStorage.setItem(key, JSON.stringify(Array.isArray(ring) ? ring.slice(0, 12) : []));
+  }catch(e){}
+}
+
+function mdPushBackup(key, snapshot, reason){
+  try{
+    if(!snapshot || typeof snapshot !== "object") return;
+    const entry = mdCreateBackupEntry(snapshot, reason);
+    if(!entry) return;
+    let ring = mdReadBackupRing(key);
+    ring = ring.filter(function(item){ return !(item && item.rev === entry.rev && item.ts === entry.ts); });
+    ring.unshift(entry);
+    mdWriteBackupRing(key, ring);
+  }catch(e){}
+}
+
+function mdUnwrapCloudPayload(payload){
+  try{
+    if(!payload || typeof payload !== "object") return { snapshot:null, backups:[] };
+    if(payload.schema_version === META_SCHEMA_VERSION && payload.snapshot && typeof payload.snapshot === "object"){
+      return {
+        snapshot: payload.snapshot,
+        backups: Array.isArray(payload.backups) ? payload.backups : []
+      };
+    }
+    return { snapshot: payload, backups: [] };
+  }catch(e){
+    return { snapshot:null, backups:[] };
+  }
+}
+
+function mdBuildCloudEnvelope(snapshot, backups){
+  return {
+    schema_version: META_SCHEMA_VERSION,
+    device_id: mdEnsureDeviceId(),
+    snapshot: JSON.parse(JSON.stringify(snapshot || {})),
+    backups: (Array.isArray(backups) ? backups : []).slice(0, 8),
+    exported_at: mdNowIso()
+  };
+}
+
+function mdPickBestSnapshot(candidates){
+  const valid = (Array.isArray(candidates) ? candidates : []).filter(function(item){ return item && item.snapshot && typeof item.snapshot === "object"; });
+  if(!valid.length) return null;
+  valid.sort(function(a,b){
+    const ar = Number(a.snapshot.__rev || 0), br = Number(b.snapshot.__rev || 0);
+    if(br !== ar) return br - ar;
+    const at = new Date(a.snapshot.__updated_at || a.snapshot.__cloud_updated_at || 0).getTime() || 0;
+    const bt = new Date(b.snapshot.__updated_at || b.snapshot.__cloud_updated_at || 0).getTime() || 0;
+    if(bt !== at) return bt - at;
+    return mdUsefulScore(b.snapshot) - mdUsefulScore(a.snapshot);
+  });
+  return valid[0].snapshot;
+}
+
+mdEnsureDataMeta(dados);
 // Migração desativada (substituída por loadDados com legacyKeys)
 // v9 - salvar com verificação de integridade: confirma que o dado foi realmente gravado
 function salvar(){
   try{
+    mdEnsureDataMeta(dados);
+    dados.__rev = Number(dados.__rev || 0) + 1;
+    dados.__updated_at = mdNowIso();
     const payload = JSON.stringify(dados);
     // Verifica que o payload não é menor que o anterior (proteção contra corrupção)
     const anterior = localStorage.getItem(STORAGE_KEY);
     if(anterior && anterior.length > payload.length + 500){
-      // Payload atual é significativamente menor — possível corrupção, aborta
       console.warn("MetaDriver: payload menor que anterior, salvamento abortado por segurança");
+      mdPushBackup(LOCAL_BACKUP_KEY, dados, "blocked-small-payload");
       return;
     }
     localStorage.setItem(STORAGE_KEY, payload);
-    // Verifica se realmente foi gravado
     const verificacao = localStorage.getItem(STORAGE_KEY);
     if(verificacao !== payload){
       throw new Error("Verificação de escrita falhou");
     }
     idbSet(IDB_KEY, payload);
+    mdPushBackup(LOCAL_BACKUP_KEY, dados, "save");
   }catch(e){
     try{
       const payload = JSON.stringify(dados);
       idbSet(IDB_KEY, payload);
+      mdPushBackup(LOCAL_BACKUP_KEY, dados, "fallback-idb");
       toast("⚠️ Falha ao salvar localmente. Abra no Chrome normal (não anônimo).");
     }catch(_){}
   }
@@ -3297,7 +3493,8 @@ window.__salvarLocalOriginal = salvar;
 salvar = function(){
   try{
     if(typeof dados === "object" && dados){
-      dados.__cloud_updated_at = new Date().toISOString();
+      mdEnsureDataMeta(dados);
+      dados.__cloud_updated_at = mdNowIso();
     }
   }catch(e){}
   const r = window.__salvarLocalOriginal.apply(this, arguments);
@@ -3306,7 +3503,6 @@ salvar = function(){
       cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
     }
   }catch(e){}
-  // v9 - marca que há mudança pendente para o intervalo de 60s
   __cloudDirty = true;
   try{ cloudScheduleSave(); }catch(e){}
   return r;
@@ -3420,6 +3616,27 @@ async function cloudFetchRow(token, userId){
   return (Array.isArray(rows) && rows.length) ? rows[0] : null;
 }
 
+function mdSyncBackupsFromCloud(backups){
+  try{
+    if(!Array.isArray(backups) || !backups.length) return;
+    let ring = mdReadBackupRing(CLOUD_BACKUP_KEY).concat(mdReadBackupRing(LOCAL_BACKUP_KEY));
+    ring = ring.concat(backups.filter(function(item){ return item && item.snapshot; }));
+    const seen = new Set();
+    ring = ring.filter(function(item){
+      const sig = String((item && item.rev) || "") + "|" + String((item && item.ts) || "");
+      if(seen.has(sig)) return false;
+      seen.add(sig);
+      return true;
+    }).sort(function(a,b){
+      const ar = Number(a && a.rev || 0), br = Number(b && b.rev || 0);
+      if(br !== ar) return br - ar;
+      return (new Date((b && b.ts) || 0).getTime()||0) - (new Date((a && a.ts) || 0).getTime()||0);
+    }).slice(0, 12);
+    mdWriteBackupRing(CLOUD_BACKUP_KEY, ring);
+    mdWriteBackupRing(LOCAL_BACKUP_KEY, ring);
+  }catch(e){}
+}
+
 // v20.8 - stringify canônico para impedir duplicações por ordem de chaves diferente
 function mdCanonicalStringify(value){
   try{
@@ -3481,27 +3698,30 @@ function cloudMergeArrays(local, remote){
 function cloudApplyRemoteData(remoteData){
   try{
     if(!remoteData || typeof remoteData !== "object") return;
-    // Campos de array: sempre mescla, nunca substitui cegamente
+    mdEnsureDataMeta(dados);
+    mdEnsureDataMeta(remoteData);
     const arrayFields = ["ganhos","gastos","abastecimentos","naoTrabalhados",
                          "ganhoHoraSessoes","ganhoHoraHistorico"];
-    const merged = Object.assign({}, remoteData || {});
+    const base = mdPickBestSnapshot([
+      { snapshot: dados },
+      { snapshot: remoteData }
+    ]) || remoteData;
+    const merged = Object.assign({}, base || {});
     arrayFields.forEach(function(field){
       merged[field] = cloudMergeArrays(
         Array.isArray(dados[field]) ? dados[field] : [],
         Array.isArray(remoteData[field]) ? remoteData[field] : []
       );
     });
-    // Campos escalares: usa remoto só se local estiver vazio/zero
-    const scalarPreferLocal = ["metaTotal","dataLimite","metaDiariaManual",
-                               "saldoAtualFora","horarioInicioFora","ganhoHoraDiaRef",
-                               "combustivelPercentual","combustivelModo","tema"];
-    scalarPreferLocal.forEach(function(field){
+    const scalarPreferNewest = ["metaTotal","dataLimite","metaDiariaManual","saldoAtualFora","horarioInicioFora","ganhoHoraDiaRef","combustivelPercentual","combustivelModo","tema","ganhoDiarioAtual","ganhoHoraManual","saldoAnteriorFora","horasDecorridasFora","ganhoHoraAtualFora"];
+    scalarPreferNewest.forEach(function(field){
       const localVal = dados[field];
-      const hasLocal = localVal !== null && localVal !== undefined && localVal !== "" && localVal !== 0;
-      if(hasLocal) merged[field] = localVal;
+      const remoteVal = remoteData[field];
+      const localHas = localVal !== null && localVal !== undefined && localVal !== "";
+      const remoteHas = remoteVal !== null && remoteVal !== undefined && remoteVal !== "";
+      if(localHas && !remoteHas) merged[field] = localVal;
+      else if(remoteHas && !localHas) merged[field] = remoteVal;
     });
-    // v9 - fix logout: sessão em andamento NUNCA é apagada por sync da nuvem
-    // Se havia sessão local ativa, preserva ela integralmente
     const sessaoLocalAtiva = String(dados.horarioInicioFora || "").trim();
     if(sessaoLocalAtiva){
       merged.horarioInicioFora    = dados.horarioInicioFora;
@@ -3512,9 +3732,13 @@ function cloudApplyRemoteData(remoteData){
       merged.horasDecorridasFora  = dados.horasDecorridasFora;
       merged.ganhoHoraAtualFora   = dados.ganhoHoraAtualFora;
     }
+    mdEnsureDataMeta(merged);
+    merged.__rev = Math.max(Number(dados.__rev || 0), Number(remoteData.__rev || 0));
+    merged.__updated_at = mdPickBestSnapshot([{snapshot:dados},{snapshot:remoteData}]).__updated_at || mdNowIso();
+    merged.__cloud_updated_at = mdNowIso();
     dados = merged;
+    mdPushBackup(LOCAL_BACKUP_KEY, dados, "merge-remote");
     if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
-    // v9 - religa timer da sessão se ainda estiver em andamento após merge
     try{
       if(String(dados.horarioInicioFora || "").trim()){
         iniciarTimerGanhoHoraTempoReal();
@@ -3533,43 +3757,75 @@ async function cloudPushNow(snapshotOverride){
     if(!user || !user.id) return false;
 
     const pending = snapshotOverride || cloudReadPendingSnapshot();
-    const payload = pending && pending.payload ? pending.payload : dados;
-    const updatedAt = (pending && pending.updated_at) || (payload && payload.__cloud_updated_at) || new Date().toISOString();
+    const pendingPayload = pending && pending.payload ? pending.payload : null;
+    const localPayload = (typeof dados === "object" && dados) ? dados : null;
+    const remoteRow = await cloudFetchRow(token, user.id).catch(function(){ return null; });
+    const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
+    const remoteSnapshot = remoteWrapped.snapshot;
+    const best = mdPickBestSnapshot([
+      { snapshot: pendingPayload },
+      { snapshot: localPayload },
+      { snapshot: remoteSnapshot }
+    ]);
+    if(!best || !cloudHasUsefulData(best)) return false;
 
-    if(!cloudHasUsefulData(payload)) return false;
+    mdEnsureDataMeta(best);
+    best.__cloud_updated_at = mdNowIso();
 
+    const backupCandidates = []
+      .concat(mdReadBackupRing(LOCAL_BACKUP_KEY))
+      .concat(mdReadBackupRing(CLOUD_BACKUP_KEY))
+      .concat(Array.isArray(remoteWrapped.backups) ? remoteWrapped.backups : []);
+    backupCandidates.unshift(mdCreateBackupEntry(best, "cloud-push"));
+    const seen = new Set();
+    const backups = backupCandidates.filter(function(item){
+      if(!item || !item.snapshot) return false;
+      const sig = String(item.rev || "") + "|" + String(item.ts || "");
+      if(seen.has(sig)) return false;
+      seen.add(sig);
+      return true;
+    }).sort(function(a,b){
+      const ar = Number(a.rev || 0), br = Number(b.rev || 0);
+      if(br !== ar) return br - ar;
+      return (new Date(b.ts || 0).getTime()||0) - (new Date(a.ts || 0).getTime()||0);
+    }).slice(0, 8);
+
+    const updatedAt = best.__cloud_updated_at;
+    const envelope = mdBuildCloudEnvelope(best, backups);
     const body = [{
       user_id: user.id,
-      payload: payload,
+      payload: envelope,
       updated_at: updatedAt
     }];
 
-    const res = await fetch(
-      CLOUD_SUPABASE_URL + "/rest/v1/" + CLOUD_TABLE + "?on_conflict=user_id",
-      {
-        method: "POST",
-        headers: {
-          "apikey": CLOUD_SUPABASE_KEY,
-          "Authorization": "Bearer " + token,
-          "Content-Type": "application/json",
-          "Prefer": "resolution=merge-duplicates,return=minimal"
-        },
-        body: JSON.stringify(body)
-      }
-    );
+    const res = await fetch(CLOUD_SUPABASE_URL + "/rest/v1/" + CLOUD_TABLE, {
+      method: "POST",
+      headers: {
+        "apikey": CLOUD_SUPABASE_KEY,
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates,return=minimal"
+      },
+      body: JSON.stringify(body)
+    });
+    if(!res.ok) throw new Error("Falha ao salvar na nuvem");
 
-    if(res.ok){
-      cloudClearPendingSnapshot(updatedAt);
-      cloudMarkLastOk(updatedAt);
-      return true;
+    if(localPayload === dados){
+      dados = best;
+      if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
     }
-    // Push falhou — remarca como sujo para o próximo ciclo de 60s tentar de novo
+    mdWriteBackupRing(CLOUD_BACKUP_KEY, backups);
+    mdPushBackup(LOCAL_BACKUP_KEY, best, "cloud-ok");
+    cloudClearPendingSnapshot(updatedAt);
+    cloudMarkLastOk(updatedAt);
+    __cloudDirty = false;
+    return true;
+  }catch(e){
     __cloudDirty = true;
     return false;
-  }catch(e){ return false; }
+  }
 }
 
-// v9 - fix: delay maior (1s) e retry em caso de falha
 let __cloudSaveRetries = 0;
 function cloudScheduleSave(){
   clearTimeout(__cloudSaveTimer);
@@ -3596,40 +3852,37 @@ async function cloudBoot(force){
     if(!user || !user.id) return;
 
     const pending = cloudReadPendingSnapshot();
-    const pendingTs = pending && pending.updated_at ? new Date(pending.updated_at).getTime() : 0;
-    const localTs = dados && dados.__cloud_updated_at ? new Date(dados.__cloud_updated_at).getTime() : 0;
+    const remoteRow = await cloudFetchRow(token, user.id).catch(function(){ return null; });
+    const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
+    mdSyncBackupsFromCloud(remoteWrapped.backups || []);
 
-    // Primeiro tenta empurrar o que ainda está pendente localmente
-    if(pending && pending.payload && cloudHasUsefulData(pending.payload)){
-      await cloudPushNow(pending);
+    const remoteSnapshot = remoteWrapped.snapshot;
+    const best = mdPickBestSnapshot([
+      { snapshot: pending && pending.payload ? pending.payload : null },
+      { snapshot: dados },
+      { snapshot: remoteSnapshot }
+    ]);
+
+    if(remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
+      cloudApplyRemoteData(remoteSnapshot);
+    }else if(best && cloudHasUsefulData(best)){
+      dados = JSON.parse(JSON.stringify(best));
+      mdEnsureDataMeta(dados);
+      mdPushBackup(LOCAL_BACKUP_KEY, dados, "boot-best");
+      if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
+      try{ atualizar(); }catch(e){}
     }
 
-    const remoteRow = await cloudFetchRow(token, user.id);
-    const remoteData = remoteRow && remoteRow.payload ? remoteRow.payload : null;
-    const remoteTs = remoteRow && remoteRow.updated_at ? new Date(remoteRow.updated_at).getTime() : 0;
-
-    // v9 - fix: sempre mescla nuvem+local; nunca descarta nenhum dos dois
-    if(remoteData && cloudHasUsefulData(remoteData)){
-      cloudApplyRemoteData(remoteData);
-      // Após merge, salva o resultado consolidado de volta pra nuvem
-      try{
-        cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
-        cloudScheduleSave();
-      }catch(e){}
-      __cloudBootDoneOnce = true;
-      if(remoteTs > Math.max(localTs, pendingTs)){
-        try{ toast("☁️ Dados sincronizados com a nuvem."); }catch(e){}
-      }
-      return;
-    }
-
-    // Nuvem vazia ou sem dados úteis — envia o local
-    __cloudBootDoneOnce = true;
     if(cloudHasUsefulData(dados)){
       cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
       cloudScheduleSave();
     }
-  }catch(e){}
+    __cloudBootDoneOnce = true;
+  }catch(e){
+    console.warn("cloudBoot", e);
+  }finally{
+    __cloudBootStarted = false;
+  }
 }
 
 window.addEventListener("pagehide", function(){
@@ -5393,7 +5646,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v20.8 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v20.8.8 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -5843,6 +6096,29 @@ function clearMetaTotal(){
   applyMetaTotalValue();
 }
 
+function positionMetaTotalKeypad(){
+  const panel = document.getElementById("metaTotalPanel");
+  const visible = document.getElementById("metaTotal");
+  if(!panel || !visible || !panel.classList.contains("show")) return;
+  const rect = visible.getBoundingClientRect();
+  const cardBody = visible.closest('.card-body');
+  const cardRect = cardBody ? cardBody.getBoundingClientRect() : rect;
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+  const margin = viewportWidth <= 420 ? 10 : 12;
+  const minPanelWidth = 220;
+  const left = Math.max(margin, Math.min(cardRect.left, viewportWidth - margin - minPanelWidth));
+  const right = Math.max(margin, viewportWidth - Math.max(cardRect.right, left + minPanelWidth));
+  const top = Math.max(rect.bottom + 6, margin);
+  const maxHeight = Math.max(170, viewportHeight - top - 8);
+  panel.style.left = left + 'px';
+  panel.style.right = right + 'px';
+  panel.style.top = top + 'px';
+  panel.style.bottom = 'auto';
+  panel.style.maxHeight = maxHeight + 'px';
+  panel.style.overflowY = 'auto';
+}
+
 function toggleMetaTotalKeypad(forceOpen){
   const panel = document.getElementById("metaTotalPanel");
   const overlay = document.getElementById("metaTotalOverlay");
@@ -5856,10 +6132,27 @@ function toggleMetaTotalKeypad(forceOpen){
     hidden.value = String(visible.value || "");
     metaTotalReplaceOnNextInput = true;
     refreshMetaTotalDisplay();
+    positionMetaTotalKeypad();
   }else{
     metaTotalReplaceOnNextInput = false;
+    panel.style.top = '';
+    panel.style.bottom = '';
+    panel.style.left = '';
+    panel.style.right = '';
+    panel.style.maxHeight = '';
+    panel.style.overflowY = '';
   }
 }
+
+window.addEventListener('resize', function(){
+  positionMetaTotalKeypad();
+}, { passive:true });
+window.addEventListener('orientationchange', function(){
+  setTimeout(positionMetaTotalKeypad, 50);
+}, { passive:true });
+window.addEventListener('scroll', function(){
+  positionMetaTotalKeypad();
+}, { passive:true });
 
 function openMetaTotalKeypad(){
   toggleMetaTotalKeypad(true);
@@ -7495,18 +7788,8 @@ window.addEventListener("load", function(){
 
 
 
-<div id="metaTotalOverlay" class="quick-balance-overlay" onclick="toggleMetaTotalKeypad(false)"></div>
-<div id="metaTotalPanel" class="quick-balance-panel" role="dialog" aria-modal="true" aria-labelledby="metaTotalTitle">
-  <div id="metaTotalTitle" class="quick-balance-title">Meta líquida desejada</div>
-  <div class="quick-balance-sub">Digite apenas números. Ao tocar em um número, o valor atual é substituído.</div>
-  <div class="quick-balance-display">
-    <div class="quick-balance-display-inner">
-      <div class="quick-balance-display-top">Meta líquida</div>
-      <div class="quick-balance-display-bottom">
-        <div id="metaTotalValue" class="quick-balance-value">R$ 0,00</div>
-      </div>
-    </div>
-  </div>
+<div id="metaTotalOverlay" class="quick-balance-overlay meta-total-overlay" onclick="toggleMetaTotalKeypad(false)"></div>
+<div id="metaTotalPanel" class="quick-balance-panel meta-total-panel" role="dialog" aria-modal="true" aria-label="Teclado numérico da meta líquida">
   <input type="text" id="metaTotalHiddenInput" class="quick-balance-hidden-input" inputmode="none" readonly tabindex="-1" aria-hidden="true" placeholder="0">
   <div class="quick-balance-keypad">
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('1')">1</button>
@@ -7518,12 +7801,12 @@ window.addEventListener("load", function(){
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('7')">7</button>
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('8')">8</button>
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('9')">9</button>
-    <button type="button" class="quick-balance-key" onclick="clearMetaTotal()">C</button>
+    <button type="button" class="quick-balance-key" onclick="clearMetaTotal()">Limpar</button>
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('0')">0</button>
     <button type="button" class="quick-balance-key" onclick="backspaceMetaTotal()">⌫</button>
   </div>
   <div class="quick-balance-actions">
-    <button type="button" class="secondary" onclick="clearMetaTotal()">Limpar</button>
+    <button type="button" class="secondary" onclick="backspaceMetaTotal()">Apagar</button>
     <button type="button" onclick="confirmMetaTotalKeypad()">OK</button>
   </div>
 </div>

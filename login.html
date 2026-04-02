@@ -297,15 +297,6 @@ button.action {
         return (Array.isArray(rows) && rows.length) ? rows[0] : null;
       });
   }
-  function cloudRestoreToLocal(payload) {
-    try {
-      if (!payload || typeof payload !== "object") return false;
-      localStorage.setItem("controleUberProDados", JSON.stringify(payload));
-      return true;
-    } catch(e) {
-      return false;
-    }
-  }
   async function validateAndGo(session) {
     var user = await getUser(session.access_token);
     var access = await getAccess(user.id, session.access_token);
@@ -322,16 +313,30 @@ button.action {
       return;
     }
 
-    try {
-      var cloudRow = await cloudFetchRow(user.id, session.access_token);
-      if (cloudRow && cloudRow.payload) {
-        cloudRestoreToLocal(cloudRow.payload);
-      }
-    } catch(e) {}
-
     location.href = PANEL_PAGE;
   }
+
+  var loginBusy = false;
+  async function apiWithRetry(path, method, body, token, extraHeaders, retries) {
+    var attempts = typeof retries === "number" ? retries : 3;
+    var lastErr = null;
+    for (var i = 0; i < attempts; i++) {
+      try {
+        return await api(path, method, body, token, extraHeaders);
+      } catch (e) {
+        lastErr = e;
+        var msg = String((e && e.message) || "").toLowerCase();
+        var transient = msg.indexOf("fetch") >= 0 || msg.indexOf("network") >= 0 || msg.indexOf("failed") >= 0;
+        if (!transient || i === attempts - 1) break;
+        await new Promise(function(resolve){ setTimeout(resolve, 500 * (i + 1)); });
+      }
+    }
+    throw lastErr || new Error("Falha de rede");
+  }
+
   async function primaryAction() {
+    if (loginBusy) return;
+    loginBusy = true;
     hideMsg();
     var nome = $("name").value.trim();
     var email = $("email").value.trim();
@@ -340,6 +345,7 @@ button.action {
     if (!email || !pass) {
       showMsg("Preencha email e senha.", "danger");
       setStatus("faltam dados");
+      loginBusy = false;
       return;
     }
 
@@ -347,11 +353,12 @@ button.action {
       if (!nome) {
         showMsg("Preencha o nome completo.", "danger");
         setStatus("faltam dados");
+        loginBusy = false;
         return;
       }
       setStatus("criando conta");
       try {
-        const data = await api("/auth/v1/signup?redirect_to=" + encodeURIComponent(REDIRECT_URL), "POST", {
+        const data = await apiWithRetry("/auth/v1/signup?redirect_to=" + encodeURIComponent(REDIRECT_URL), "POST", {
           email: email,
           password: pass,
           data: { nome: nome }
@@ -366,13 +373,15 @@ button.action {
       } catch(e) {
         showMsg(e.message || "Erro no cadastro.", "danger");
         setStatus("erro");
+      } finally {
+        loginBusy = false;
       }
       return;
     }
 
     setStatus("entrando");
     try {
-      const data = await api("/auth/v1/token?grant_type=password", "POST", {
+      const data = await apiWithRetry("/auth/v1/token?grant_type=password", "POST", {
         email: email,
         password: pass
       }, null);
@@ -386,6 +395,8 @@ button.action {
     } catch(e) {
       showMsg(e.message || "Erro no login.", "danger");
       setStatus("erro");
+    } finally {
+      loginBusy = false;
     }
   }
   async function forgot() {
@@ -451,6 +462,6 @@ button.action {
   }
 })();
 </script>
-<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v20.4 · login</div>
+<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v20 · login</div>
 </body>
 </html>
