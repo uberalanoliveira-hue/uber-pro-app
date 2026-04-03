@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v21</title>
+<title>MetaDriver v20.9</title>
 <script>
 // v20 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -3452,21 +3452,11 @@ function mdPickBestSnapshot(candidates){
   const valid = (Array.isArray(candidates) ? candidates : []).filter(function(item){ return item && item.snapshot && typeof item.snapshot === "object"; });
   if(!valid.length) return null;
   valid.sort(function(a,b){
-    // v21 - critério 0: ganhoHoraDiaRef mais recente SEMPRE ganha
-    // impede que snapshot de dia anterior sobrescreva dados do dia atual
-    const aDia = String(a.snapshot.ganhoHoraDiaRef || "").trim();
-    const bDia = String(b.snapshot.ganhoHoraDiaRef || "").trim();
-    if(aDia && bDia && aDia !== bDia){
-      return bDia > aDia ? 1 : -1;
-    }
-    // critério 1: __rev
     const ar = Number(a.snapshot.__rev || 0), br = Number(b.snapshot.__rev || 0);
     if(br !== ar) return br - ar;
-    // critério 2: __updated_at
     const at = new Date(a.snapshot.__updated_at || a.snapshot.__cloud_updated_at || 0).getTime() || 0;
     const bt = new Date(b.snapshot.__updated_at || b.snapshot.__cloud_updated_at || 0).getTime() || 0;
     if(bt !== at) return bt - at;
-    // critério 3: score de dados
     return mdUsefulScore(b.snapshot) - mdUsefulScore(a.snapshot);
   });
   return valid[0].snapshot;
@@ -3716,34 +3706,6 @@ function cloudApplyRemoteData(remoteData){
     if(!remoteData || typeof remoteData !== "object") return;
     mdEnsureDataMeta(dados);
     mdEnsureDataMeta(remoteData);
-    // v21 - NUNCA aplicar remoto se ele for de dia anterior ao local
-    // isso impede a regressão pós-virada das 4h
-    const diaLocal = String(dados.ganhoHoraDiaRef || "").trim();
-    const diaRemoto = String(remoteData.ganhoHoraDiaRef || "").trim();
-    if(diaLocal && diaRemoto && diaRemoto < diaLocal){
-      console.warn("MetaDriver v21: remoto recusado — dia remoto ("+diaRemoto+") < dia local ("+diaLocal+")");
-      // Mesmo recusando o merge, garantir que os arrays remotos não percam dados extras
-      // — apenas mescla arrays sem mudar o estado do dia atual
-      const arrayFields = ["ganhos","gastos","abastecimentos","naoTrabalhados",
-                           "ganhoHoraSessoes","ganhoHoraHistorico"];
-      let changed = false;
-      arrayFields.forEach(function(field){
-        const merged = cloudMergeArrays(
-          Array.isArray(dados[field]) ? dados[field] : [],
-          Array.isArray(remoteData[field]) ? remoteData[field] : []
-        );
-        if(merged.length > (Array.isArray(dados[field]) ? dados[field].length : 0)){
-          dados[field] = merged;
-          changed = true;
-        }
-      });
-      if(changed){
-        dados.__rev = Number(dados.__rev || 0) + 1;
-        dados.__updated_at = mdNowIso();
-        if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
-      }
-      return;
-    }
     const arrayFields = ["ganhos","gastos","abastecimentos","naoTrabalhados",
                          "ganhoHoraSessoes","ganhoHoraHistorico"];
     const base = mdPickBestSnapshot([
@@ -3967,10 +3929,7 @@ document.addEventListener("visibilitychange", function(){
         document.documentElement.style.pointerEvents = '';
       }catch(e){}
       try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){}
-      // v21 - verificar virada de dia ANTES de sincronizar com nuvem
-      // se o dia virou enquanto app estava em background, garante estado correto
-      // antes de qualquer merge com remoto
-      try{ ensureGanhoHoraDiaAtual(); }catch(e){}
+      // fix v20: sincroniza com nuvem ao voltar ao app
       try{
         __cloudBootStarted = false;
         cloudBoot();
@@ -5352,12 +5311,6 @@ function ensureGanhoHoraDiaAtual(){
   dados.ganhoHoraAtualFora = 0;
   salvar();
   atualizar();
-  // v21 - forçar push imediato pra nuvem após virada de dia
-  // garante que a nuvem já tenha o novo ganhoHoraDiaRef antes de qualquer cloudBoot
-  try{
-    __cloudDirty = true;
-    cloudPushNow();
-  }catch(e){}
   try{
     toast("✅ Virou 4h: dia anterior salvo. Use Iniciar sessão para começar.");
   }catch(e){}
@@ -5716,7 +5669,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v21 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v20 · app</div>
 
 <script>
 (function(){
