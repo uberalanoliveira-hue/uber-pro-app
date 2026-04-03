@@ -18,9 +18,9 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v24</title>
+<title>MetaDriver v22</title>
 <script>
-// v21 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
+// v20 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
   var KEY_Y = 'md_scroll_y';
   var KEY_X = 'md_scroll_x';
@@ -31,7 +31,7 @@
   var rafSave = 0;
 
   function storageGet(key){
-    // fix v21: localStorage tem prioridade — sobrevive ao Android matar o processo
+    // fix v20: localStorage tem prioridade — sobrevive ao Android matar o processo
     // sessionStorage é destruído quando o processo morre
     try{
       var v = localStorage.getItem(key);
@@ -2668,17 +2668,38 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   (async function(){
     try{
       const sess = readStoredSession();
+      // v21 fix: sem credenciais nenhuma — aí sim redireciona pro login
       if(!sess.access_token && !sess.refresh_token){
-        window.__mdAuthOptionalMode = true;
+        location.replace("login.html");
         return;
       }
-      const token = await refreshAccessTokenIfNeeded(false);
-      if(!token){
-        window.__mdAuthOptionalMode = true;
-        return;
+      // v21 fix: se já tem access_token válido, usa ele diretamente
+      // NÃO faz logout por falha de rede ao tentar renovar
+      if(hasUsableToken(sess)){
+        return; // token válido, continua
       }
+      // token expirado — tenta renovar, mas sem forçar logout em caso de falha de rede
+      if(sess.refresh_token){
+        try{
+          const token = await refreshAccessTokenIfNeeded(false);
+          if(token) return; // renovado com sucesso
+        }catch(e){
+          // falha de rede — não faz logout, usa token expirado localmente
+          console.warn("MetaDriver v22: falha ao renovar token, mantendo sessão local");
+          return;
+        }
+      }
+      // sem access_token e sem refresh_token válido — logout real
+      if(!sess.access_token){
+        location.replace("login.html");
+      }
+      // se tem access_token mesmo que expirado, mantém — melhor que perder dados
     }catch(e){
-      window.__mdAuthOptionalMode = true;
+      // erro inesperado — só redireciona se não tem nenhum token
+      try{
+        const sess = readStoredSession();
+        if(!sess.access_token && !sess.refresh_token) location.replace("login.html");
+      }catch(_){ location.replace("login.html"); }
     }
   })();
 
@@ -3184,9 +3205,6 @@ const CLOUD_PENDING_KEY = STORAGE_KEY + "__cloud_pending_v1";
 const CLOUD_LAST_OK_KEY = STORAGE_KEY + "__cloud_last_ok_v1";
 const CLOUD_BACKUP_KEY = STORAGE_KEY + "__cloud_backup_ring_v2";
 const LOCAL_BACKUP_KEY = STORAGE_KEY + "__local_backup_ring_v2";
-const DURABLE_STATE_KEY = STORAGE_KEY + "__durable_snapshot_v1";
-const JOURNAL_KEY = STORAGE_KEY + "__journal_v1";
-const JOURNAL_IDB_KEY = STORAGE_KEY + "__journal_idb_v1";
 const META_SCHEMA_VERSION = 2;
 let __cloudSaveTimer = null;
 let __cloudBootStarted = false;
@@ -3247,123 +3265,26 @@ async function idbGet(key){
   }catch(e){ return null; }
 }
 
-function mdSafeJsonParse(raw){
-  try{ return raw ? JSON.parse(raw) : null; }catch(e){ return null; }
-}
-
-function mdSnapshotFingerprint(obj){
-  try{ return typeof mdCanonicalStringify === "function" ? mdCanonicalStringify(obj) : JSON.stringify(obj); }
-  catch(e){ try{ return JSON.stringify(obj); }catch(_){ return String(obj); } }
-}
-
-function mdSnapshotOrderValue(obj){
-  try{
-    if(!obj || typeof obj !== "object") return -1;
-    const seq = Number(obj.__local_commit_seq || 0);
-    if(seq > 0) return seq * 1000000000000;
-    const rev = Number(obj.__rev || 0);
-    const ts = new Date(obj.__updated_at || obj.__last_local_write_at || obj.__cloud_updated_at || 0).getTime() || 0;
-    return (rev * 1000000000000) + ts;
-  }catch(e){ return -1; }
-}
-
-function mdReadJournal(){
-  try{
-    const arr = mdSafeJsonParse(localStorage.getItem(JOURNAL_KEY));
-    return Array.isArray(arr) ? arr : [];
-  }catch(e){ return []; }
-}
-
-function mdWriteJournal(entries){
-  try{
-    const arr = Array.isArray(entries) ? entries.slice(-300) : [];
-    localStorage.setItem(JOURNAL_KEY, JSON.stringify(arr));
-    idbSet(JOURNAL_IDB_KEY, JSON.stringify(arr));
-  }catch(e){}
-}
-
-function mdAppendJournal(snapshot, reason){
-  try{
-    if(!snapshot || typeof snapshot !== "object") return;
-    const journal = mdReadJournal();
-    journal.push({
-      seq: Number(snapshot.__local_commit_seq || 0),
-      rev: Number(snapshot.__rev || 0),
-      ts: snapshot.__last_local_write_at || snapshot.__updated_at || mdNowIso(),
-      reason: reason || "save",
-      fp: mdSnapshotFingerprint(snapshot),
-      snapshot: JSON.parse(JSON.stringify(snapshot))
-    });
-    mdWriteJournal(journal);
-  }catch(e){}
-}
-
-function mdReadDurableLocalCandidates(){
-  const out = [];
-  try{
-    const direct = mdSafeJsonParse(localStorage.getItem(STORAGE_KEY));
-    if(direct) out.push({ snapshot: direct, source: "storage" });
-  }catch(e){}
-  try{
-    const durable = mdSafeJsonParse(localStorage.getItem(DURABLE_STATE_KEY));
-    if(durable) out.push({ snapshot: durable, source: "durable" });
-  }catch(e){}
-  try{
-    const ring = mdReadBackupRing(LOCAL_BACKUP_KEY);
-    ring.forEach(function(item){ if(item && item.snapshot) out.push({ snapshot: item.snapshot, source: "backup" }); });
-  }catch(e){}
-  try{
-    const journal = mdReadJournal();
-    journal.forEach(function(item){ if(item && item.snapshot) out.push({ snapshot: item.snapshot, source: "journal" }); });
-  }catch(e){}
-  return out;
-}
-
-function mdChooseBestLocalSnapshotSync(){
-  try{
-    const candidates = mdReadDurableLocalCandidates();
-    if(!candidates.length) return null;
-    candidates.sort(function(a,b){
-      const ao = mdSnapshotOrderValue(a.snapshot), bo = mdSnapshotOrderValue(b.snapshot);
-      if(bo !== ao) return bo - ao;
-      return mdUsefulScore(b.snapshot) - mdUsefulScore(a.snapshot);
-    });
-    return candidates[0].snapshot || null;
-  }catch(e){ return null; }
-}
-
-async function mdRecoverDurableStateFromIDB(){
-  try{
-    const direct = await idbGet(IDB_KEY);
-    const durable = await idbGet(DURABLE_STATE_KEY);
-    const journal = await idbGet(JOURNAL_IDB_KEY);
-    const candidates = [];
-    const d1 = mdSafeJsonParse(direct); if(d1) candidates.push({snapshot:d1, source:"idb-main"});
-    const d2 = mdSafeJsonParse(durable); if(d2) candidates.push({snapshot:d2, source:"idb-durable"});
-    const ja = mdSafeJsonParse(journal); if(Array.isArray(ja)) ja.forEach(function(item){ if(item && item.snapshot) candidates.push({snapshot:item.snapshot, source:"idb-journal"}); });
-    candidates.sort(function(a,b){
-      const ao = mdSnapshotOrderValue(a.snapshot), bo = mdSnapshotOrderValue(b.snapshot);
-      if(bo !== ao) return bo - ao;
-      return mdUsefulScore(b.snapshot) - mdUsefulScore(a.snapshot);
-    });
-    const best = candidates.length ? candidates[0].snapshot : null;
-    if(best){
-      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(best)); }catch(e){}
-      try{ localStorage.setItem(DURABLE_STATE_KEY, JSON.stringify(best)); }catch(e){}
-    }
-    return best;
-  }catch(e){ return null; }
-}
 
 
 function loadDados(){
   try{
-    const bestLocal = mdChooseBestLocalSnapshotSync();
-    if(bestLocal){
-      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(bestLocal)); }catch(e){}
-      try{ localStorage.setItem(DURABLE_STATE_KEY, JSON.stringify(bestLocal)); }catch(e){}
-      return bestLocal;
-    }
+    const direct = localStorage.getItem(STORAGE_KEY);
+    if(direct) return JSON.parse(direct);
+
+    try{
+      const backupRaw = localStorage.getItem(LOCAL_BACKUP_KEY);
+      const backupRing = backupRaw ? JSON.parse(backupRaw) : [];
+      if(Array.isArray(backupRing) && backupRing.length){
+        const firstValid = backupRing.find(function(item){ return item && item.snapshot && typeof item.snapshot === "object"; });
+        if(firstValid && firstValid.snapshot){
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(firstValid.snapshot));
+          return firstValid.snapshot;
+        }
+      }
+    }catch(e){}
+
+    // tenta chaves antigas (para não perder dados ao atualizar o arquivo)
     const legacyKeys = [
       "dadosControleProV641","dadosControleProV63","dadosControleProV631","dadosControleProV632",
       "dadosControleProV633","dadosControleProV64","dadosControleProV640","dadosControleProV641",
@@ -3374,8 +3295,8 @@ function loadDados(){
       if(v){
         try{
           const parsed = JSON.parse(v);
+          // migra para a chave nova (uma vez)
           localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-          localStorage.setItem(DURABLE_STATE_KEY, JSON.stringify(parsed));
           return parsed;
         }catch(e){}
       }
@@ -3482,10 +3403,6 @@ function mdEnsureDataMeta(obj){
   if(!obj.__device_id) obj.__device_id = mdEnsureDeviceId();
   if(!obj.__updated_at) obj.__updated_at = mdNowIso();
   if(!obj.__cloud_updated_at) obj.__cloud_updated_at = obj.__updated_at;
-  if(typeof obj.__local_commit_seq !== "number" || !isFinite(obj.__local_commit_seq)) obj.__local_commit_seq = 0;
-  if(typeof obj.__last_synced_commit_seq !== "number" || !isFinite(obj.__last_synced_commit_seq)) obj.__last_synced_commit_seq = 0;
-  if(typeof obj.__dirty_local !== "boolean") obj.__dirty_local = false;
-  if(!obj.__last_local_write_at) obj.__last_local_write_at = obj.__updated_at;
   return obj;
 }
 
@@ -3556,11 +3473,21 @@ function mdPickBestSnapshot(candidates){
   const valid = (Array.isArray(candidates) ? candidates : []).filter(function(item){ return item && item.snapshot && typeof item.snapshot === "object"; });
   if(!valid.length) return null;
   valid.sort(function(a,b){
+    // v21 - critério 0: ganhoHoraDiaRef mais recente SEMPRE ganha
+    // impede que snapshot de dia anterior sobrescreva dados do dia atual
+    const aDia = String(a.snapshot.ganhoHoraDiaRef || "").trim();
+    const bDia = String(b.snapshot.ganhoHoraDiaRef || "").trim();
+    if(aDia && bDia && aDia !== bDia){
+      return bDia > aDia ? 1 : -1;
+    }
+    // critério 1: __rev
     const ar = Number(a.snapshot.__rev || 0), br = Number(b.snapshot.__rev || 0);
     if(br !== ar) return br - ar;
+    // critério 2: __updated_at
     const at = new Date(a.snapshot.__updated_at || a.snapshot.__cloud_updated_at || 0).getTime() || 0;
     const bt = new Date(b.snapshot.__updated_at || b.snapshot.__cloud_updated_at || 0).getTime() || 0;
     if(bt !== at) return bt - at;
+    // critério 3: score de dados
     return mdUsefulScore(b.snapshot) - mdUsefulScore(a.snapshot);
   });
   return valid[0].snapshot;
@@ -3568,40 +3495,35 @@ function mdPickBestSnapshot(candidates){
 
 mdEnsureDataMeta(dados);
 // Migração desativada (substituída por loadDados com legacyKeys)
-// v21.11 - salvar local-first durável com journal append-only
+// v9 - salvar com verificação de integridade: confirma que o dado foi realmente gravado
 function salvar(){
   try{
     mdEnsureDataMeta(dados);
     dados.__rev = Number(dados.__rev || 0) + 1;
-    dados.__local_commit_seq = Number(dados.__local_commit_seq || 0) + 1;
-    dados.__dirty_local = true;
-    dados.__last_local_write_at = mdNowIso();
-    dados.__updated_at = dados.__last_local_write_at;
+    dados.__updated_at = mdNowIso();
     const payload = JSON.stringify(dados);
+    // Verifica que o payload não é menor que o anterior (proteção contra corrupção)
     const anterior = localStorage.getItem(STORAGE_KEY);
+    // fix v20: só bloqueia se payload for mais de 40% menor (remoção legítima de registros é normal)
     if(anterior && anterior.length > 0 && payload.length < anterior.length * 0.6){
       console.warn("MetaDriver: payload muito menor que anterior, salvando backup e verificando");
       mdPushBackup(LOCAL_BACKUP_KEY, dados, "small-payload-warning");
+      // não bloqueia — apenas loga. Remoção de registros é operação legítima.
     }
     localStorage.setItem(STORAGE_KEY, payload);
-    localStorage.setItem(DURABLE_STATE_KEY, payload);
     const verificacao = localStorage.getItem(STORAGE_KEY);
     if(verificacao !== payload){
       throw new Error("Verificação de escrita falhou");
     }
     idbSet(IDB_KEY, payload);
-    idbSet(DURABLE_STATE_KEY, payload);
     mdPushBackup(LOCAL_BACKUP_KEY, dados, "save");
-    mdAppendJournal(dados, "save");
   }catch(e){
     try{
       const payload = JSON.stringify(dados);
       idbSet(IDB_KEY, payload);
-      idbSet(DURABLE_STATE_KEY, payload);
       mdPushBackup(LOCAL_BACKUP_KEY, dados, "fallback-idb");
-      mdAppendJournal(dados, "fallback-idb");
       toast("⚠️ Falha ao salvar localmente. Abra no Chrome normal (não anônimo).");
-    }catch(_){ }
+    }catch(_){}
   }
 }
 window.__salvarLocalOriginal = salvar;
@@ -3624,34 +3546,15 @@ salvar = function(){
 }
 
 
-function cloudReadCachedUserId(){
-  try{ return localStorage.getItem("sb_user_id") || ""; }catch(e){ return ""; }
-}
-function cloudWriteCachedUserId(userId){
-  try{ if(userId) localStorage.setItem("sb_user_id", String(userId)); }catch(e){}
-}
-function cloudGetStoredTokenSync(){
-  try{ return localStorage.getItem("sb_token") || ""; }catch(e){ return ""; }
-}
 async function cloudGetToken(){
-  let fast = "";
-  try{ fast = localStorage.getItem("sb_token") || ""; }catch(e){ fast = ""; }
   try{
-    if(fast){
-      if(typeof window.mdEnsureActiveSession === "function"){
-        Promise.resolve().then(function(){ return window.mdEnsureActiveSession(false); }).then(function(renewed){
-          try{ if(renewed) localStorage.setItem("sb_token", renewed || ""); }catch(_){ }
-        }).catch(function(){});
-      }
-      return fast;
-    }
     if(typeof window.mdEnsureActiveSession === "function"){
       const renewed = await window.mdEnsureActiveSession(false);
       if(renewed) return renewed;
     }
-    return cloudGetStoredTokenSync();
+    return localStorage.getItem("sb_token") || "";
   }catch(e){
-    return cloudGetStoredTokenSync();
+    try{ return localStorage.getItem("sb_token") || ""; }catch(_){ return ""; }
   }
 }
 
@@ -3697,15 +3600,7 @@ async function cloudGetUser(token){
     }
   });
   if(!res.ok) throw new Error("Falha ao obter usuário");
-  const user = await res.json();
-  try{ if(user && user.id) cloudWriteCachedUserId(user.id); }catch(e){}
-  return user;
-}
-async function cloudResolveUserId(token){
-  const cached = cloudReadCachedUserId();
-  if(cached) return cached;
-  const user = await cloudGetUser(token);
-  return (user && user.id) ? user.id : "";
+  return await res.json();
 }
 
 function cloudHasUsefulData(obj){
@@ -3779,7 +3674,7 @@ function mdSyncBackupsFromCloud(backups){
   }catch(e){}
 }
 
-// v21 - stringify canônico para impedir duplicações por ordem de chaves diferente
+// v20 - stringify canônico para impedir duplicações por ordem de chaves diferente
 function mdCanonicalStringify(value){
   try{
     const seen = new WeakSet();
@@ -3837,33 +3732,37 @@ function cloudMergeArrays(local, remote){
   return mdDedupArrayExact(base);
 }
 
-function mdHasUnsyncedLocalChanges(){
-  try{
-    return !!(dados && (dados.__dirty_local || Number(dados.__local_commit_seq || 0) > Number(dados.__last_synced_commit_seq || 0)));
-  }catch(e){ return false; }
-}
-
-function mdRemoteWouldRollback(remoteData){
-  try{
-    if(!remoteData || typeof remoteData !== "object") return false;
-    const localSeq = Number(dados && dados.__local_commit_seq || 0);
-    const remoteSeq = Number(remoteData.__local_commit_seq || 0);
-    const localTs = new Date((dados && (dados.__last_local_write_at || dados.__updated_at || dados.__cloud_updated_at)) || 0).getTime() || 0;
-    const remoteTs = new Date(remoteData.__last_local_write_at || remoteData.__updated_at || remoteData.__cloud_updated_at || 0).getTime() || 0;
-    if(mdHasUnsyncedLocalChanges() && localSeq >= remoteSeq) return true;
-    if(localSeq > remoteSeq) return true;
-    if(localSeq === remoteSeq && localTs > remoteTs) return true;
-    return false;
-  }catch(e){ return false; }
-}
-
 function cloudApplyRemoteData(remoteData){
   try{
     if(!remoteData || typeof remoteData !== "object") return;
     mdEnsureDataMeta(dados);
     mdEnsureDataMeta(remoteData);
-    if(mdRemoteWouldRollback(remoteData)){
-      console.warn("MetaDriver: remoto ignorado para evitar rollback local");
+    // v21 - NUNCA aplicar remoto se ele for de dia anterior ao local
+    // isso impede a regressão pós-virada das 4h
+    const diaLocal = String(dados.ganhoHoraDiaRef || "").trim();
+    const diaRemoto = String(remoteData.ganhoHoraDiaRef || "").trim();
+    if(diaLocal && diaRemoto && diaRemoto < diaLocal){
+      console.warn("MetaDriver v22: remoto recusado — dia remoto ("+diaRemoto+") < dia local ("+diaLocal+")");
+      // Mesmo recusando o merge, garantir que os arrays remotos não percam dados extras
+      // — apenas mescla arrays sem mudar o estado do dia atual
+      const arrayFields = ["ganhos","gastos","abastecimentos","naoTrabalhados",
+                           "ganhoHoraSessoes","ganhoHoraHistorico"];
+      let changed = false;
+      arrayFields.forEach(function(field){
+        const merged = cloudMergeArrays(
+          Array.isArray(dados[field]) ? dados[field] : [],
+          Array.isArray(remoteData[field]) ? remoteData[field] : []
+        );
+        if(merged.length > (Array.isArray(dados[field]) ? dados[field].length : 0)){
+          dados[field] = merged;
+          changed = true;
+        }
+      });
+      if(changed){
+        dados.__rev = Number(dados.__rev || 0) + 1;
+        dados.__updated_at = mdNowIso();
+        if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
+      }
       return;
     }
     const arrayFields = ["ganhos","gastos","abastecimentos","naoTrabalhados",
@@ -3919,13 +3818,13 @@ async function cloudPushNow(snapshotOverride){
   try{
     const token = await cloudGetToken();
     if(!token) return false;
-    const userId = await cloudResolveUserId(token).catch(function(){ return ""; });
-    if(!userId) return false;
+    const user = await cloudGetUser(token);
+    if(!user || !user.id) return false;
 
     const pending = snapshotOverride || cloudReadPendingSnapshot();
     const pendingPayload = pending && pending.payload ? pending.payload : null;
     const localPayload = (typeof dados === "object" && dados) ? dados : null;
-    const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
+    const remoteRow = await cloudFetchRow(token, user.id).catch(function(){ return null; });
     const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
     const remoteSnapshot = remoteWrapped.snapshot;
     const best = mdPickBestSnapshot([
@@ -3959,7 +3858,7 @@ async function cloudPushNow(snapshotOverride){
     const updatedAt = best.__cloud_updated_at;
     const envelope = mdBuildCloudEnvelope(best, backups);
     const body = [{
-      user_id: userId,
+      user_id: user.id,
       payload: envelope,
       updated_at: updatedAt
     }];
@@ -3978,10 +3877,6 @@ async function cloudPushNow(snapshotOverride){
 
     if(localPayload === dados){
       dados = best;
-      mdEnsureDataMeta(dados);
-      dados.__last_synced_commit_seq = Number(dados.__local_commit_seq || 0);
-      dados.__dirty_local = false;
-      dados.__cloud_updated_at = updatedAt;
       if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
     }
     mdWriteBackupRing(CLOUD_BACKUP_KEY, backups);
@@ -3997,19 +3892,18 @@ async function cloudPushNow(snapshotOverride){
 }
 
 let __cloudSaveRetries = 0;
-function cloudScheduleSave(delayMs){
+function cloudScheduleSave(){
   clearTimeout(__cloudSaveTimer);
-  const wait = typeof delayMs === "number" ? delayMs : 180;
   __cloudSaveTimer = setTimeout(async function(){
     const ok = await cloudPushNow();
-    if(!ok && __cloudSaveRetries < 6){
+    if(!ok && __cloudSaveRetries < 4){
       __cloudSaveRetries++;
-      const delay = Math.min(1200 * __cloudSaveRetries, 8000);
+      const delay = Math.min(2000 * __cloudSaveRetries, 10000);
       setTimeout(function(){ cloudPushNow(); }, delay);
-    } else if(ok){
+    } else {
       __cloudSaveRetries = 0;
     }
-  }, wait);
+  }, 1000);
 }
 
 async function cloudBoot(force){
@@ -4017,61 +3911,48 @@ async function cloudBoot(force){
   if(__cloudBootDoneOnce && force !== true) return;
   __cloudBootStarted = true;
   try{
-    const recovered = await mdRecoverDurableStateFromIDB().catch(function(){ return null; });
-    if(recovered && mdSnapshotOrderValue(recovered) > mdSnapshotOrderValue(dados)){
-      dados = JSON.parse(JSON.stringify(recovered));
-      mdEnsureDataMeta(dados);
-      try{ atualizar(); }catch(e){}
-      try{ atualizarCarro(); }catch(e){}
-    }
-
     const token = await cloudGetToken();
-    if(!token){
-      __cloudBootDoneOnce = true;
-      return;
-    }
-    const userId = await cloudResolveUserId(token).catch(function(){ return ""; });
-    if(!userId){
-      __cloudBootDoneOnce = true;
-      return;
-    }
+    if(!token) return;
+    const user = await cloudGetUser(token);
+    if(!user || !user.id) return;
 
     const pending = cloudReadPendingSnapshot();
-    const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
+    const remoteRow = await cloudFetchRow(token, user.id).catch(function(){ return null; });
     const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
     mdSyncBackupsFromCloud(remoteWrapped.backups || []);
 
     const remoteSnapshot = remoteWrapped.snapshot;
-    const localBest = mdPickBestSnapshot([
+    const best = mdPickBestSnapshot([
       { snapshot: pending && pending.payload ? pending.payload : null },
       { snapshot: dados },
-      { snapshot: recovered }
-    ]) || dados;
+      { snapshot: remoteSnapshot }
+    ]);
 
-    const remoteUseful = remoteSnapshot && cloudHasUsefulData(remoteSnapshot);
-    const localUseful = localBest && cloudHasUsefulData(localBest);
-
-    if(remoteUseful && (!localUseful || !mdRemoteWouldRollback(remoteSnapshot))){
-      const localOrder = mdSnapshotOrderValue(localBest || {});
-      const remoteOrder = mdSnapshotOrderValue(remoteSnapshot || {});
-      if(!localUseful || remoteOrder >= localOrder){
+    // fix v20: usa mdPickBestSnapshot para decidir entre local e remoto
+    // não aplica remoto cegamente — compara revisão, timestamp e score
+    if(best && cloudHasUsefulData(best)){
+      const localRev = Number(dados.__rev || 0);
+      const bestRev = Number(best.__rev || 0);
+      const bestIsRemote = best === remoteSnapshot;
+      if(bestIsRemote && remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
+        // remoto ganhou na comparação — aplica merge
+        cloudApplyRemoteData(remoteSnapshot);
+      } else if(remoteSnapshot && cloudHasUsefulData(remoteSnapshot) && bestRev <= Number(remoteSnapshot.__rev || 0)){
+        // remoto tem revisão >= local — merge seguro
         cloudApplyRemoteData(remoteSnapshot);
       } else {
-        dados = JSON.parse(JSON.stringify(localBest));
+        // local é mais recente ou remoto está vazio — mantém local, sobe pra nuvem
+        dados = JSON.parse(JSON.stringify(best));
         mdEnsureDataMeta(dados);
+        mdPushBackup(LOCAL_BACKUP_KEY, dados, "boot-best-local");
         if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
+        try{ atualizar(); }catch(e){}
       }
-    } else if(localUseful){
-      dados = JSON.parse(JSON.stringify(localBest));
-      mdEnsureDataMeta(dados);
-      if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
-      cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
-      cloudScheduleSave(120);
     }
 
     if(cloudHasUsefulData(dados)){
       cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
-      cloudScheduleSave(120);
+      cloudScheduleSave();
     }
     __cloudBootDoneOnce = true;
   }catch(e){
@@ -4081,35 +3962,12 @@ async function cloudBoot(force){
   }
 }
 
-async function mdInitialHydrateAndRender(){
-  try{
-    const localUseful = cloudHasUsefulData(dados);
-    if(!localUseful){
-      const token = cloudGetStoredTokenSync();
-      const cachedUserId = cloudReadCachedUserId();
-      if(token && cachedUserId){
-        const remoteRow = await cloudFetchRow(token, cachedUserId).catch(function(){ return null; });
-        const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
-        const remoteSnapshot = remoteWrapped.snapshot;
-        if(remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
-          dados = JSON.parse(JSON.stringify(remoteSnapshot));
-          mdEnsureDataMeta(dados);
-          if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
-        }
-      }
-    }
-  }catch(e){}
-  try{ atualizar(); }catch(e){}
-  try{ atualizarCarro(); }catch(e){}
-  setTimeout(function(){ try{ cloudBoot(true); }catch(e){} }, 40);
-}
-
 window.addEventListener("pagehide", function(){
   try{ cloudPushNow(); }catch(e){}
 });
 window.addEventListener("beforeunload", function(){ try{ cloudPushNow(); }catch(e){} });
 window.addEventListener("online", function(){ try{ cloudPushNow(); }catch(e){} });
-// v21 - salva scroll continuamente
+// v20 - salva scroll continuamente
 window.addEventListener('scroll', function(){
   try{ if(window.__mdSaveScroll) window.__mdSaveScroll(); }catch(e){}
 }, { passive: true });
@@ -4121,7 +3979,7 @@ document.addEventListener("visibilitychange", function(){
         var _sy = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
         localStorage.setItem('md_scroll_y', String(_sy));
       }catch(e){}
-      // v21 - salva localmente sem gerar nova sincronização/merge ao apenas minimizar o app
+      // v20 - salva localmente sem gerar nova sincronização/merge ao apenas minimizar o app
       try{ if(typeof window.__salvarLocalOriginal === "function") window.__salvarLocalOriginal(); }catch(e){}
     }
     if(document.visibilityState === "visible"){
@@ -4130,7 +3988,10 @@ document.addEventListener("visibilitychange", function(){
         document.documentElement.style.pointerEvents = '';
       }catch(e){}
       try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){}
-      // fix v21: sincroniza com nuvem ao voltar ao app
+      // v21 - verificar virada de dia ANTES de sincronizar com nuvem
+      // se o dia virou enquanto app estava em background, garante estado correto
+      // antes de qualquer merge com remoto
+      try{ ensureGanhoHoraDiaAtual(); }catch(e){}
       try{
         __cloudBootStarted = false;
         cloudBoot();
@@ -4142,14 +4003,24 @@ document.addEventListener("visibilitychange", function(){
 setInterval(function(){
   try{
     if(document.visibilityState !== "visible") return;
-    if(!__cloudDirty) return; // nenhuma mudança desde o último envio — não faz nada
-    __cloudDirty = false;     // limpa a flag antes de enviar (se falhar, próximo ciclo reenvia via pending)
+    if(!__cloudDirty) return;
+    __cloudDirty = false;
     const pending = cloudReadPendingSnapshot();
     if((pending && pending.payload && cloudHasUsefulData(pending.payload)) || cloudHasUsefulData(dados)){
       cloudPushNow();
     }
   }catch(e){}
 }, 60000);
+
+// v21 - renovação proativa de token a cada 25min
+// evita logout involuntário por token expirado durante uso prolongado na madrugada
+setInterval(function(){
+  try{
+    if(typeof window.mdEnsureActiveSession === "function"){
+      window.mdEnsureActiveSession(false).catch(function(){});
+    }
+  }catch(e){}
+}, 25 * 60 * 1000);
 
 
 function toast(msg){
@@ -5512,6 +5383,12 @@ function ensureGanhoHoraDiaAtual(){
   dados.ganhoHoraAtualFora = 0;
   salvar();
   atualizar();
+  // v21 - forçar push imediato pra nuvem após virada de dia
+  // garante que a nuvem já tenha o novo ganhoHoraDiaRef antes de qualquer cloudBoot
+  try{
+    __cloudDirty = true;
+    cloudPushNow();
+  }catch(e){}
   try{
     toast("✅ Virou 4h: dia anterior salvo. Use Iniciar sessão para começar.");
   }catch(e){}
@@ -5870,7 +5747,109 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v24 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v22 · app</div>
+
+<script>
+(function(){
+  var APP_VERSION = 'v20.9';
+  var banner = null;
+  var registrationRef = null;
+  var reloadTriggered = false;
+
+  function ready(fn){
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, {once:true});
+    else fn();
+  }
+
+  function ensureBanner(){
+    if(banner) return banner;
+    banner = document.createElement('div');
+    banner.id = 'mdUpdateBanner';
+    banner.style.cssText = 'position:fixed;left:12px;right:12px;bottom:64px;z-index:2147483646;background:#0b1220;color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:12px 14px;box-shadow:0 12px 28px rgba(0,0,0,.28);display:none;gap:10px;align-items:center;justify-content:space-between;font-family:Arial,Helvetica,sans-serif;';
+    var text = document.createElement('div');
+    text.id = 'mdUpdateBannerText';
+    text.textContent = 'Nova versão disponível.';
+    text.style.cssText = 'font-size:13px;line-height:1.35;flex:1;';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'Atualizar agora';
+    btn.style.cssText = 'border:none;border-radius:12px;padding:10px 12px;background:#22c55e;color:#08111f;font:inherit;font-weight:800;white-space:nowrap;';
+    btn.addEventListener('click', applyUpdate, true);
+    banner.appendChild(text);
+    banner.appendChild(btn);
+    ready(function(){ document.body.appendChild(banner); });
+    return banner;
+  }
+
+  function showBanner(message){
+    var el = ensureBanner();
+    var txt = document.getElementById('mdUpdateBannerText');
+    if(txt && message) txt.textContent = message;
+    el.style.display = 'flex';
+  }
+
+  function hideBanner(){
+    if(banner) banner.style.display = 'none';
+  }
+
+  async function persistStateBeforeUpdate(){
+    try{ if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); }catch(e){}
+    try{ if(typeof salvar === 'function') salvar(); }catch(e){}
+    try{ if(typeof salvarHoras === 'function') salvarHoras(); }catch(e){}
+    try{ if(typeof salvarResumoDiaGanhoHora === 'function'){ var dia = (typeof obterDiaAtualResumoGanhoHora === 'function') ? obterDiaAtualResumoGanhoHora() : null; if(dia) salvarResumoDiaGanhoHora(dia); } }catch(e){}
+    try{ if(typeof cloudPushNow === 'function') await cloudPushNow(); }catch(e){}
+  }
+
+  async function applyUpdate(){
+    if(!registrationRef) return;
+    hideBanner();
+    await persistStateBeforeUpdate();
+    var worker = registrationRef.waiting;
+    if(worker){
+      worker.postMessage({ type:'SKIP_WAITING' });
+      setTimeout(function(){ if(!reloadTriggered) window.location.reload(); }, 2500);
+      return;
+    }
+    try{
+      await registrationRef.update();
+    }catch(e){}
+    setTimeout(function(){ if(!reloadTriggered) window.location.reload(); }, 1200);
+  }
+
+  if(!('serviceWorker' in navigator)) return;
+
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if(reloadTriggered) return;
+    reloadTriggered = true;
+    window.location.reload();
+  });
+
+  window.addEventListener('load', async function(){
+    try{
+      var reg = await navigator.serviceWorker.register('./sw.js?v=' + encodeURIComponent(APP_VERSION), { scope:'./' });
+      registrationRef = reg;
+      try{ await reg.update(); }catch(e){}
+      if(reg.waiting && navigator.serviceWorker.controller){
+        showBanner('Nova versão disponível. Toque para atualizar sem reinstalar.');
+      }
+      reg.addEventListener('updatefound', function(){
+        var installing = reg.installing;
+        if(!installing) return;
+        installing.addEventListener('statechange', function(){
+          if(installing.state === 'installed' && navigator.serviceWorker.controller){
+            showBanner('Atualização pronta. Toque para aplicar a nova versão.');
+          }
+        });
+      });
+    }catch(e){
+      console.warn('SW register falhou', e);
+    }
+  });
+
+  window.MetaDriverUpdate = { applyUpdate: applyUpdate, version: APP_VERSION };
+})();
+</script>
+
 </body>
     </html>  `);
   w.document.close();
@@ -6790,7 +6769,7 @@ window.addEventListener("pageshow", function(){ try{ applyQuickBalanceFabStateHa
 setInterval(function(){ try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} }, 800);
 
 function bootApp(){
-  // v21 - garante visibilidade
+  // v20 - garante visibilidade
   try{
     document.documentElement.style.opacity = '';
     document.documentElement.style.pointerEvents = '';
@@ -6815,7 +6794,7 @@ function bootApp(){
       iniciarTimerGanhoHoraTempoReal();
     }
   }catch(e){}
-  setTimeout(function(){ try{ cloudBoot(true); }catch(e){} }, cloudHasUsefulData(dados) ? 120 : 30);
+  setTimeout(function(){ try{ cloudBoot(); }catch(e){} }, 500);
 }
 if(document.readyState === "loading"){
   document.addEventListener("DOMContentLoaded", ()=>{ bootApp(); try{ initTabs(); }catch(e){} });
@@ -6826,12 +6805,12 @@ if(document.readyState === "loading"){
 window.addEventListener("pageshow", ()=>{
   try{ initSectionCollapse(); }catch(e){}
   try{ applyQuickBalanceFabStateHard(); }catch(e){}
-  // v21 - reforça restauração ao reabrir do cache do navegador
+  // v20 - reforça restauração ao reabrir do cache do navegador
   try{ if(window.__mdRestoreScrollBurst) window.__mdRestoreScrollBurst(); else if(window.__mdRestoreScroll) window.__mdRestoreScroll(true); }catch(e){}
 });
 
 try{ ensureGanhoHoraDiaAtual(); }catch(e){}
-mdInitialHydrateAndRender();
+atualizar();
 
 (function(){
   const metaIds = ["metaTotal", "dataLimite"];
@@ -8048,6 +8027,108 @@ window.addEventListener("load", function(){
     <button type="button" class="secondary" onclick="fecharSaldoAtualButtonMenu()">Fechar</button>
   </div>
 </div>
+
+
+<script>
+(function(){
+  var APP_VERSION = 'v20.9';
+  var banner = null;
+  var registrationRef = null;
+  var reloadTriggered = false;
+
+  function ready(fn){
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, {once:true});
+    else fn();
+  }
+
+  function ensureBanner(){
+    if(banner) return banner;
+    banner = document.createElement('div');
+    banner.id = 'mdUpdateBanner';
+    banner.style.cssText = 'position:fixed;left:12px;right:12px;bottom:64px;z-index:2147483646;background:#0b1220;color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:12px 14px;box-shadow:0 12px 28px rgba(0,0,0,.28);display:none;gap:10px;align-items:center;justify-content:space-between;font-family:Arial,Helvetica,sans-serif;';
+    var text = document.createElement('div');
+    text.id = 'mdUpdateBannerText';
+    text.textContent = 'Nova versão disponível.';
+    text.style.cssText = 'font-size:13px;line-height:1.35;flex:1;';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'Atualizar agora';
+    btn.style.cssText = 'border:none;border-radius:12px;padding:10px 12px;background:#22c55e;color:#08111f;font:inherit;font-weight:800;white-space:nowrap;';
+    btn.addEventListener('click', applyUpdate, true);
+    banner.appendChild(text);
+    banner.appendChild(btn);
+    ready(function(){ document.body.appendChild(banner); });
+    return banner;
+  }
+
+  function showBanner(message){
+    var el = ensureBanner();
+    var txt = document.getElementById('mdUpdateBannerText');
+    if(txt && message) txt.textContent = message;
+    el.style.display = 'flex';
+  }
+
+  function hideBanner(){
+    if(banner) banner.style.display = 'none';
+  }
+
+  async function persistStateBeforeUpdate(){
+    try{ if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); }catch(e){}
+    try{ if(typeof salvar === 'function') salvar(); }catch(e){}
+    try{ if(typeof salvarHoras === 'function') salvarHoras(); }catch(e){}
+    try{ if(typeof salvarResumoDiaGanhoHora === 'function'){ var dia = (typeof obterDiaAtualResumoGanhoHora === 'function') ? obterDiaAtualResumoGanhoHora() : null; if(dia) salvarResumoDiaGanhoHora(dia); } }catch(e){}
+    try{ if(typeof cloudPushNow === 'function') await cloudPushNow(); }catch(e){}
+  }
+
+  async function applyUpdate(){
+    if(!registrationRef) return;
+    hideBanner();
+    await persistStateBeforeUpdate();
+    var worker = registrationRef.waiting;
+    if(worker){
+      worker.postMessage({ type:'SKIP_WAITING' });
+      setTimeout(function(){ if(!reloadTriggered) window.location.reload(); }, 2500);
+      return;
+    }
+    try{
+      await registrationRef.update();
+    }catch(e){}
+    setTimeout(function(){ if(!reloadTriggered) window.location.reload(); }, 1200);
+  }
+
+  if(!('serviceWorker' in navigator)) return;
+
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if(reloadTriggered) return;
+    reloadTriggered = true;
+    window.location.reload();
+  });
+
+  window.addEventListener('load', async function(){
+    try{
+      var reg = await navigator.serviceWorker.register('./sw.js?v=' + encodeURIComponent(APP_VERSION), { scope:'./' });
+      registrationRef = reg;
+      try{ await reg.update(); }catch(e){}
+      if(reg.waiting && navigator.serviceWorker.controller){
+        showBanner('Nova versão disponível. Toque para atualizar sem reinstalar.');
+      }
+      reg.addEventListener('updatefound', function(){
+        var installing = reg.installing;
+        if(!installing) return;
+        installing.addEventListener('statechange', function(){
+          if(installing.state === 'installed' && navigator.serviceWorker.controller){
+            showBanner('Atualização pronta. Toque para aplicar a nova versão.');
+          }
+        });
+      });
+    }catch(e){
+      console.warn('SW register falhou', e);
+    }
+  });
+
+  window.MetaDriverUpdate = { applyUpdate: applyUpdate, version: APP_VERSION };
+})();
+</script>
 
 </body>
 </html>

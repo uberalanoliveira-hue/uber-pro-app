@@ -207,7 +207,6 @@ button.action {
       localStorage.setItem("sb_token", data.access_token || "");
       localStorage.setItem("sb_refresh_token", data.refresh_token || "");
       localStorage.setItem("sb_expires_at", String(data.expires_at || 0));
-      if (data && data.user && data.user.id) localStorage.setItem("sb_user_id", data.user.id);
     } catch(e) {}
   }
   function clearSession() {
@@ -215,7 +214,6 @@ button.action {
       localStorage.removeItem("sb_token");
       localStorage.removeItem("sb_refresh_token");
       localStorage.removeItem("sb_expires_at");
-      localStorage.removeItem("sb_user_id");
     } catch(e) {}
   }
   function hasToken() {
@@ -301,7 +299,6 @@ button.action {
   }
   async function validateAndGo(session) {
     var user = await getUser(session.access_token);
-    try { if (user && user.id) localStorage.setItem("sb_user_id", user.id); } catch(e) {}
     var access = await getAccess(user.id, session.access_token);
     if (!access) {
       access = await createAccess(user.id, session.access_token, user.user_metadata && user.user_metadata.nome, user.email);
@@ -465,6 +462,108 @@ button.action {
   }
 })();
 </script>
-<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v24 · login</div>
+<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v22 · login</div>
+
+<script>
+(function(){
+  var APP_VERSION = 'v20.9';
+  var banner = null;
+  var registrationRef = null;
+  var reloadTriggered = false;
+
+  function ready(fn){
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, {once:true});
+    else fn();
+  }
+
+  function ensureBanner(){
+    if(banner) return banner;
+    banner = document.createElement('div');
+    banner.id = 'mdUpdateBanner';
+    banner.style.cssText = 'position:fixed;left:12px;right:12px;bottom:64px;z-index:2147483646;background:#0b1220;color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:12px 14px;box-shadow:0 12px 28px rgba(0,0,0,.28);display:none;gap:10px;align-items:center;justify-content:space-between;font-family:Arial,Helvetica,sans-serif;';
+    var text = document.createElement('div');
+    text.id = 'mdUpdateBannerText';
+    text.textContent = 'Nova versão disponível.';
+    text.style.cssText = 'font-size:13px;line-height:1.35;flex:1;';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'Atualizar agora';
+    btn.style.cssText = 'border:none;border-radius:12px;padding:10px 12px;background:#22c55e;color:#08111f;font:inherit;font-weight:800;white-space:nowrap;';
+    btn.addEventListener('click', applyUpdate, true);
+    banner.appendChild(text);
+    banner.appendChild(btn);
+    ready(function(){ document.body.appendChild(banner); });
+    return banner;
+  }
+
+  function showBanner(message){
+    var el = ensureBanner();
+    var txt = document.getElementById('mdUpdateBannerText');
+    if(txt && message) txt.textContent = message;
+    el.style.display = 'flex';
+  }
+
+  function hideBanner(){
+    if(banner) banner.style.display = 'none';
+  }
+
+  async function persistStateBeforeUpdate(){
+    try{ if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); }catch(e){}
+    try{ if(typeof salvar === 'function') salvar(); }catch(e){}
+    try{ if(typeof salvarHoras === 'function') salvarHoras(); }catch(e){}
+    try{ if(typeof salvarResumoDiaGanhoHora === 'function'){ var dia = (typeof obterDiaAtualResumoGanhoHora === 'function') ? obterDiaAtualResumoGanhoHora() : null; if(dia) salvarResumoDiaGanhoHora(dia); } }catch(e){}
+    try{ if(typeof cloudPushNow === 'function') await cloudPushNow(); }catch(e){}
+  }
+
+  async function applyUpdate(){
+    if(!registrationRef) return;
+    hideBanner();
+    await persistStateBeforeUpdate();
+    var worker = registrationRef.waiting;
+    if(worker){
+      worker.postMessage({ type:'SKIP_WAITING' });
+      setTimeout(function(){ if(!reloadTriggered) window.location.reload(); }, 2500);
+      return;
+    }
+    try{
+      await registrationRef.update();
+    }catch(e){}
+    setTimeout(function(){ if(!reloadTriggered) window.location.reload(); }, 1200);
+  }
+
+  if(!('serviceWorker' in navigator)) return;
+
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if(reloadTriggered) return;
+    reloadTriggered = true;
+    window.location.reload();
+  });
+
+  window.addEventListener('load', async function(){
+    try{
+      var reg = await navigator.serviceWorker.register('./sw.js?v=' + encodeURIComponent(APP_VERSION), { scope:'./' });
+      registrationRef = reg;
+      try{ await reg.update(); }catch(e){}
+      if(reg.waiting && navigator.serviceWorker.controller){
+        showBanner('Nova versão disponível. Toque para atualizar sem reinstalar.');
+      }
+      reg.addEventListener('updatefound', function(){
+        var installing = reg.installing;
+        if(!installing) return;
+        installing.addEventListener('statechange', function(){
+          if(installing.state === 'installed' && navigator.serviceWorker.controller){
+            showBanner('Atualização pronta. Toque para aplicar a nova versão.');
+          }
+        });
+      });
+    }catch(e){
+      console.warn('SW register falhou', e);
+    }
+  });
+
+  window.MetaDriverUpdate = { applyUpdate: applyUpdate, version: APP_VERSION };
+})();
+</script>
+
 </body>
 </html>

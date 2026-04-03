@@ -18,9 +18,9 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v21.8.8</title>
+<title>MetaDriver v20.8.8</title>
 <script>
-// v21.8 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
+// v20.8 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
   var KEY_Y = 'md_scroll_y';
   var KEY_X = 'md_scroll_x';
@@ -3637,7 +3637,7 @@ function mdSyncBackupsFromCloud(backups){
   }catch(e){}
 }
 
-// v21.8 - stringify canônico para impedir duplicações por ordem de chaves diferente
+// v20.8 - stringify canônico para impedir duplicações por ordem de chaves diferente
 function mdCanonicalStringify(value){
   try{
     const seen = new WeakSet();
@@ -3890,7 +3890,7 @@ window.addEventListener("pagehide", function(){
 });
 window.addEventListener("beforeunload", function(){ try{ cloudPushNow(); }catch(e){} });
 window.addEventListener("online", function(){ try{ cloudPushNow(); }catch(e){} });
-// v21 - salva scroll continuamente
+// v20 - salva scroll continuamente
 window.addEventListener('scroll', function(){
   try{ if(window.__mdSaveScroll) window.__mdSaveScroll(); }catch(e){}
 }, { passive: true });
@@ -3902,7 +3902,7 @@ document.addEventListener("visibilitychange", function(){
         var _sy = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
         localStorage.setItem('md_scroll_y', String(_sy));
       }catch(e){}
-      // v21.8 - salva localmente sem gerar nova sincronização/merge ao apenas minimizar o app
+      // v20.8 - salva localmente sem gerar nova sincronização/merge ao apenas minimizar o app
       try{ if(typeof window.__salvarLocalOriginal === "function") window.__salvarLocalOriginal(); }catch(e){}
     }
     if(document.visibilityState === "visible"){
@@ -5646,7 +5646,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v21.8.8 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v20.8.8 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -6566,7 +6566,7 @@ window.addEventListener("pageshow", function(){ try{ applyQuickBalanceFabStateHa
 setInterval(function(){ try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} }, 800);
 
 function bootApp(){
-  // v21 - garante visibilidade
+  // v20 - garante visibilidade
   try{
     document.documentElement.style.opacity = '';
     document.documentElement.style.pointerEvents = '';
@@ -6602,7 +6602,7 @@ if(document.readyState === "loading"){
 window.addEventListener("pageshow", ()=>{
   try{ initSectionCollapse(); }catch(e){}
   try{ applyQuickBalanceFabStateHard(); }catch(e){}
-  // v21 - reforça restauração ao reabrir do cache do navegador
+  // v20 - reforça restauração ao reabrir do cache do navegador
   try{ if(window.__mdRestoreScrollBurst) window.__mdRestoreScrollBurst(); else if(window.__mdRestoreScroll) window.__mdRestoreScroll(true); }catch(e){}
 });
 

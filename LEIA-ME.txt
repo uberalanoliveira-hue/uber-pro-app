@@ -344,20 +344,20 @@ STATUS:
 - Aguardando teste
 
 
-VERSÃO v21 - integracao-v21-chatgpt-com-fixes
+VERSÃO v20 - integracao-v20-chatgpt-com-fixes
 
 FEEDBACK DAS VERSÕES ANTERIORES DE SCROLL (v14 a v19):
 - Nenhuma resolveu o problema de scroll — o Android mata o processo do PWA ao minimizar
 - sessionStorage é destruído quando o processo morre — era a causa raiz
-- O ChatGPT implementou uma solução de scroll mais robusta na v21.8.8 com RAF e burst
+- O ChatGPT implementou uma solução de scroll mais robusta na v20.8.8 com RAF e burst
 
-ANÁLISE DA v21.8.8 (ChatGPT):
+ANÁLISE DA v20.8.8 (ChatGPT):
 - O que foi prometido e NÃO entregue: fila de operações, soft delete, tabelas separadas no Supabase, IDs por registro, indicador visual de sync
 - O que foi entregue e está bom: __rev + __updated_at + __device_id, anel de backups (12 entradas), mdPickBestSnapshot, deduplicação canônica, scroll com requestAnimationFrame e burst
 - Bugs encontrados: cloudBoot aplicava remoto cegamente ignorando comparação, salvar() bloqueava remoções legítimas, visibilitychange não chamava cloudBoot, storageGet priorizava sessionStorage (destruído pelo Android)
 
-O QUE FOI FEITO (v21 final):
-- Base: v21.8.8 do ChatGPT (tem o melhor da arquitetura de sync)
+O QUE FOI FEITO (v20 final):
+- Base: v20.8.8 do ChatGPT (tem o melhor da arquitetura de sync)
 - Bug 1 corrigido: cloudBoot agora compara __rev e score antes de aplicar remoto — local mais recente não é sobrescrito
 - Bug 2 corrigido: salvar() não bloqueia mais remoções legítimas — só loga aviso se payload cair mais de 40%
 - Bug 3 corrigido: visibilitychange visible agora chama cloudBoot — sincroniza ao voltar ao app
@@ -374,3 +374,67 @@ ARQUIVOS ALTERADOS:
 
 STATUS:
 - Aguardando teste
+
+
+VERSÃO v21 - fix-critico-regressao-virada-4h
+
+FEEDBACK DA v20:
+- Continuou perdendo dados após a virada das 4h
+- Dados lançados após as 4h retornavam para o estado de antes da virada
+- Ocorreu duas vezes em dias seguidos
+
+CAUSA RAIZ IDENTIFICADA:
+- O app trabalha até depois das 4h, acumulando saves na nuvem com __rev alto
+- Às 4h o ensureGanhoHoraDiaAtual vira o dia localmente — ganhoHoraDiaRef muda, __rev reinicia baixo
+- O usuário continua lançando dados no novo dia
+- Ao voltar ao app (após minimizar ~6h), cloudBoot busca da nuvem o snapshot pré-virada
+- mdPickBestSnapshot escolhe o remoto por ter __rev alto — ignorando que é de dia anterior
+- cloudApplyRemoteData sobrescreve o local com dados de ontem — REGRESSÃO
+
+O QUE FOI FEITO (4 fixes):
+1. mdPickBestSnapshot: ganhoHoraDiaRef mais recente agora é critério 0 — sempre ganha sobre __rev e timestamp
+2. cloudApplyRemoteData: bloqueia merge se remoto é de dia anterior — apenas mescla arrays sem tocar no estado do dia atual
+3. ensureGanhoHoraDiaAtual: após virada, faz push imediato para nuvem — garante que próximo cloudBoot já veja o novo dia
+4. visibilitychange visible: roda ensureGanhoHoraDiaAtual ANTES de cloudBoot — se o dia virou enquanto app estava em background, corrige estado antes de qualquer merge
+
+ARQUIVOS ALTERADOS:
+- app30_app.html
+- index.html
+- login.html
+- admin.html
+- painel.html
+- reset.html
+- LEIA-ME.txt
+
+STATUS:
+- Aguardando teste — testar especificamente após virada das 4h
+
+
+VERSÃO v22 - fix-logout-involuntario-token
+
+FEEDBACK DA v21:
+- Identificado que o problema de regressão de dados era precedido de logout involuntário
+- O app fazia logout sozinho de madrugada e ao entrar novamente carregava dados antigos da nuvem
+
+CAUSA RAIZ IDENTIFICADA:
+- O auth-guard fazia location.replace("login.html") se qualquer erro ocorresse ao renovar token
+- Falha de rede de madrugada (comum) causava logout mesmo com token ainda válido
+- Ao fazer login novamente, a nuvem tinha snapshot de antes da virada das 4h
+- Combinado com os bugs da v20, isso causava a regressão
+
+O QUE FOI FEITO (3 fixes):
+1. auth-guard reescrito: não faz logout por falha de rede — se tem access_token local (mesmo expirado), mantém sessão. Só redireciona para login se não tem absolutamente nenhum token.
+2. Renovação proativa de token a cada 25 minutos enquanto o app está aberto — evita que o token expire durante uso prolongado na madrugada sem que o app perceba.
+3. Os fixes da v21 (ganhoHoraDiaRef como critério 0, bloqueio de remoto de dia anterior, push após virada) continuam ativos.
+
+ARQUIVOS ALTERADOS:
+- app30_app.html
+- index.html
+- login.html
+- admin.html
+- painel.html
+- reset.html
+- LEIA-ME.txt
+
+STATUS:
+- Aguardando teste — testar especificamente uso prolongado de madrugada e virada das 4h
