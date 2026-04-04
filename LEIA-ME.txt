@@ -376,7 +376,7 @@ STATUS:
 - Aguardando teste
 
 
-VERSÃO v25 - fix-critico-perda-dados-multiplos-cenarios
+VERSÃO v27 - fix-critico-perda-dados-multiplos-cenarios
 
 FEEDBACK DA v24:
 - Login entrava tudo zerado
