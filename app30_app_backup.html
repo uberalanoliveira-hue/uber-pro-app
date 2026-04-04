@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v25</title>
+<title>MetaDriver v27</title>
 <script>
 // v21 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -2669,16 +2669,16 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
     try{
       const sess = readStoredSession();
       if(!sess.access_token && !sess.refresh_token){
-        window.__mdAuthOptionalMode = true;
+        window.location.replace("login.html?next=app30_app.html&t=" + Date.now());
         return;
       }
       const token = await refreshAccessTokenIfNeeded(false);
       if(!token){
-        window.__mdAuthOptionalMode = true;
+        window.location.replace("login.html?next=app30_app.html&t=" + Date.now());
         return;
       }
     }catch(e){
-      window.__mdAuthOptionalMode = true;
+      window.location.replace("login.html?next=app30_app.html&t=" + Date.now());
     }
   })();
 
@@ -3190,6 +3190,7 @@ const DURABLE_STATE_KEY = STORAGE_KEY + "__durable_snapshot_v1";
 const JOURNAL_KEY = STORAGE_KEY + "__journal_v1";
 const JOURNAL_IDB_KEY = STORAGE_KEY + "__journal_idb_v1";
 const META_SCHEMA_VERSION = 2;
+const GLOBAL_SEQ_KEY = STORAGE_KEY + "__global_seq_v1";
 let __cloudSaveTimer = null;
 let __cloudBootStarted = false;
 let __cloudBootDoneOnce = false;
@@ -3338,17 +3339,20 @@ async function mdRecoverDurableStateFromIDB(){
   try{
     const direct = await idbGet(IDB_KEY);
     const durable = await idbGet(DURABLE_STATE_KEY);
-    const journal = await idbGet(JOURNAL_IDB_KEY);
-    const candidates = [];
-    const d1 = mdSafeJsonParse(direct); if(d1) candidates.push({snapshot:d1, source:"idb-main"});
-    const d2 = mdSafeJsonParse(durable); if(d2) candidates.push({snapshot:d2, source:"idb-durable"});
-    const ja = mdSafeJsonParse(journal); if(Array.isArray(ja)) ja.forEach(function(item){ if(item && item.snapshot) candidates.push({snapshot:item.snapshot, source:"idb-journal"}); });
-    candidates.sort(function(a,b){
-      const ao = mdSnapshotOrderValue(a.snapshot), bo = mdSnapshotOrderValue(b.snapshot);
-      if(bo !== ao) return bo - ao;
-      return mdUsefulScore(b.snapshot) - mdUsefulScore(a.snapshot);
-    });
-    const best = candidates.length ? candidates[0].snapshot : null;
+    const d1 = mdSafeJsonParse(direct);
+    const d2 = mdSafeJsonParse(durable);
+    let best = mdPickBestSnapshot([{snapshot:d1},{snapshot:d2}]);
+    if(!best){
+      const journal = await idbGet(JOURNAL_IDB_KEY);
+      const candidates = [];
+      const ja = mdSafeJsonParse(journal); if(Array.isArray(ja)) ja.forEach(function(item){ if(item && item.snapshot) candidates.push({snapshot:item.snapshot, source:"idb-journal"}); });
+      candidates.sort(function(a,b){
+        const ao = mdSnapshotOrderValue(a.snapshot), bo = mdSnapshotOrderValue(b.snapshot);
+        if(bo !== ao) return bo - ao;
+        return mdUsefulScore(b.snapshot) - mdUsefulScore(a.snapshot);
+      });
+      best = candidates.length ? candidates[0].snapshot : null;
+    }
     if(best){
       try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(best)); }catch(e){}
       try{ localStorage.setItem(DURABLE_STATE_KEY, JSON.stringify(best)); }catch(e){}
@@ -3360,6 +3364,17 @@ async function mdRecoverDurableStateFromIDB(){
 
 function loadDados(){
   try{
+    const direct = mdSafeJsonParse(localStorage.getItem(STORAGE_KEY));
+    const durable = mdSafeJsonParse(localStorage.getItem(DURABLE_STATE_KEY));
+    const primary = mdPickBestSnapshot([
+      { snapshot: direct },
+      { snapshot: durable }
+    ]);
+    if(primary){
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(primary)); }catch(e){}
+      try{ localStorage.setItem(DURABLE_STATE_KEY, JSON.stringify(primary)); }catch(e){}
+      return primary;
+    }
     const bestLocal = mdChooseBestLocalSnapshotSync();
     if(bestLocal){
       try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(bestLocal)); }catch(e){}
@@ -3490,6 +3505,60 @@ function mdEnsureDataMeta(obj){
   if(!obj.__last_local_write_at) obj.__last_local_write_at = obj.__updated_at;
   return obj;
 }
+function mdReadGlobalSeq(){
+  try{ return Number(localStorage.getItem(GLOBAL_SEQ_KEY) || 0) || 0; }catch(e){ return 0; }
+}
+function mdWriteGlobalSeq(seq){
+  try{ localStorage.setItem(GLOBAL_SEQ_KEY, String(Number(seq || 0) || 0)); }catch(e){}
+  try{ idbSet(GLOBAL_SEQ_KEY, String(Number(seq || 0) || 0)); }catch(e){}
+}
+function mdScanMaxSeq(){
+  try{
+    let maxSeq = mdReadGlobalSeq();
+    const scan = function(snapshot){
+      const s = Number(snapshot && snapshot.__local_commit_seq || 0);
+      if(s > maxSeq) maxSeq = s;
+    };
+    scan(dados);
+    mdReadDurableLocalCandidates().forEach(function(item){ scan(item && item.snapshot); });
+    mdReadBackupRing(LOCAL_BACKUP_KEY).forEach(function(item){ scan(item && item.snapshot); });
+    mdReadBackupRing(CLOUD_BACKUP_KEY).forEach(function(item){ scan(item && item.snapshot); });
+    const pending = cloudReadPendingSnapshot();
+    scan(pending && pending.payload);
+    return maxSeq;
+  }catch(e){ return mdReadGlobalSeq(); }
+}
+function mdNextGlobalSeq(minBase){
+  const base = Math.max(Number(minBase || 0) || 0, mdScanMaxSeq(), mdReadGlobalSeq());
+  const next = base + 1;
+  mdWriteGlobalSeq(next);
+  return next;
+}
+function mdResetRollbackSources(keepCloudBackups){
+  try{ localStorage.removeItem(CLOUD_PENDING_KEY); }catch(e){}
+  try{ localStorage.removeItem(JOURNAL_KEY); }catch(e){}
+  try{ idbSet(JOURNAL_IDB_KEY, JSON.stringify([])); }catch(e){}
+  try{ localStorage.removeItem(LOCAL_BACKUP_KEY); }catch(e){}
+  if(!keepCloudBackups){
+    try{ localStorage.removeItem(CLOUD_BACKUP_KEY); }catch(e){}
+  }
+}
+function mdSealImportedSnapshot(obj){
+  try{
+    if(!obj || typeof obj !== "object") return obj;
+    mdEnsureDataMeta(obj);
+    const seq = mdNextGlobalSeq(mdScanMaxSeq() + 5000);
+    const now = mdNowIso();
+    obj.__local_commit_seq = seq;
+    obj.__rev = Math.max(Number(obj.__rev || 0), seq);
+    obj.__dirty_local = true;
+    obj.__last_local_write_at = now;
+    obj.__updated_at = now;
+    obj.__cloud_updated_at = now;
+    obj.__imported_at = now;
+    return obj;
+  }catch(e){ return obj; }
+}
 
 function mdCreateBackupEntry(snapshot, reason){
   try{
@@ -3558,10 +3627,12 @@ function mdPickBestSnapshot(candidates){
   const valid = (Array.isArray(candidates) ? candidates : []).filter(function(item){ return item && item.snapshot && typeof item.snapshot === "object"; });
   if(!valid.length) return null;
   valid.sort(function(a,b){
+    const ao = mdSnapshotOrderValue(a.snapshot), bo = mdSnapshotOrderValue(b.snapshot);
+    if(bo !== ao) return bo - ao;
     const ar = Number(a.snapshot.__rev || 0), br = Number(b.snapshot.__rev || 0);
     if(br !== ar) return br - ar;
-    const at = new Date(a.snapshot.__updated_at || a.snapshot.__cloud_updated_at || 0).getTime() || 0;
-    const bt = new Date(b.snapshot.__updated_at || b.snapshot.__cloud_updated_at || 0).getTime() || 0;
+    const at = new Date(a.snapshot.__updated_at || a.snapshot.__last_local_write_at || a.snapshot.__cloud_updated_at || 0).getTime() || 0;
+    const bt = new Date(b.snapshot.__updated_at || b.snapshot.__last_local_write_at || b.snapshot.__cloud_updated_at || 0).getTime() || 0;
     if(bt !== at) return bt - at;
     return mdUsefulScore(b.snapshot) - mdUsefulScore(a.snapshot);
   });
@@ -3574,8 +3645,9 @@ mdEnsureDataMeta(dados);
 function salvar(){
   try{
     mdEnsureDataMeta(dados);
-    dados.__rev = Number(dados.__rev || 0) + 1;
-    dados.__local_commit_seq = Number(dados.__local_commit_seq || 0) + 1;
+    const nextSeq = mdNextGlobalSeq(Math.max(Number(dados.__local_commit_seq || 0), Number(dados.__rev || 0)));
+    dados.__local_commit_seq = nextSeq;
+    dados.__rev = Math.max(Number(dados.__rev || 0) + 1, nextSeq);
     dados.__dirty_local = true;
     dados.__last_local_write_at = mdNowIso();
     dados.__updated_at = dados.__last_local_write_at;
@@ -3673,7 +3745,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v26 sync-fix',
+      app_version: 'MetaDriver v27 rollback-shield',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -5073,23 +5145,25 @@ safe.naoTrabalhados = (safe.naoTrabalhados || []).map(n => ({
       const ok = confirm("Importar vai SUBSTITUIR seus dados atuais por esse backup. Confirmar?");
       if(!ok) return;
 
+      try{ mdResetRollbackSources(false); }catch(e){}
       dados = safe;
       ensureCarro();
-      // v25: garantir seq alto para que import ganhe em qualquer comparação
-      dados.__local_commit_seq = Number(dados.__local_commit_seq || 0) + 1000;
-      dados.__last_local_write_at = mdNowIso();
-      dados.__updated_at = dados.__last_local_write_at;
-      dados.__dirty_local = true;
-      salvar();
+      mdSealImportedSnapshot(dados);
+      try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+      try{ localStorage.removeItem(DURABLE_STATE_KEY); }catch(e){}
+      if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
+      try{ idbSet(IDB_KEY, JSON.stringify(dados)); }catch(e){}
+      try{ idbSet(DURABLE_STATE_KEY, JSON.stringify(dados)); }catch(e){}
+      try{ mdPushBackup(LOCAL_BACKUP_KEY, dados, "import"); }catch(e){}
+      try{ mdAppendJournal(dados, "import"); }catch(e){}
       atualizar();
       try{ atualizarCarro(); }catch(e){}
-      // v26: após importar, apenas sobe o novo estado; não rearma restore remoto automático
       try{
         __cloudDirty = true;
         cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
-        cloudPushNow();
+        setTimeout(function(){ cloudPushNow(); }, 80);
       }catch(e){}
-      toast("✅ Backup importado com sucesso.");
+      toast("✅ Backup importado com sucesso. Estado antigo foi isolado para não voltar por rollback.");
       closeMenu();
     }catch(e){
       toast("❌ Arquivo inválido. Escolha um backup .json exportado pelo app.");
@@ -6022,7 +6096,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v25 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v27 · app</div>
 </body>
     </html>  `);
   w.document.close();
