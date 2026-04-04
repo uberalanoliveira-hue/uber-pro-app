@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v29</title>
+<title>MetaDriver v30</title>
 <script>
 // v21 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -3757,7 +3757,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v29 rollback-shield',
+      app_version: 'MetaDriver v30 rollback-shield',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -6089,7 +6089,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v29 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v30 · app</div>
 </body>
     </html>  `);
   w.document.close();

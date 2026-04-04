@@ -13,257 +13,132 @@
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
-body{
-  margin:0;
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:linear-gradient(180deg,#0f172a 0%, #111827 100%);
-  font-family:Arial,Helvetica,sans-serif;
-  color:#fff;
-  padding:20px;
-}
-.wrap{
-  width:min(420px,100%);
-  text-align:center;
-}
-.logo-img{
-  width:120px;
-  height:120px;
-  object-fit:contain;
-  border-radius:28px;
-  margin:0 auto 18px;
-  display:block;
-  box-shadow:0 10px 28px rgba(0,0,0,.30);
-}
-.title{
-  font-size:28px;
-  font-weight:800;
-  margin-bottom:10px;
-}
-.sub{
-  opacity:.86;
-  line-height:1.45;
-  margin-bottom:18px;
-  font-size:14px;
-}
-button{
-  width:100%;
-  padding:14px 16px;
-  border:none;
-  border-radius:14px;
-  font:inherit;
-  font-weight:700;
-}
-#installBtn{
-  background:#22c55e;
-  color:#0b1220;
-}
-#fallbackBtn{
-  background:rgba(255,255,255,.08);
-  color:#fff;
-  border:1px solid rgba(255,255,255,.14);
-  margin-top:10px;
-  display:none;
-}
-.note{
-  margin-top:12px;
-  font-size:12px;
-  opacity:.8;
-  line-height:1.4;
-}
-
-.version-debug-badge{
-  position:fixed;
-  right:10px;
-  bottom:10px;
-  z-index:2147483647;
-  padding:6px 10px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(15,23,42,.88);
-  color:#fff;
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.2px;
-  opacity:.95;
-}
-
-
-.install-helper{
-  margin-top:12px;
-  padding:12px 14px;
-  border-radius:14px;
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.12);
-  font-size:12px;
-  line-height:1.45;
-  display:none;
-}
-.install-helper.show{display:block;}
-.install-actions{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:10px;
-}
-.install-actions button{
-  margin-top:0;
-  padding:12px 14px;
-}
-
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#0f172a 0%, #111827 100%);font-family:Arial,Helvetica,sans-serif;color:#fff;padding:20px}
+.wrap{width:min(420px,100%);text-align:center}
+.logo-img{width:120px;height:120px;object-fit:contain;border-radius:28px;margin:0 auto 18px;display:block;box-shadow:0 10px 28px rgba(0,0,0,.30)}
+.title{font-size:28px;font-weight:800;margin-bottom:10px}
+.sub{opacity:.86;line-height:1.45;margin-bottom:18px;font-size:14px}
+button{width:100%;padding:14px 16px;border:none;border-radius:14px;font:inherit;font-weight:700}
+#installBtn{background:#22c55e;color:#0b1220}
+#openLoginBtn{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.14);margin-top:10px}
+.note{margin-top:12px;font-size:12px;opacity:.8;line-height:1.4}
+.install-helper{margin-top:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:12px;line-height:1.45;display:none}
+.install-helper.show{display:block}
+.install-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.install-actions button{margin-top:0;padding:12px 14px}
+.hidden{display:none !important}
+.splash .logo-img{animation:pulse 1.1s ease-in-out infinite alternate}
+.splash .sub{margin-bottom:0}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.035)}}
+.version-debug-badge{position:fixed;right:10px;bottom:10px;z-index:2147483647;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(15,23,42,.88);color:#fff;font-size:11px;font-weight:700;letter-spacing:.2px;opacity:.95}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap splash" id="bootWrap">
   <img class="logo-img" src="icon-512.png" alt="Logo MetaDriver">
   <div class="title">MetaDriver</div>
-  <div class="sub" id="subText">Instale o aplicativo para usar da forma correta.</div>
-  <button id="installBtn" type="button">Instalar aplicativo</button>
-  <button id="fallbackBtn" type="button">Entrar</button>
-  <div class="note" id="noteText">Use o Chrome para instalar o aplicativo.</div>
+  <div class="sub" id="subText">Abrindo aplicativo...</div>
+</div>
 
+<div class="wrap hidden" id="installWrap">
+  <img class="logo-img" src="icon-512.png" alt="Logo MetaDriver">
+  <div class="title">MetaDriver</div>
+  <div class="sub" id="installSubText">Instale o aplicativo para usar da forma correta.</div>
+  <button id="installBtn" type="button">Instalar aplicativo</button>
+  <button id="openLoginBtn" type="button">Entrar sem instalar</button>
+  <div class="note" id="noteText">Use o Chrome para instalar o aplicativo.</div>
   <div class="install-helper" id="installHelper">
     <div id="installHelperText">Instalação automática indisponível neste momento.</div>
     <div class="install-actions">
-      <button id="openAppBtnDev" type="button">Abrir app</button>
+      <button id="openAppBtnDev" type="button">Abrir login</button>
       <button id="showStepsBtn" type="button">Como instalar</button>
     </div>
   </div>
-
 </div>
 
-<script>
-let deferredPrompt = null;
-
-function isIOS() {
-  return /iphone|ipad|ipod/i.test(navigator.userAgent);
-}
-function isSafari() {
-  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-}
-
-window.addEventListener('beforeinstallprompt', function(e){
-  e.preventDefault();
-  deferredPrompt = e;
-});
-
-window.addEventListener('appinstalled', function(){
-  deferredPrompt = null;
-  document.getElementById('subText').textContent = 'Aplicativo instalado com sucesso. Abra o app instalado para entrar.';
-  document.getElementById('noteText').textContent = 'Depois de instalar, use o ícone do MetaDriver na tela inicial.';
-  try { document.getElementById('installBtn').style.display = 'none'; } catch(e){}
-});
-
-document.getElementById('installBtn').addEventListener('click', async function(){
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    try { await deferredPrompt.userChoice; } catch(e){}
-    return;
-  }
-
-  if (isIOS() && isSafari()) {
-    document.getElementById('subText').textContent = 'No iPhone, instale pelo menu Compartilhar do Safari e depois “Adicionar à Tela de Início”.';
-    document.getElementById('noteText').textContent = 'No Safari o botão de instalar não abre o prompt automático. Por isso a opção Entrar fica liberada apenas no iPhone/Safari.';
-    document.getElementById('fallbackBtn').style.display = 'block';
-    return;
-  }
-
-  alert('Abra no Chrome e use o botão instalar. Depois, abra pelo app instalado.');
-}, true);
-
-document.getElementById('fallbackBtn').addEventListener('click', function(){
-  location.href = 'login.html';
-}, true);
-
-// Se já estiver instalado, segue o fluxo normal do app
-if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-  location.replace('app30_app.html');
-}
-
-// Service Worker removido na v3 para evitar cache e mistura de versões.
-);
-}
-</script>
-<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v29 · instalação</div>
+<div class="version-debug-badge">MetaDriver v30 · boot</div>
 
 <script>
-let deferredPrompt = null;
-const INSTALL_SCREEN_VERSION = "v29";
+(function(){
+  var deferredPrompt = null;
+  var bootWrap = document.getElementById('bootWrap');
+  var installWrap = document.getElementById('installWrap');
+  var subText = document.getElementById('subText');
+  var installSubText = document.getElementById('installSubText');
+  var noteText = document.getElementById('noteText');
+  var installHelper = document.getElementById('installHelper');
+  var installHelperText = document.getElementById('installHelperText');
 
-function isIOS() {
-  return /iphone|ipad|ipod/i.test(navigator.userAgent);
-}
-function isSafari() {
-  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-}
-function isStandalone() {
-  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-}
-function showHelper(message){
-  const box = document.getElementById("installHelper");
-  const text = document.getElementById("installHelperText");
-  if(text && message) text.textContent = message;
-  if(box) box.classList.add("show");
-}
-function openAppDirect(){
-  try{
-    window.location.href = "index.html";
-  }catch(e){}
-}
-function showManualSteps(){
-  const steps = isIOS() && isSafari()
-    ? "No iPhone: Compartilhar → Adicionar à Tela de Início. Depois abra o ícone instalado."
-    : "No Chrome Android: menu ⋮ → Instalar aplicativo ou Adicionar à tela inicial.";
-  alert(steps);
-}
-
-window.addEventListener('beforeinstallprompt', function(e){
-  e.preventDefault();
-  deferredPrompt = e;
-  try{
-    document.getElementById('subText').textContent = 'Versão v29 pronta para instalar ou abrir.';
-    document.getElementById('noteText').textContent = 'Se o botão não abrir o prompt, use “Abrir app” ou instale pelo menu do navegador.';
-  }catch(e){}
-});
-
-window.addEventListener('appinstalled', function(){
-  deferredPrompt = null;
-  document.getElementById('subText').textContent = 'Aplicativo instalado com sucesso. Abra o app instalado para entrar.';
-  document.getElementById('noteText').textContent = 'Depois de instalar, use o ícone do MetaDriver na tela inicial.';
-  try { document.getElementById('installBtn').style.display = 'none'; } catch(e){}
-});
-
-document.getElementById('installBtn').addEventListener('click', async function(){
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    try { await deferredPrompt.userChoice; } catch(e){}
-    return;
+  function isIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); }
+  function isSafari(){ return /^((?!chrome|android).)*safari/i.test(navigator.userAgent); }
+  function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+  function hasSavedSession(){
+    try{
+      return !!(localStorage.getItem('sb_token') || localStorage.getItem('sb_refresh_token') || localStorage.getItem('supabase.auth.token'));
+    }catch(e){ return false; }
+  }
+  function go(url){ window.location.replace(url); }
+  function showInstall(){
+    bootWrap.classList.add('hidden');
+    installWrap.classList.remove('hidden');
+  }
+  function showHelper(message){
+    if(message) installHelperText.textContent = message;
+    installHelper.classList.add('show');
+  }
+  function showManualSteps(){
+    var steps = (isIOS() && isSafari())
+      ? 'No iPhone: Compartilhar → Adicionar à Tela de Início. Depois abra o ícone instalado.'
+      : 'No Chrome Android: menu ⋮ → Instalar aplicativo ou Adicionar à tela inicial.';
+    alert(steps);
   }
 
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    deferredPrompt = e;
+  });
+
+  window.addEventListener('appinstalled', function(){
+    deferredPrompt = null;
+    try{
+      installSubText.textContent = 'Aplicativo instalado com sucesso. Abra o app instalado para entrar.';
+      noteText.textContent = 'Depois de instalar, use o ícone do MetaDriver na tela inicial.';
+      document.getElementById('installBtn').style.display = 'none';
+    }catch(e){}
+  });
+
+  document.getElementById('installBtn').addEventListener('click', async function(){
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      try { await deferredPrompt.userChoice; } catch(e) {}
+      return;
+    }
+    if (isIOS() && isSafari()) {
+      installSubText.textContent = 'No iPhone, instale pelo menu Compartilhar do Safari e depois “Adicionar à Tela de Início”.';
+      noteText.textContent = 'No Safari o botão de instalar não abre o prompt automático.';
+      showHelper('No iPhone/Safari a instalação é manual pelo menu Compartilhar.');
+      return;
+    }
+    showHelper('Instalação automática indisponível neste momento. Você também pode entrar sem instalar.');
+  }, true);
+
+  document.getElementById('openLoginBtn').addEventListener('click', function(){ go('login.html'); }, true);
+  document.getElementById('openAppBtnDev').addEventListener('click', function(){ go('login.html'); }, true);
+  document.getElementById('showStepsBtn').addEventListener('click', showManualSteps, true);
+
+  // Fluxo correto:
+  // - app instalado: abre direto no app se houver sessão; senão vai pro login
+  // - navegador comum: mostra tela de instalação
   if (isStandalone()) {
-    openAppDirect();
+    subText.textContent = 'Verificando sessão...';
+    setTimeout(function(){
+      go(hasSavedSession() ? 'app30_app.html' : 'login.html');
+    }, 20);
     return;
   }
 
-  if (isIOS() && isSafari()) {
-    document.getElementById('subText').textContent = 'No iPhone, instale pelo menu Compartilhar do Safari e depois “Adicionar à Tela de Início”.';
-    document.getElementById('noteText').textContent = 'Quando o prompt automático não existir, use as instruções ou toque em Abrir app.';
-    showHelper('Instalação automática indisponível no Safari. Você pode abrir o app agora ou instalar manualmente.');
-    return;
-  }
-
-  showHelper('O prompt automático de instalação não apareceu. Você pode abrir o app agora ou instalar manualmente pelo menu do navegador.');
-});
-
-document.getElementById('openAppBtnDev').addEventListener('click', openAppDirect);
-document.getElementById('showStepsBtn').addEventListener('click', showManualSteps);
-
-try{
-  var badge = document.getElementById('versionDebugBadge');
-  if(badge) badge.textContent = 'MetaDriver v29 · instalação';
-}catch(e){}
+  showInstall();
+})();
 </script>
 </body>
 </html>
