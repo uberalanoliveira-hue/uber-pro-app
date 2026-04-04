@@ -179,18 +179,18 @@ document.getElementById('fallbackBtn').addEventListener('click', function(){
 
 // Se já estiver instalado, segue o fluxo normal do app
 if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-  location.href = 'app30_app.html';
+  location.replace('app30_app.html');
 }
 
 // Service Worker removido na v3 para evitar cache e mistura de versões.
 );
 }
 </script>
-<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v28 · instalação</div>
+<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v29 · instalação</div>
 
 <script>
 let deferredPrompt = null;
-const INSTALL_SCREEN_VERSION = "v24";
+const INSTALL_SCREEN_VERSION = "v29";
 
 function isIOS() {
   return /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -209,7 +209,7 @@ function showHelper(message){
 }
 function openAppDirect(){
   try{
-    window.location.href = "login.html";
+    window.location.href = "index.html";
   }catch(e){}
 }
 function showManualSteps(){
@@ -223,7 +223,7 @@ window.addEventListener('beforeinstallprompt', function(e){
   e.preventDefault();
   deferredPrompt = e;
   try{
-    document.getElementById('subText').textContent = 'Versão v28 pronta para instalar ou abrir.';
+    document.getElementById('subText').textContent = 'Versão v29 pronta para instalar ou abrir.';
     document.getElementById('noteText').textContent = 'Se o botão não abrir o prompt, use “Abrir app” ou instale pelo menu do navegador.';
   }catch(e){}
 });
@@ -262,7 +262,7 @@ document.getElementById('showStepsBtn').addEventListener('click', showManualStep
 
 try{
   var badge = document.getElementById('versionDebugBadge');
-  if(badge) badge.textContent = 'MetaDriver v28 · instalação';
+  if(badge) badge.textContent = 'MetaDriver v29 · instalação';
 }catch(e){}
 </script>
 </body>
