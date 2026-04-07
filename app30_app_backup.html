@@ -18,9 +18,8 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v68</title>
+<title>MetaDriver v69</title>
 <script>
-document.documentElement.setAttribute("data-md-bootlock","1");
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
   var KEY_Y = 'md_scroll_y';
@@ -2758,12 +2757,6 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   cursor:not-allowed !important;
 }
 
-
-/* v68 - evita piscão das seções no boot */
-html[data-md-bootlock="1"] .card .card-body{
-  display:none !important;
-}
-
 </style>
 
 <style id="app30-auth-guard-style">
@@ -2955,7 +2948,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v68</div>
+  <div class="menu-note" style="text-align:center;">v69</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -3329,8 +3322,7 @@ const DEV_LOCAL_MODE = true;
 
 const STORAGE_KEY = "controleUberProDados";
 
-const OFFLINE_SAFE_SNAPSHOT_KEY = STORAGE_KEY + "__offline_safe_v68";
-
+const OFFLINE_SAFE_SNAPSHOT_KEY = STORAGE_KEY + "__offline_safe_snapshot";
 function mdReadOfflineSafeSnapshot(){
   try{
     const raw = localStorage.getItem(OFFLINE_SAFE_SNAPSHOT_KEY);
@@ -3772,7 +3764,7 @@ function salvar(){
     mdPushBackup(LOCAL_BACKUP_KEY, dados, "save");
     mdAppendJournal(dados, "save");
       try{ mdWriteOfflineSafeSnapshot(dados); }catch(e){}
-  }catch(e){
+}catch(e){
     try{
       const payload = JSON.stringify(dados);
       idbSet(IDB_KEY, payload);
@@ -6628,7 +6620,8 @@ const fuelCfg = getCombustivelConfig(bruto);
     document.getElementById("horasResumo").innerHTML =
       "Meta diária (automática): <span class='" + (metaDia < 0 ? "dangerText" : "warning") + "'>R$ " + metaDia.toFixed(2) + "</span><br>" +
       "Valor restante: <span class='" + (valorRestanteHoras < 0 ? "dangerText" : "warning") + "'>R$ " + valorRestanteHoras.toFixed(2) + "</span><br>" +
-      "Tempo para meta diária:<br>Tempo restante: <span class='" + (horasRestantes < 0 ? "dangerText" : "warning") + "'>" + formatHorasMinutos(horasRestantes) + "</span>";
+      "Tempo para meta diária:<br>" +
+      "Tempo restante: <span class='" + (horasRestantes < 0 ? "dangerText" : "warning") + "'>" + formatHorasMinutos(horasRestantes) + "</span>";
   }else{
     document.getElementById("horasResumo").innerHTML = "";
   }
@@ -6793,12 +6786,7 @@ function appendMetaTotalKey(key){
     current = "";
     metaTotalReplaceOnNextInput = false;
   }
-  if(key === "."){
-    if(current.includes(".")) return;
-    if(!current) current = "0";
-  }else if(!/^[0-9]$/.test(String(key))){
-    return;
-  }
+  if(!/^[0-9]$/.test(String(key))) return;
   current += String(key);
   current = current.replace(/^0+(?=\d)/, "");
   input.value = current;
@@ -7475,7 +7463,6 @@ function bootApp(){
   }catch(e){}
   try{ ensureFirstInstallCollapsed(); }catch(e){}
   try{ initSectionCollapse(); }catch(e){}
-  try{ document.documentElement.setAttribute("data-md-bootlock","0"); }catch(e){}
   try{ ensureGanhoHoraDiaAtual(); }catch(e){}
   try{ setInterval(function(){ try{ ensureGanhoHoraDiaAtual(); }catch(e){} }, 15000); }catch(e){}
   try{ updateUberClock(); setInterval(updateUberClock, 1000); }catch(e){}
@@ -8747,7 +8734,7 @@ window.addEventListener("load", function(){
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('7')">7</button>
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('8')">8</button>
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('9')">9</button>
-    <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('.')">.</button>
+    <button type="button" class="quick-balance-key" onclick="clearMetaTotal()">Limpar</button>
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('0')">0</button>
     <button type="button" class="quick-balance-key" onclick="backspaceMetaTotal()">⌫</button>
   </div>
