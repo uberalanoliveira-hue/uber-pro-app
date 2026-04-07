@@ -184,34 +184,32 @@ document.documentElement.setAttribute("data-md-bootlock","1");
 })();
 
 setInterval(function(){
+  try{ syncSaldoAtualLockWithFab(); }catch(e){}
 }, 800);
 
 
 function lockSaldoAtualByFab(){
   const saldo = document.getElementById("saldoAtualFora");
   if(!saldo) return;
-
   let ativo = false;
   try{
-    ativo = (typeof getQuickBalanceFabPref === "function") ? !!getQuickBalanceFabPref() : false;
-  }catch(e){
-    ativo = false;
-  }
-
+    if(typeof getQuickBalanceFabPref === "function"){
+      ativo = !!getQuickBalanceFabPref();
+    }else{
+      const fab = document.getElementById("quickBalanceFab");
+      ativo = !!(fab && !fab.classList.contains("hidden"));
+    }
+  }catch(e){}
   if(ativo){
     saldo.setAttribute("readonly","readonly");
     saldo.setAttribute("inputmode","none");
-    saldo.classList.add("readonly");
     saldo.blur && saldo.blur();
   }else{
     saldo.removeAttribute("readonly");
     saldo.setAttribute("inputmode","decimal");
-    saldo.classList.remove("readonly");
   }
 }
 
-
-/* v63 - estado unificado da trava do saldo atual */
 document.addEventListener("DOMContentLoaded", function(){
   try{ lockSaldoAtualByFab(); }catch(e){}
 });
@@ -220,7 +218,7 @@ window.addEventListener("pageshow", function(){
 });
 setInterval(function(){
   try{ lockSaldoAtualByFab(); }catch(e){}
-}, 700);
+}, 500);
 
 </script>
 
@@ -2957,7 +2955,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v63</div>
+  <div class="menu-note" style="text-align:center;">v64</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -6490,6 +6488,8 @@ function atualizar(){
   const elMeta = document.getElementById("metaTotal");
 if(elMeta && document.activeElement !== elMeta){
   elMeta.value = dados.metaTotal || "";
+  try{ syncSaldoAtualLockWithFab(); }catch(e){}
+
   try{ lockSaldoAtualByFab(); }catch(e){}
 
 }
@@ -7037,6 +7037,7 @@ function refreshQuickBalanceDisplay(){
   if(n99View) n99View.textContent = formatQuickBalanceDisplay(String(parts.n99));
   if(input) input.value = (s.selected === "uber") ? String(s.uber || "") : String(s.n99 || "");
   renderQuickBalanceSelection();
+  try{ syncSaldoAtualLockWithFab(); }catch(e){}
   try{ lockSaldoAtualByFab(); }catch(e){}
 
 }
@@ -7119,6 +7120,7 @@ function toggleQuickBalancePanel(forceOpen){
     qbPersistState();
     quickBalanceReplaceOnNextInput = false;
   }
+  try{ syncSaldoAtualLockWithFab(); }catch(e){}
   try{ lockSaldoAtualByFab(); }catch(e){}
 
 }
@@ -7144,9 +7146,8 @@ function salvarSaldoAtualRapido(){
     refreshQuickBalanceFabMiniDisplay();
     toggleQuickBalancePanel(false);
     toast("💰 Saldo atual atualizado.");
-  try{ lockSaldoAtualByFab(); }catch(e){}
-
-}catch(e){
+    try{ syncSaldoAtualLockWithFab(); }catch(e){}
+  }catch(e){
     console.error(e);
     toast("Não foi possível atualizar o saldo atual.");
   }
@@ -7244,9 +7245,8 @@ function applyQuickBalanceFabStateHard(){
     fab.style.setProperty("pointer-events", "none", "important");
     fab.style.setProperty("opacity", "0", "important");
     try{ toggleQuickBalancePanel(false); }catch(e){}
-  try{ lockSaldoAtualByFab(); }catch(e){}
-
-}
+try{ syncSaldoAtualLockWithFab(); }catch(e){}
+  }
   try{ lockSaldoAtualByFab(); }catch(e){}
 
 }
@@ -7279,6 +7279,7 @@ function salvarPreferenciaSaldoAtualButton(){
   applyQuickBalanceFabStateHard();
   fecharSaldoAtualButtonMenu();
   toast(ativo ? "💰 Botão de saldo atual ativado." : "💰 Botão de saldo atual desativado.");
+try{ syncSaldoAtualLockWithFab(); }catch(e){}
   try{ lockSaldoAtualByFab(); }catch(e){}
 
 }
@@ -7434,12 +7435,13 @@ function initQuickBalanceFab(){
 }
 
 document.addEventListener("DOMContentLoaded", function(){ initQuickBalanceFab(); try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} });
+try{ syncSaldoAtualLockWithFab(); }catch(e){}
 window.addEventListener("pageshow", function(){ try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} });
-setInterval(function(){ try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){}
-}, 800);
+try{ syncSaldoAtualLockWithFab(); }catch(e){}
+setInterval(function(){ try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} try{ syncSaldoAtualLockWithFab(); }catch(e){} }, 800);
 
 function bootApp(){
-  // v64 - segura a UI até o estado de collapse estar aplicado
+  // v57 - garante visibilidade
   try{
     document.documentElement.style.opacity = '';
     document.documentElement.style.pointerEvents = '';
