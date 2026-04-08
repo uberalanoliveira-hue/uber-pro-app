@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v73</title>
+<title>MetaDriver v74</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -223,7 +223,7 @@ setInterval(function(){
 document.addEventListener("DOMContentLoaded", function(){ try{ renderSyncDiagnostic(); }catch(e){} });
 window.addEventListener("focus", function(){ try{ renderSyncDiagnostic(); }catch(e){} });
 window.addEventListener("online", function(){ try{ renderSyncDiagnostic(); }catch(e){} });
-window.addEventListener("pageshow", function(){ try{ renderSyncDiagnostic(); }catch(e){} try{ cloudScheduleSave(true); }catch(e){} });
+window.addEventListener("pageshow", function(){ try{ renderSyncDiagnostic(); }catch(e){} try{ if(typeof cloudScheduleSave === "function") cloudScheduleSave(true); }catch(e){} });
 </script>
 
 <style>
@@ -2987,7 +2987,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v73</div>
+  <div class="menu-note" style="text-align:center;">v74</div>
 
 <div id="syncDiagnosticBar" class="sync-diagnostic-bar">
   <strong>Diagnóstico de sync</strong>
@@ -3471,8 +3471,7 @@ const META_SCHEMA_VERSION = 2;
 let __cloudSaveTimer = null;
 let __cloudBootStarted = false;
 let __cloudBootDoneOnce = false;
-let __cloudDirty = false;
-      try{ localStorage.setItem("md_last_cloud_push_ts", new Date().toLocaleString("pt-BR")); }catch(e){}; // v57 - flag: só envia pra nuvem se houve mudança real
+let __cloudDirty = false; // v57 - flag: só envia pra nuvem se houve mudança real
 
 // ===== Forçar aba inicial: sempre MetaDriver =====
 try{
@@ -3893,6 +3892,10 @@ function salvar(){
     }catch(_){ }
   }
   try{ renderSyncDiagnostic(); }catch(e){}
+
+  try{ __cloudDirty = true; }catch(e){}
+  try{ localStorage.setItem("md_last_cloud_dirty_ts", new Date().toLocaleString("pt-BR")); }catch(e){}
+  try{ if(typeof cloudScheduleSave === "function") cloudScheduleSave(); }catch(e){}
 
 }
 window.__salvarLocalOriginal = salvar;
@@ -4405,7 +4408,6 @@ async function cloudPushNow(snapshotOverride){
     cloudClearPendingSnapshot(updatedAt);
     cloudMarkLastOk(updatedAt);
     __cloudDirty = false;
-      try{ localStorage.setItem("md_last_cloud_push_ts", new Date().toLocaleString("pt-BR")); }catch(e){};
     return true;
   }catch(e){
     __cloudDirty = true;
@@ -4533,7 +4535,6 @@ async function mdInitialHydrateAndRender(){
   try{ atualizar(); }catch(e){}
   try{ atualizarCarro(); }catch(e){}
   setTimeout(function(){ try{ cloudBoot(true); }catch(e){} }, 40);
-  try{ cloudScheduleSave(true); }catch(e){}
   try{ renderSyncDiagnostic(); }catch(e){}
 
 }
@@ -4582,8 +4583,7 @@ setInterval(function(){
   try{
     if(document.visibilityState !== "visible") return;
     if(!__cloudDirty) return; // nenhuma mudança desde o último envio — não faz nada
-    __cloudDirty = false;
-      try{ localStorage.setItem("md_last_cloud_push_ts", new Date().toLocaleString("pt-BR")); }catch(e){};     // limpa a flag antes de enviar (se falhar, próximo ciclo reenvia via pending)
+    __cloudDirty = false;     // limpa a flag antes de enviar (se falhar, próximo ciclo reenvia via pending)
     const pending = cloudReadPendingSnapshot();
     if((pending && pending.payload && cloudHasUsefulData(pending.payload)) || cloudHasUsefulData(dados)){
       cloudPushNow();
@@ -4908,7 +4908,7 @@ function salvarMeta(){
 
   try{ __cloudDirty = true; }catch(e){}
   try{ localStorage.setItem("md_last_cloud_dirty_ts", new Date().toLocaleString("pt-BR")); }catch(e){}
-  try{ cloudScheduleSave(); }catch(e){}
+  try{ if(typeof cloudScheduleSave === "function") cloudScheduleSave(); }catch(e){}
 
 }
 
@@ -4918,7 +4918,7 @@ function salvarHoras(){
   atualizar();
   try{ __cloudDirty = true; }catch(e){}
   try{ localStorage.setItem("md_last_cloud_dirty_ts", new Date().toLocaleString("pt-BR")); }catch(e){}
-  try{ cloudScheduleSave(); }catch(e){}
+  try{ if(typeof cloudScheduleSave === "function") cloudScheduleSave(); }catch(e){}
 
 }
 
@@ -4969,7 +4969,7 @@ function addGanho(){
   }
   try{ __cloudDirty = true; }catch(e){}
   try{ localStorage.setItem("md_last_cloud_dirty_ts", new Date().toLocaleString("pt-BR")); }catch(e){}
-  try{ cloudScheduleSave(); }catch(e){}
+  try{ if(typeof cloudScheduleSave === "function") cloudScheduleSave(); }catch(e){}
 
 }
 
@@ -5032,7 +5032,7 @@ function syncGanhoDoSaldoRapido(valorSaldoAtual, uberPart, n99Part){
   }
   try{ __cloudDirty = true; }catch(e){}
   try{ localStorage.setItem("md_last_cloud_dirty_ts", new Date().toLocaleString("pt-BR")); }catch(e){}
-  try{ cloudScheduleSave(); }catch(e){}
+  try{ if(typeof cloudScheduleSave === "function") cloudScheduleSave(); }catch(e){}
 
 }
 
@@ -5056,7 +5056,7 @@ function addGasto(){
   }
   try{ __cloudDirty = true; }catch(e){}
   try{ localStorage.setItem("md_last_cloud_dirty_ts", new Date().toLocaleString("pt-BR")); }catch(e){}
-  try{ cloudScheduleSave(); }catch(e){}
+  try{ if(typeof cloudScheduleSave === "function") cloudScheduleSave(); }catch(e){}
 
 }
 
@@ -5073,7 +5073,7 @@ function addAbastecimento(){
   }
   try{ __cloudDirty = true; }catch(e){}
   try{ localStorage.setItem("md_last_cloud_dirty_ts", new Date().toLocaleString("pt-BR")); }catch(e){}
-  try{ cloudScheduleSave(); }catch(e){}
+  try{ if(typeof cloudScheduleSave === "function") cloudScheduleSave(); }catch(e){}
 
 }
 
@@ -6093,7 +6093,7 @@ function salvarGanhosForaTempoReal(){
   atualizar();
   try{ __cloudDirty = true; }catch(e){}
   try{ localStorage.setItem("md_last_cloud_dirty_ts", new Date().toLocaleString("pt-BR")); }catch(e){}
-  try{ cloudScheduleSave(); }catch(e){}
+  try{ if(typeof cloudScheduleSave === "function") cloudScheduleSave(); }catch(e){}
 
 }
 
