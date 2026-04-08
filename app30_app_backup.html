@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v87</title>
+<title>MetaDriver v88</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -2962,7 +2962,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v87</div>
+  <div class="menu-note" style="text-align:center;">v88</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -3844,6 +3844,40 @@ function cloudReadPendingSnapshot(){
     const raw = localStorage.getItem(CLOUD_PENDING_KEY);
     return raw ? JSON.parse(raw) : null;
   }catch(e){ return null; }
+}
+
+
+function mdPersistImportedSnapshot(importedSnapshot, reason){
+  try{
+    if(!importedSnapshot || typeof importedSnapshot !== "object") return false;
+    dados = JSON.parse(JSON.stringify(importedSnapshot));
+    mdEnsureDataMeta(dados);
+
+    dados.__rev = Number(dados.__rev || 0) + 1;
+    dados.__local_commit_seq = Number(dados.__local_commit_seq || 0) + 1;
+    dados.__dirty_local = true;
+    dados.__last_local_write_at = mdNowIso();
+    dados.__updated_at = dados.__last_local_write_at;
+    dados.__cloud_updated_at = dados.__updated_at;
+
+    const payload = JSON.stringify(dados);
+    try{ localStorage.setItem(STORAGE_KEY, payload); }catch(e){}
+    try{ localStorage.setItem(DURABLE_STATE_KEY, payload); }catch(e){}
+    try{ idbSet(IDB_KEY, payload); }catch(e){}
+    try{ idbSet(DURABLE_STATE_KEY, payload); }catch(e){}
+    try{ if(typeof mdWriteOfflineSafeSnapshot === "function") mdWriteOfflineSafeSnapshot(dados); }catch(e){}
+    try{ mdPushBackup(LOCAL_BACKUP_KEY, dados, reason || "import"); }catch(e){}
+    try{ mdAppendJournal(dados, reason || "import"); }catch(e){}
+    try{ cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados))); }catch(e){}
+    try{ __cloudDirty = true; }catch(e){}
+    try{ atualizar(); }catch(e){}
+    try{ atualizarCarro(); }catch(e){}
+    try{ if(typeof cloudScheduleSave === "function") cloudScheduleSave(0); }catch(e){}
+    return true;
+  }catch(e){
+    try{ console.warn("mdPersistImportedSnapshot", e); }catch(_e){}
+    return false;
+  }
 }
 
 function mdBuildDiagnosticsObject(){
@@ -5312,8 +5346,8 @@ safe.naoTrabalhados = (safe.naoTrabalhados || []).map(n => ({
       dados.__last_local_write_at = mdNowIso();
       dados.__updated_at = dados.__last_local_write_at;
       dados.__dirty_local = true;
-      salvar();
-      atualizar();
+      
+      
       try{ atualizarCarro(); }catch(e){}
       // v57: após importar, apenas sobe o novo estado; não rearma restore remoto automático
       try{
@@ -5328,6 +5362,11 @@ safe.naoTrabalhados = (safe.naoTrabalhados || []).map(n => ({
     }
   };
   reader.readAsText(file, "utf-8");
+  try{
+    if(typeof imported !== "undefined" && imported) return mdPersistImportedSnapshot(imported, "import-backup");
+    if(typeof parsed !== "undefined" && parsed) return mdPersistImportedSnapshot(parsed, "import-backup");
+  }catch(e){}
+
 }
 
 function zerarTudo(){
