@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v83</title>
+<title>MetaDriver v84</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -231,6 +231,17 @@ window.addEventListener("online", function(){
 window.addEventListener("pageshow", function(){
   try{ cloudBoot(true); }catch(e){}
   try{ mdInitialHydrateAndRender(); }catch(e){}
+});
+
+
+window.addEventListener("load", function(){
+  try{ cloudBoot(true); }catch(e){}
+});
+window.addEventListener("focus", function(){
+  try{ cloudBoot(true); }catch(e){}
+});
+window.addEventListener("online", function(){
+  try{ cloudBoot(true); }catch(e){}
 });
 
 </script>
@@ -2861,7 +2872,7 @@ const DEV_LOCAL_MODE = true;
     if(!sess.refresh_token) return sess.access_token || "";
 
     try{
-      const res = await fetch("https://xoqlgwjpmdkiazwpwhmn.supabase.co/auth/v57/token?grant_type=refresh_token", {
+      const res = await fetch("https://xoqlgwjpmdkiazwpwhmn.supabase.co/auth/v1/token?grant_type=refresh_token", {
         method: "POST",
         headers: {
           "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA",
@@ -2911,6 +2922,17 @@ const DEV_LOCAL_MODE = true;
     }
   });
 })();
+
+window.addEventListener("load", function(){
+  try{ cloudBoot(true); }catch(e){}
+});
+window.addEventListener("focus", function(){
+  try{ cloudBoot(true); }catch(e){}
+});
+window.addEventListener("online", function(){
+  try{ cloudBoot(true); }catch(e){}
+});
+
 </script>
 
 </head>
@@ -3855,7 +3877,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v57 sync-fix',
+      app_version: 'MetaDriver v84',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -3999,7 +4021,7 @@ function cloudMarkLastOk(ts){
 }
 
 async function cloudGetUser(token){
-  const res = await fetch(CLOUD_SUPABASE_URL + "/auth/v57/user", {
+  const res = await fetch(CLOUD_SUPABASE_URL + "/auth/v1/user", {
     headers: {
       "apikey": CLOUD_SUPABASE_KEY,
       "Authorization": "Bearer " + token
@@ -4053,7 +4075,7 @@ function cloudHasUsefulData(obj){
 
 async function cloudFetchRow(token, userId){
   const res = await fetch(
-    CLOUD_SUPABASE_URL + "/rest/v57/" + CLOUD_TABLE + "?select=payload,updated_at&user_id=eq." + encodeURIComponent(userId),
+    CLOUD_SUPABASE_URL + "/rest/v1/" + CLOUD_TABLE + "?select=payload,updated_at&user_id=eq." + encodeURIComponent(userId),
     {
       headers: {
         "apikey": CLOUD_SUPABASE_KEY,
@@ -4273,7 +4295,7 @@ async function cloudPushNow(snapshotOverride){
       updated_at: updatedAt
     }];
 
-    const res = await fetch(CLOUD_SUPABASE_URL + "/rest/v57/" + CLOUD_TABLE, {
+    const res = await fetch(CLOUD_SUPABASE_URL + "/rest/v1/" + CLOUD_TABLE, {
       method: "POST",
       headers: {
         "apikey": CLOUD_SUPABASE_KEY,
@@ -4382,7 +4404,7 @@ async function cloudBoot(force){
       cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
       cloudScheduleSave(120);
     }
-    __cloudBootDoneOnce = true;
+    __cloudBootDoneOnce = false;
   }catch(e){
     console.warn("cloudBoot", e);
   }finally{
@@ -6301,7 +6323,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v57 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v84 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -8613,6 +8635,17 @@ window.addEventListener("load", function(){
       pararTimerGanhoHoraTempoReal();
     }
   }catch(e){}
+});
+
+
+window.addEventListener("load", function(){
+  try{ cloudBoot(true); }catch(e){}
+});
+window.addEventListener("focus", function(){
+  try{ cloudBoot(true); }catch(e){}
+});
+window.addEventListener("online", function(){
+  try{ cloudBoot(true); }catch(e){}
 });
 
 </script>

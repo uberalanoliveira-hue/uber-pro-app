@@ -233,6 +233,17 @@ window.addEventListener("pageshow", function(){
   try{ mdInitialHydrateAndRender(); }catch(e){}
 });
 
+
+window.addEventListener("load", function(){
+  try{ cloudBoot(true); }catch(e){}
+});
+window.addEventListener("focus", function(){
+  try{ cloudBoot(true); }catch(e){}
+});
+window.addEventListener("online", function(){
+  try{ cloudBoot(true); }catch(e){}
+});
+
 </script>
 
 <style>
@@ -2911,6 +2922,17 @@ const DEV_LOCAL_MODE = true;
     }
   });
 })();
+
+window.addEventListener("load", function(){
+  try{ cloudBoot(true); }catch(e){}
+});
+window.addEventListener("focus", function(){
+  try{ cloudBoot(true); }catch(e){}
+});
+window.addEventListener("online", function(){
+  try{ cloudBoot(true); }catch(e){}
+});
+
 </script>
 
 </head>
@@ -4382,7 +4404,7 @@ async function cloudBoot(force){
       cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
       cloudScheduleSave(120);
     }
-    __cloudBootDoneOnce = true;
+    __cloudBootDoneOnce = false;
   }catch(e){
     console.warn("cloudBoot", e);
   }finally{
@@ -8613,6 +8635,17 @@ window.addEventListener("load", function(){
       pararTimerGanhoHoraTempoReal();
     }
   }catch(e){}
+});
+
+
+window.addEventListener("load", function(){
+  try{ cloudBoot(true); }catch(e){}
+});
+window.addEventListener("focus", function(){
+  try{ cloudBoot(true); }catch(e){}
+});
+window.addEventListener("online", function(){
+  try{ cloudBoot(true); }catch(e){}
 });
 
 </script>
