@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v89</title>
+<title>MetaDriver v90</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -221,16 +221,13 @@ setInterval(function(){
 
 
 window.addEventListener("focus", function(){
-  try{ cloudBoot(true); }catch(e){}
-  try{ mdInitialHydrateAndRender(); }catch(e){}
+  try{ mdResumeRestoreSafely(); }catch(e){}
 });
 window.addEventListener("online", function(){
-  try{ cloudBoot(true); }catch(e){}
-  try{ mdInitialHydrateAndRender(); }catch(e){}
+  try{ mdResumeRestoreSafely(); }catch(e){}
 });
 window.addEventListener("pageshow", function(){
-  try{ cloudBoot(true); }catch(e){}
-  try{ mdInitialHydrateAndRender(); }catch(e){}
+  try{ mdResumeRestoreSafely(); }catch(e){}
 });
 
 </script>
@@ -2962,7 +2959,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v89</div>
+  <div class="menu-note" style="text-align:center;">v90</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -3804,6 +3801,7 @@ salvar = function(){
   }catch(e){}
   __cloudDirty = true;
   try{ cloudScheduleSave(); }catch(e){}
+  try{ if(cloudHasUsefulData(dados)) mdLockStateWrites(15000, mdSnapshotOrderValue(dados || {})); }catch(e){}
   return r;
 }
 
@@ -3848,11 +3846,46 @@ function cloudReadPendingSnapshot(){
 
 
 let __mdStateLockUntil = 0;
-function mdLockStateWrites(ms){
-  try{ __mdStateLockUntil = Date.now() + Math.max(0, Number(ms || 0)); }catch(e){ __mdStateLockUntil = 0; }
+const MD_STATE_LOCK_UNTIL_KEY = STORAGE_KEY + "__state_lock_until_v90";
+const MD_STATE_LOCK_ORDER_KEY = STORAGE_KEY + "__state_lock_order_v90";
+function mdLockStateWrites(ms, orderValue){
+  try{
+    __mdStateLockUntil = Date.now() + Math.max(0, Number(ms || 0));
+    localStorage.setItem(MD_STATE_LOCK_UNTIL_KEY, String(__mdStateLockUntil || 0));
+    if(typeof orderValue !== "undefined" && orderValue !== null){
+      localStorage.setItem(MD_STATE_LOCK_ORDER_KEY, String(Number(orderValue) || 0));
+    }
+  }catch(e){ __mdStateLockUntil = 0; }
+}
+function mdReadStateLockUntil(){
+  try{
+    const mem = Number(__mdStateLockUntil || 0);
+    const ls = Number(localStorage.getItem(MD_STATE_LOCK_UNTIL_KEY) || 0);
+    return Math.max(mem, ls, 0);
+  }catch(e){ return Number(__mdStateLockUntil || 0); }
+}
+function mdReadStateLockOrder(){
+  try{ return Number(localStorage.getItem(MD_STATE_LOCK_ORDER_KEY) || 0); }catch(e){ return 0; }
+}
+function mdClearStateLock(){
+  try{
+    __mdStateLockUntil = 0;
+    localStorage.removeItem(MD_STATE_LOCK_UNTIL_KEY);
+    localStorage.removeItem(MD_STATE_LOCK_ORDER_KEY);
+  }catch(e){}
 }
 function mdStateLocked(){
-  try{ return Date.now() < Number(__mdStateLockUntil || 0); }catch(e){ return false; }
+  try{ return Date.now() < mdReadStateLockUntil(); }catch(e){ return false; }
+}
+function mdShouldBlockSnapshot(snapshot){
+  try{
+    if(!mdStateLocked()) return false;
+    const incoming = mdSnapshotOrderValue(snapshot || {});
+    const lockedOrder = mdReadStateLockOrder();
+    const currentOrder = mdSnapshotOrderValue(dados || {});
+    const threshold = Math.max(lockedOrder, currentOrder);
+    return incoming <= threshold;
+  }catch(e){ return false; }
 }
 function mdGetCurrentBestSeq(){
   try{
@@ -3891,7 +3924,8 @@ function mdApplyExternalSnapshot(snapshot, reason, pushNow){
       try{ if(typeof cloudScheduleSave === "function") cloudScheduleSave(0); }catch(e){}
     }
 
-    mdLockStateWrites(12000);
+    const appliedOrder = mdSnapshotOrderValue(dados || {});
+    mdLockStateWrites(120000, appliedOrder);
     try{ atualizar(); }catch(e){}
     try{ atualizarCarro(); }catch(e){}
     return true;
@@ -4226,7 +4260,7 @@ function cloudApplyRemoteData(remoteData){
     if(!remoteData || typeof remoteData !== "object") return;
     mdEnsureDataMeta(dados);
     mdEnsureDataMeta(remoteData);
-    if(mdStateLocked() && mdSnapshotOrderValue(remoteData) <= mdSnapshotOrderValue(dados)){
+    if(mdShouldBlockSnapshot(remoteData)){
       console.warn("MetaDriver: remoto ignorado por trava temporária de estado");
       return;
     }
@@ -4386,7 +4420,7 @@ async function cloudBoot(force){
   __cloudBootStarted = true;
   try{
     const recovered = await mdRecoverDurableStateFromIDB().catch(function(){ return null; });
-    if(recovered && mdSnapshotOrderValue(recovered) > mdSnapshotOrderValue(dados)){
+    if(recovered && mdSnapshotOrderValue(recovered) > mdSnapshotOrderValue(dados) && !mdShouldBlockSnapshot(recovered)){
       dados = JSON.parse(JSON.stringify(recovered));
       mdEnsureDataMeta(dados);
       try{ atualizar(); }catch(e){}
@@ -4470,7 +4504,7 @@ async function mdInitialHydrateAndRender(){
         const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
         const remoteSnapshot = remoteWrapped.snapshot;
         if(remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
-          if(!(mdStateLocked() && mdSnapshotOrderValue(remoteSnapshot) <= mdSnapshotOrderValue(dados))){
+          if(!mdShouldBlockSnapshot(remoteSnapshot)){
             mdApplyExternalSnapshot(remoteSnapshot, "remote-hydrate", false);
           }
         }
@@ -8641,6 +8675,16 @@ async function forceLogout(){
 }
 function logoutApp(){
   forceLogout();
+}
+
+
+function mdResumeRestoreSafely(){
+  try{
+    if(mdStateLocked() && cloudHasUsefulData(dados)){
+      return;
+    }
+  }catch(e){}
+  try{ mdResumeRestoreSafely(); }catch(e){}
 }
 
 window.addEventListener("load", function(){
