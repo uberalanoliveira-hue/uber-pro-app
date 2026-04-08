@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v81</title>
+<title>MetaDriver v82</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -2948,7 +2948,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v81</div>
+  <div class="menu-note" style="text-align:center;">v82</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -8641,7 +8641,7 @@ window.addEventListener("load", function(){
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('7')">7</button>
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('8')">8</button>
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('9')">9</button>
-    <button type="button" class="quick-balance-key" onclick="clearMetaTotal()">Limpar</button>
+    <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('.')">.</button>
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('0')">0</button>
     <button type="button" class="quick-balance-key" onclick="backspaceMetaTotal()">⌫</button>
   </div>
