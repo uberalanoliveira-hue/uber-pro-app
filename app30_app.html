@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v82</title>
+<title>MetaDriver v83</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -218,6 +218,20 @@ window.addEventListener("pageshow", function(){
 setInterval(function(){
   try{ lockSaldoAtualByFab(); }catch(e){}
 }, 500);
+
+
+window.addEventListener("focus", function(){
+  try{ cloudBoot(true); }catch(e){}
+  try{ mdInitialHydrateAndRender(); }catch(e){}
+});
+window.addEventListener("online", function(){
+  try{ cloudBoot(true); }catch(e){}
+  try{ mdInitialHydrateAndRender(); }catch(e){}
+});
+window.addEventListener("pageshow", function(){
+  try{ cloudBoot(true); }catch(e){}
+  try{ mdInitialHydrateAndRender(); }catch(e){}
+});
 
 </script>
 
@@ -2948,7 +2962,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v82</div>
+  <div class="menu-note" style="text-align:center;">v83</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -3321,6 +3335,22 @@ const DEV_LOCAL_MODE = true;
 })();
 
 const STORAGE_KEY = "controleUberProDados";
+
+const OFFLINE_SAFE_SNAPSHOT_KEY = STORAGE_KEY + "__offline_safe_snapshot_v83";
+function mdReadOfflineSafeSnapshot(){
+  try{
+    const raw = localStorage.getItem(OFFLINE_SAFE_SNAPSHOT_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function mdWriteOfflineSafeSnapshot(snapshot){
+  try{
+    if(snapshot && typeof snapshot === "object"){
+      localStorage.setItem(OFFLINE_SAFE_SNAPSHOT_KEY, JSON.stringify(snapshot));
+    }
+  }catch(e){}
+}
+
 const CLOUD_TABLE = "app_cloud_data";
 const CLOUD_SUPABASE_URL = "https://xoqlgwjpmdkiazwpwhmn.supabase.co";
 const CLOUD_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA";
@@ -3508,7 +3538,14 @@ function loadDados(){
     if(bestLocal){
       try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(bestLocal)); }catch(e){}
       try{ localStorage.setItem(DURABLE_STATE_KEY, JSON.stringify(bestLocal)); }catch(e){}
+      try{ mdWriteOfflineSafeSnapshot(bestLocal); }catch(e){}
       return bestLocal;
+    }
+    const offlineSafe = (typeof mdReadOfflineSafeSnapshot === "function") ? mdReadOfflineSafeSnapshot() : null;
+    if(offlineSafe){
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(offlineSafe)); }catch(e){}
+      try{ localStorage.setItem(DURABLE_STATE_KEY, JSON.stringify(offlineSafe)); }catch(e){}
+      return offlineSafe;
     }
     const legacyKeys = [
       "dadosControleProV641","dadosControleProV63","dadosControleProV631","dadosControleProV632",
@@ -3739,6 +3776,7 @@ function salvar(){
     idbSet(DURABLE_STATE_KEY, payload);
     mdPushBackup(LOCAL_BACKUP_KEY, dados, "save");
     mdAppendJournal(dados, "save");
+    try{ mdWriteOfflineSafeSnapshot(dados); }catch(e){}
   }catch(e){
     try{
       const payload = JSON.stringify(dados);
@@ -4298,12 +4336,12 @@ async function cloudBoot(force){
 
     const token = await cloudGetToken();
     if(!token){
-      __cloudBootDoneOnce = true;
+      __cloudBootDoneOnce = false;
       return;
     }
     const userId = await cloudResolveUserId(token).catch(function(){ return ""; });
     if(!userId){
-      __cloudBootDoneOnce = true;
+      __cloudBootDoneOnce = false;
       return;
     }
 
@@ -4375,6 +4413,7 @@ async function mdInitialHydrateAndRender(){
         if(remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
           dados = JSON.parse(JSON.stringify(remoteSnapshot));
           mdEnsureDataMeta(dados);
+          try{ mdWriteOfflineSafeSnapshot(dados); }catch(e){}
           if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
         }
       }
@@ -6698,7 +6737,12 @@ function appendMetaTotalKey(key){
     current = "";
     metaTotalReplaceOnNextInput = false;
   }
-  if(!/^[0-9]$/.test(String(key))) return;
+  if(String(key) === "."){
+    if(current.includes(".")) return;
+    if(!current) current = "0";
+  }else if(!/^[0-9]$/.test(String(key))){
+    return;
+  }
   current += String(key);
   current = current.replace(/^0+(?=\d)/, "");
   input.value = current;
