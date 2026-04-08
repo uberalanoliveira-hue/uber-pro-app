@@ -3081,7 +3081,7 @@ const DEV_LOCAL_MODE = true;
 
 <div class="card">
   <div class="card-header collapsible-header" onclick="toggleSection(this)">
-        <h3>Ganho por hora</h3>
+        <h3>Relatório Diário</h3>
         <span class="collapse-arrow">▼</span>
       </div>
   <div class="card-body">
@@ -3321,6 +3321,23 @@ const DEV_LOCAL_MODE = true;
 })();
 
 const STORAGE_KEY = "controleUberProDados";
+
+const OFFLINE_SAFE_SNAPSHOT_KEY = STORAGE_KEY + "__offline_safe_snapshot_v70";
+function mdReadOfflineSafeSnapshot(){
+  try{
+    const raw = localStorage.getItem(OFFLINE_SAFE_SNAPSHOT_KEY);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  }catch(e){ return null; }
+}
+function mdWriteOfflineSafeSnapshot(snapshot){
+  try{
+    if(!snapshot || typeof snapshot !== "object") return;
+    localStorage.setItem(OFFLINE_SAFE_SNAPSHOT_KEY, JSON.stringify(snapshot));
+  }catch(e){}
+}
+
 const CLOUD_TABLE = "app_cloud_data";
 const CLOUD_SUPABASE_URL = "https://xoqlgwjpmdkiazwpwhmn.supabase.co";
 const CLOUD_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA";
@@ -3508,7 +3525,14 @@ function loadDados(){
     if(bestLocal){
       try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(bestLocal)); }catch(e){}
       try{ localStorage.setItem(DURABLE_STATE_KEY, JSON.stringify(bestLocal)); }catch(e){}
+      try{ mdWriteOfflineSafeSnapshot(bestLocal); }catch(e){}
       return bestLocal;
+    }
+    const offlineSafe = mdReadOfflineSafeSnapshot();
+    if(offlineSafe){
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(offlineSafe)); }catch(e){}
+      try{ localStorage.setItem(DURABLE_STATE_KEY, JSON.stringify(offlineSafe)); }catch(e){}
+      return offlineSafe;
     }
     const legacyKeys = [
       "dadosControleProV641","dadosControleProV63","dadosControleProV631","dadosControleProV632",
@@ -3739,6 +3763,7 @@ function salvar(){
     idbSet(DURABLE_STATE_KEY, payload);
     mdPushBackup(LOCAL_BACKUP_KEY, dados, "save");
     mdAppendJournal(dados, "save");
+    try{ mdWriteOfflineSafeSnapshot(dados); }catch(e){}
   }catch(e){
     try{
       const payload = JSON.stringify(dados);
@@ -4298,12 +4323,12 @@ async function cloudBoot(force){
 
     const token = await cloudGetToken();
     if(!token){
-      __cloudBootDoneOnce = true;
+      __cloudBootDoneOnce = false;
       return;
     }
     const userId = await cloudResolveUserId(token).catch(function(){ return ""; });
     if(!userId){
-      __cloudBootDoneOnce = true;
+      __cloudBootDoneOnce = false;
       return;
     }
 
@@ -4355,26 +4380,28 @@ async function cloudBoot(force){
 async function mdInitialHydrateAndRender(){
   try{
     const localUseful = cloudHasUsefulData(dados);
-    if(!localUseful){
-      // v57: busca da nuvem sem depender de cachedUserId — tenta token direto
-      let token = cloudGetStoredTokenSync();
-      if(!token){
-        try{ token = await cloudGetToken(); }catch(e){}
-      }
-      let userId = cloudReadCachedUserId();
-      if(!userId && token){
-        try{
-          const u = await cloudGetUser(token).catch(function(){ return null; });
-          userId = u && u.id ? u.id : "";
-        }catch(e){}
-      }
-      if(token && userId){
-        const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
-        const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
-        const remoteSnapshot = remoteWrapped.snapshot;
-        if(remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
+    let token = cloudGetStoredTokenSync();
+    if(!token){
+      try{ token = await cloudGetToken(); }catch(e){}
+    }
+    let userId = cloudReadCachedUserId();
+    if(!userId && token){
+      try{
+        const u = await cloudGetUser(token).catch(function(){ return null; });
+        userId = u && u.id ? u.id : "";
+      }catch(e){}
+    }
+    if(token && userId){
+      const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
+      const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
+      const remoteSnapshot = remoteWrapped && remoteWrapped.snapshot ? remoteWrapped.snapshot : null;
+      if(remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
+        const localOrder = mdSnapshotOrderValue(dados || {});
+        const remoteOrder = mdSnapshotOrderValue(remoteSnapshot || {});
+        if(!localUseful || remoteOrder >= localOrder){
           dados = JSON.parse(JSON.stringify(remoteSnapshot));
           mdEnsureDataMeta(dados);
+          try{ mdWriteOfflineSafeSnapshot(dados); }catch(e){}
           if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
         }
       }
@@ -6521,7 +6548,9 @@ const fuelCfg = getCombustivelConfig(bruto);
   const valorRestanteHoras = (metaDia - ganhoDia);
   if(metaSalvaAgora){
     document.getElementById("horasResumo").innerHTML =
+      "Meta diária (automática): <span class='" + (metaDia < 0 ? "dangerText" : "warning") + "'>R$ " + metaDia.toFixed(2) + "</span><br>" +
       "Valor restante: <span class='" + (valorRestanteHoras < 0 ? "dangerText" : "warning") + "'>R$ " + valorRestanteHoras.toFixed(2) + "</span><br>" +
+      "Tempo para meta diária:<br>" +
       "Tempo restante: <span class='" + (horasRestantes < 0 ? "dangerText" : "warning") + "'>" + formatHorasMinutos(horasRestantes) + "</span>";
   }else{
     document.getElementById("horasResumo").innerHTML = "";
@@ -6687,7 +6716,12 @@ function appendMetaTotalKey(key){
     current = "";
     metaTotalReplaceOnNextInput = false;
   }
-  if(!/^[0-9]$/.test(String(key))) return;
+  if(key === "."){
+    if(current.includes(".")) return;
+    if(!current) current = "0";
+  }else if(!/^[0-9]$/.test(String(key))){
+    return;
+  }
   current += String(key);
   current = current.replace(/^0+(?=\d)/, "");
   input.value = current;
@@ -7409,6 +7443,28 @@ function bindSectionHeaders(){
 
 try{ ensureGanhoHoraDiaAtual(); }catch(e){}
 mdInitialHydrateAndRender();
+
+let __mdRestoreRetryTimer = null;
+function mdScheduleRestoreProbe(){
+  try{ if(__mdRestoreRetryTimer) clearTimeout(__mdRestoreRetryTimer); }catch(e){}
+  __mdRestoreRetryTimer = setTimeout(function(){
+    try{ mdInitialHydrateAndRender(); }catch(e){}
+    try{ cloudBoot(true); }catch(e){}
+  }, 120);
+}
+window.addEventListener("storage", function(ev){
+  try{
+    const k = String((ev && ev.key) || "");
+    if(k === "sb_token" || k === "sb_refresh_token" || k === "sb_user_id"){
+      mdScheduleRestoreProbe();
+    }
+  }catch(e){}
+});
+window.addEventListener("focus", function(){ try{ mdScheduleRestoreProbe(); }catch(e){} });
+window.addEventListener("online", function(){ try{ mdScheduleRestoreProbe(); }catch(e){} });
+document.addEventListener("visibilitychange", function(){
+  try{ if(document.visibilityState === "visible") mdScheduleRestoreProbe(); }catch(e){}
+});
 
 (function(){
   const metaIds = ["metaTotal", "dataLimite"];
@@ -8630,7 +8686,7 @@ window.addEventListener("load", function(){
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('7')">7</button>
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('8')">8</button>
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('9')">9</button>
-    <button type="button" class="quick-balance-key" onclick="clearMetaTotal()">Limpar</button>
+    <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('.')">.</button>
     <button type="button" class="quick-balance-key" onclick="appendMetaTotalKey('0')">0</button>
     <button type="button" class="quick-balance-key" onclick="backspaceMetaTotal()">⌫</button>
   </div>
