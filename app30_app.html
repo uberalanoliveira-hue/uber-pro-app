@@ -230,6 +230,23 @@ window.addEventListener("pageshow", function(){
   try{ mdResumeRestoreSafely(); }catch(e){}
 });
 
+
+/* v95 - local-only hosted mode (cloud runtime disabled intentionally) */
+try{
+  cloudFetchRow = async function(){ return null; };
+  cloudGetToken = async function(){ return ""; };
+  cloudResolveUserId = async function(){ return ""; };
+  cloudPushNow = async function(){ return false; };
+  cloudScheduleSave = function(){ return; };
+  mdResumeRestoreSafely = function(){ return; };
+  mdInitialHydrateAndRender = async function(){
+    try{ dados = loadDados() || dados; }catch(e){}
+    try{ atualizar(); }catch(e){}
+    try{ atualizarCarro(); }catch(e){}
+  };
+  cloudBoot = async function(){ return false; };
+}catch(e){}
+
 </script>
 
 <style>
@@ -3800,7 +3817,7 @@ salvar = function(){
     }
   }catch(e){}
   __cloudDirty = true;
-  try{ // cloudScheduleSave disabled v95 }catch(e){}
+  try{ cloudScheduleSave(); }catch(e){}
   try{ if(cloudHasUsefulData(dados)) mdLockStateWrites(15000, mdSnapshotOrderValue(dados || {})); }catch(e){}
   return r;
 }
@@ -3815,7 +3832,7 @@ function cloudWriteCachedUserId(userId){
 function cloudGetStoredTokenSync(){
   try{ return localStorage.getItem("sb_token") || ""; }catch(e){ return ""; }
 }
-async function null{
+async function cloudGetToken(){
   let fast = "";
   try{ fast = localStorage.getItem("sb_token") || ""; }catch(e){ fast = ""; }
   try{
@@ -3921,7 +3938,7 @@ function mdApplyExternalSnapshot(snapshot, reason, pushNow){
     if(pushNow){
       try{ cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados))); }catch(e){}
       try{ __cloudDirty = true; }catch(e){}
-      try{ if(typeof cloudScheduleSave === "function") // cloudScheduleSave disabled v95 }catch(e){}
+      try{ if(typeof cloudScheduleSave === "function") cloudScheduleSave(0); }catch(e){}
     }
 
     const appliedOrder = mdSnapshotOrderValue(dados || {});
@@ -4140,7 +4157,7 @@ function cloudHasUsefulData(obj){
   }catch(e){ return false; }
 }
 
-async function null{
+async function cloudFetchRow(token, userId){
   const res = await fetch(
     CLOUD_SUPABASE_URL + "/rest/v1/" + CLOUD_TABLE + "?select=payload,updated_at&user_id=eq." + encodeURIComponent(userId),
     {
@@ -4319,7 +4336,7 @@ function cloudApplyRemoteData(remoteData){
 
 async function cloudPushNow(snapshotOverride){
   try{
-    const token = await null;
+    const token = await cloudGetToken();
     if(!token) return false;
     const userId = await cloudResolveUserId(token).catch(function(){ return ""; });
     if(!userId) return false;
@@ -4327,7 +4344,7 @@ async function cloudPushNow(snapshotOverride){
     const pending = snapshotOverride || cloudReadPendingSnapshot();
     const pendingPayload = pending && pending.payload ? pending.payload : null;
     const localPayload = (typeof dados === "object" && dados) ? dados : null;
-    const remoteRow = await null.catch(function(){ return null; });
+    const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
     const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
     const remoteSnapshot = remoteWrapped.snapshot;
     const best = mdPickBestSnapshot([
@@ -4403,11 +4420,11 @@ function cloudScheduleSave(delayMs){
   clearTimeout(__cloudSaveTimer);
   const wait = typeof delayMs === "number" ? delayMs : 180;
   __cloudSaveTimer = setTimeout(async function(){
-    const ok = await // cloudPushNow disabled v95
+    const ok = await cloudPushNow();
     if(!ok && __cloudSaveRetries < 6){
       __cloudSaveRetries++;
       const delay = Math.min(1200 * __cloudSaveRetries, 8000);
-      setTimeout(function(){ // cloudPushNow disabled v95 }, delay);
+      setTimeout(function(){ cloudPushNow(); }, delay);
     } else if(ok){
       __cloudSaveRetries = 0;
     }
@@ -4427,7 +4444,7 @@ async function cloudBoot(force){
       try{ atualizarCarro(); }catch(e){}
     }
 
-    const token = await null;
+    const token = await cloudGetToken();
     if(!token){
       __cloudBootDoneOnce = false;
       return;
@@ -4439,7 +4456,7 @@ async function cloudBoot(force){
     }
 
     const pending = cloudReadPendingSnapshot();
-    const remoteRow = await null.catch(function(){ return null; });
+    const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
     const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
     mdSyncBackupsFromCloud(remoteWrapped.backups || []);
 
@@ -4468,12 +4485,12 @@ async function cloudBoot(force){
       mdEnsureDataMeta(dados);
       if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
       cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
-      // cloudScheduleSave disabled v95
+      cloudScheduleSave(120);
     }
 
     if(cloudHasUsefulData(dados)){
       cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
-      // cloudScheduleSave disabled v95
+      cloudScheduleSave(120);
     }
     __cloudBootDoneOnce = true;
   }catch(e){
@@ -4490,7 +4507,7 @@ async function mdInitialHydrateAndRender(){
       // v57: busca da nuvem sem depender de cachedUserId — tenta token direto
       let token = cloudGetStoredTokenSync();
       if(!token){
-        try{ token = await null; }catch(e){}
+        try{ token = await cloudGetToken(); }catch(e){}
       }
       let userId = cloudReadCachedUserId();
       if(!userId && token){
@@ -4500,7 +4517,7 @@ async function mdInitialHydrateAndRender(){
         }catch(e){}
       }
       if(token && userId){
-        const remoteRow = await null.catch(function(){ return null; });
+        const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
         const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
         const remoteSnapshot = remoteWrapped.snapshot;
         if(remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
@@ -4513,14 +4530,14 @@ async function mdInitialHydrateAndRender(){
   }catch(e){}
   try{ atualizar(); }catch(e){}
   try{ atualizarCarro(); }catch(e){}
-  setTimeout(function(){ try{ // cloudBoot disabled v95 }catch(e){} }, 40);
+  setTimeout(function(){ try{ cloudBoot(true); }catch(e){} }, 40);
 }
 
 window.addEventListener("pagehide", function(){
-  try{ // cloudPushNow disabled v95 }catch(e){}
+  try{ cloudPushNow(); }catch(e){}
 });
-window.addEventListener("beforeunload", function(){ try{ // cloudPushNow disabled v95 }catch(e){} });
-window.addEventListener("online", function(){ try{ if(__cloudDirty || (cloudReadPendingSnapshot() && cloudReadPendingSnapshot().payload)) // cloudPushNow disabled v95 }catch(e){} });
+window.addEventListener("beforeunload", function(){ try{ cloudPushNow(); }catch(e){} });
+window.addEventListener("online", function(){ try{ if(__cloudDirty || (cloudReadPendingSnapshot() && cloudReadPendingSnapshot().payload)) cloudPushNow(); }catch(e){} });
 // v57 - salva scroll continuamente
 window.addEventListener('scroll', function(){
   try{ if(window.__mdSaveScroll) window.__mdSaveScroll(); }catch(e){}
@@ -4535,7 +4552,7 @@ document.addEventListener("visibilitychange", function(){
       }catch(e){}
       // v57: salva local E sobe pra nuvem ao minimizar
       try{ if(typeof window.__salvarLocalOriginal === "function") window.__salvarLocalOriginal(); }catch(e){}
-      try{ // cloudPushNow disabled v95 }catch(e){}
+      try{ cloudPushNow(); }catch(e){}
     }
     if(document.visibilityState === "visible"){
       try{
@@ -4549,7 +4566,7 @@ document.addEventListener("visibilitychange", function(){
       try{
         const pending = cloudReadPendingSnapshot();
         if(__cloudDirty || (pending && pending.payload && cloudHasUsefulData(pending.payload))){
-          // cloudScheduleSave disabled v95
+          cloudScheduleSave(120);
         }
       }catch(e){}
     }
@@ -4563,7 +4580,7 @@ setInterval(function(){
     __cloudDirty = false;     // limpa a flag antes de enviar (se falhar, próximo ciclo reenvia via pending)
     const pending = cloudReadPendingSnapshot();
     if((pending && pending.payload && cloudHasUsefulData(pending.payload)) || cloudHasUsefulData(dados)){
-      // cloudPushNow disabled v95
+      cloudPushNow();
     }
   }catch(e){}
 }, 60000);
@@ -7500,7 +7517,7 @@ function bootApp(){
       iniciarTimerGanhoHoraTempoReal();
     }
   }catch(e){}
-  setTimeout(function(){ try{ // cloudBoot disabled v95 }catch(e){} }, cloudHasUsefulData(dados) ? 120 : 30);
+  setTimeout(function(){ try{ cloudBoot(true); }catch(e){} }, cloudHasUsefulData(dados) ? 120 : 30);
 }
 if(document.readyState === "loading"){
   document.addEventListener("DOMContentLoaded", ()=>{ bootApp(); try{ initTabs(); }catch(e){}; try{ bindSectionHeaders(); }catch(e){} });
@@ -7535,7 +7552,7 @@ function bindSectionHeaders(){
 
 
 try{ ensureGanhoHoraDiaAtual(); }catch(e){}
-try{ dados = loadDados() || dados; atualizar(); atualizarCarro(); }catch(e){}
+mdInitialHydrateAndRender();
 
 (function(){
   const metaIds = ["metaTotal", "dataLimite"];
@@ -8654,7 +8671,7 @@ async function forceLogout(){
   // v57 - garante push pra nuvem antes de limpar token e sair
   try{
     if(typeof salvar === "function") salvar();
-    await // cloudPushNow disabled v95
+    await cloudPushNow();
   }catch(e){}
   try{
     const keysToRemove = [];
@@ -8678,7 +8695,11 @@ function logoutApp(){
 }
 
 
-function mdResumeRestoreSafely(){ return; }
+function mdResumeRestoreSafely(){
+  try{
+    if(mdStateLocked() && cloudHasUsefulData(dados)){
+      return;
+    }
   }catch(e){}
   try{ mdResumeRestoreSafely(); }catch(e){}
 }
