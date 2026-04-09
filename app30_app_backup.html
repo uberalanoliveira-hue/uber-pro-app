@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v107</title>
+<title>MetaDriver v108</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -230,13 +230,6 @@ window.addEventListener("pageshow", function(){
   try{ mdResumeRestoreSafely(); }catch(e){}
 });
 
-
-/* prevent pull refresh */
-document.addEventListener('touchmove', function(e){
-  if((document.scrollingElement||document.documentElement).scrollTop===0){
-    e.preventDefault();
-  }
-},{passive:false});
 </script>
 
 <style>
@@ -416,16 +409,23 @@ h1{text-align:center;margin:8px 0 14px;letter-spacing:0.2px;}
   letter-spacing:0.2px;
 }
 .card-body{padding:14px;}
-
-/* v104 fixes */
-body.preload .card, body.preload .tabs-wrap, body.preload .topbar{visibility:hidden}
-.quick-balance-panel{
-  top:12px !important;
-  max-height:calc(100vh - 24px) !important;
-  overflow-y:auto;
+body.preload .topbar,
+body.preload .tabs-wrap,
+body.preload .card{
+  visibility:hidden;
 }
-html,body{overscroll-behavior-y:none;}
-
+body.preload{
+  overflow:hidden;
+}
+.topbar{
+  min-height:64px;
+}
+.topbar-inner{
+  min-height:36px;
+}
+.app-title-wrap{
+  min-height:36px;
+}
 
 label{display:block;margin-top:8px;font-size:13px;opacity:0.95;}
 input,select,button{
@@ -1028,6 +1028,78 @@ input.negative-value, input.negative-value::placeholder{
   pointer-events:none;
 }
 
+
+
+/* v102 - modal MetaDriver para virada das 4h */
+.dayturn-overlay{
+  position:fixed;
+  inset:0;
+  z-index:1400;
+  background:rgba(0,0,0,.55);
+  display:none;
+}
+.dayturn-overlay.show{display:block;}
+.dayturn-panel{
+  position:fixed;
+  left:12px;
+  right:12px;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:1401;
+  background:rgba(18,28,44,.98);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:18px;
+  box-shadow:0 18px 40px rgba(0,0,0,.45);
+  padding:14px;
+  display:none;
+}
+.dayturn-panel.show{display:block;}
+.dayturn-title{
+  font-size:18px;
+  font-weight:900;
+  margin-bottom:6px;
+}
+.dayturn-sub{
+  font-size:13px;
+  opacity:.86;
+  line-height:1.4;
+  margin-bottom:10px;
+}
+.dayturn-display{
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.04);
+  border-radius:16px;
+  min-height:86px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:10px;
+  padding:10px;
+}
+.dayturn-value{
+  font-size:38px;
+  line-height:1;
+  font-weight:900;
+  text-align:center;
+  word-break:break-word;
+}
+.dayturn-keypad{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+.dayturn-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:10px;
+}
+.dayturn-actions button{
+  min-height:46px;
+  font-size:16px;
+  font-weight:800;
+  border-radius:12px;
+}
 
 .meta-total-overlay{
   background:transparent;
@@ -2976,7 +3048,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v107</div>
+  <div class="menu-note" style="text-align:center;">v108</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -3275,7 +3347,7 @@ const DEV_LOCAL_MODE = true;
       <div id="formKmAtual" class="form hidden" style="display:none;">
         <div class="row">
           <input type="date" id="kmAtualData" />
-          <input type="number" id="kmAtualValor" inputmode="none" readonly onclick="openMetaTotalKeypadFor('kmAtualValor')" placeholder="KM atual" />
+          <input type="number" id="kmAtualValor" inputmode="numeric" placeholder="KM atual" />
         </div>
         <button type="button" onclick="salvarKmAtual()">Salvar</button>
       </div>
@@ -3350,78 +3422,17 @@ const DEV_LOCAL_MODE = true;
 
 const STORAGE_KEY = "controleUberProDados";
 
-function mdNormalizeUserId(raw){
-  try{
-    const s = String(raw || '').trim();
-    return s || 'anon';
-  }catch(e){ return 'anon'; }
-}
-function mdReadActiveUserId(){
-  try{ return mdNormalizeUserId(localStorage.getItem("md_active_user_id_v107") || "anon"); }catch(e){ return 'anon'; }
-}
-function mdWriteActiveUserId(userId){
-  try{ localStorage.setItem("md_active_user_id_v107", mdNormalizeUserId(userId)); }catch(e){}
-}
-function mdScopedKey(baseKey, userId){
-  return String(baseKey || '') + "::" + mdNormalizeUserId(userId || mdReadActiveUserId());
-}
-function mdScopedPendingKey(){
-  return mdScopedKey(CLOUD_PENDING_KEY, mdReadActiveUserId());
-}
-function mdScopedLastOkKey(){
-  return mdScopedKey(CLOUD_LAST_OK_KEY, mdReadActiveUserId());
-}
-function mdScopedCloudBackupKey(){
-  return mdScopedKey(CLOUD_BACKUP_KEY, mdReadActiveUserId());
-}
-function mdScopedLocalBackupKey(){
-  return mdScopedKey(LOCAL_BACKUP_KEY, mdReadActiveUserId());
-}
-function mdScopedStorageKey(){
-  return mdScopedKey(STORAGE_KEY, mdReadActiveUserId());
-}
-function mdScopedDurableKey(){
-  return mdScopedKey(DURABLE_STATE_KEY, mdReadActiveUserId());
-}
-function mdScopedJournalKey(){
-  return mdScopedKey(JOURNAL_KEY, mdReadActiveUserId());
-}
-function mdScopedJournalIdbKey(){
-  return mdScopedKey(JOURNAL_IDB_KEY, mdReadActiveUserId());
-}
-function mdScopedOfflineSafeKey(){
-  return mdScopedKey(OFFLINE_SAFE_SNAPSHOT_KEY, mdReadActiveUserId());
-}
-function mdOwnerTagSnapshot(snapshot){
-  try{
-    if(!snapshot || typeof snapshot !== "object") return snapshot;
-    const cloned = JSON.parse(JSON.stringify(snapshot));
-    cloned.__owner_user_id = mdReadActiveUserId();
-    return cloned;
-  }catch(e){ return snapshot; }
-}
-function mdOwnerMatches(snapshot){
-  try{
-    if(!snapshot || typeof snapshot !== "object") return false;
-    const owner = mdNormalizeUserId(snapshot.__owner_user_id || "anon");
-    const active = mdReadActiveUserId();
-    return owner === active;
-  }catch(e){ return false; }
-}
-
-
 const OFFLINE_SAFE_SNAPSHOT_KEY = STORAGE_KEY + "__offline_safe_snapshot_v83";
 function mdReadOfflineSafeSnapshot(){
   try{
-    const raw = localStorage.getItem(mdScopedOfflineSafeKey());
-    const parsed = raw ? JSON.parse(raw) : null;
-    return mdOwnerMatches(parsed) ? parsed : null;
+    const raw = localStorage.getItem(OFFLINE_SAFE_SNAPSHOT_KEY);
+    return raw ? JSON.parse(raw) : null;
   }catch(e){ return null; }
 }
 function mdWriteOfflineSafeSnapshot(snapshot){
   try{
     if(snapshot && typeof snapshot === "object"){
-      localStorage.setItem(mdScopedOfflineSafeKey(), JSON.stringify(mdOwnerTagSnapshot(snapshot)));
+      localStorage.setItem(OFFLINE_SAFE_SNAPSHOT_KEY, JSON.stringify(snapshot));
     }
   }catch(e){}
 }
@@ -3560,7 +3571,7 @@ function mdReadDurableLocalCandidates(){
     if(durable) out.push({ snapshot: durable, source: "durable" });
   }catch(e){}
   try{
-    const ring = mdReadBackupRing(mdScopedLocalBackupKey());
+    const ring = mdReadBackupRing(LOCAL_BACKUP_KEY);
     ring.forEach(function(item){ if(item && item.snapshot) out.push({ snapshot: item.snapshot, source: "backup" }); });
   }catch(e){}
   try{
@@ -3609,47 +3620,40 @@ async function mdRecoverDurableStateFromIDB(){
 
 function loadDados(){
   try{
-    const activeUser = mdReadActiveUserId();
-
-    const candidates = [];
-    try{
-      const raw = localStorage.getItem(mdScopedStorageKey());
-      if(raw){
-        const parsed = JSON.parse(raw);
-        if(mdOwnerMatches(parsed)) candidates.push({ snapshot: parsed, source: "scoped-storage" });
+    const bestLocal = mdChooseBestLocalSnapshotSync();
+    if(bestLocal){
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(bestLocal)); }catch(e){}
+      try{ localStorage.setItem(DURABLE_STATE_KEY, JSON.stringify(bestLocal)); }catch(e){}
+      try{ mdWriteOfflineSafeSnapshot(bestLocal); }catch(e){}
+      return bestLocal;
+    }
+    const offlineSafe = (typeof mdReadOfflineSafeSnapshot === "function") ? mdReadOfflineSafeSnapshot() : null;
+    if(offlineSafe){
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(offlineSafe)); }catch(e){}
+      try{ localStorage.setItem(DURABLE_STATE_KEY, JSON.stringify(offlineSafe)); }catch(e){}
+      return offlineSafe;
+    }
+    const legacyKeys = [
+      "dadosControleProV641","dadosControleProV63","dadosControleProV631","dadosControleProV632",
+      "dadosControleProV633","dadosControleProV64","dadosControleProV640","dadosControleProV641",
+      "dadosControleProV70","dadosControleProV71","dadosControleProV72"
+    ];
+    for(const k of legacyKeys){
+      const v = localStorage.getItem(k);
+      if(v){
+        try{
+          const parsed = JSON.parse(v);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+          localStorage.setItem(DURABLE_STATE_KEY, JSON.stringify(parsed));
+          return parsed;
+        }catch(e){}
       }
-    }catch(e){}
-    try{
-      const raw = localStorage.getItem(mdScopedDurableKey());
-      if(raw){
-        const parsed = JSON.parse(raw);
-        if(mdOwnerMatches(parsed)) candidates.push({ snapshot: parsed, source: "scoped-durable" });
-      }
-    }catch(e){}
-    try{
-      const offlineSafe = (typeof mdReadOfflineSafeSnapshot === "function") ? mdReadOfflineSafeSnapshot() : null;
-      if(offlineSafe && mdOwnerMatches(offlineSafe)) candidates.push({ snapshot: offlineSafe, source: "offline-safe" });
-    }catch(e){}
-    try{
-      const idbRecovered = null;
-    }catch(e){}
-
-    const best = (typeof mdPickBestSnapshot === "function")
-      ? mdPickBestSnapshot(candidates)
-      : (candidates[0] ? candidates[0].snapshot : null);
-
-    if(best){
-      const tagged = mdOwnerTagSnapshot(best);
-      try{ localStorage.setItem(mdScopedStorageKey(), JSON.stringify(tagged)); }catch(e){}
-      try{ localStorage.setItem(mdScopedDurableKey(), JSON.stringify(tagged)); }catch(e){}
-      try{ if(typeof mdWriteOfflineSafeSnapshot === "function") mdWriteOfflineSafeSnapshot(tagged); }catch(e){}
-      return tagged;
     }
   }catch(e){}
   return null;
 }
 
-let dados = loadDados() || mdOwnerTagSnapshot({
+let dados = loadDados() || {
   ganhos: [],
   gastos: [],
   abastecimentos: [],
@@ -3679,7 +3683,7 @@ let dados = loadDados() || mdOwnerTagSnapshot({
   },
   metaSalva: false,
   ganhoHoraSessaoAtiva: false
-});
+};
 
 if(typeof dados.saldoAtualButtonAtivo !== "boolean"){ dados.saldoAtualButtonAtivo = getQuickBalanceFabPref ? getQuickBalanceFabPref() : true; }
 if(!dados.saldoAtualButtonPos || typeof dados.saldoAtualButtonPos !== "object"){
@@ -3843,30 +3847,28 @@ function salvar(){
     dados.__dirty_local = true;
     dados.__last_local_write_at = mdNowIso();
     dados.__updated_at = dados.__last_local_write_at;
-    dados = mdOwnerTagSnapshot(dados);
-  const payload = JSON.stringify(dados);
+    const payload = JSON.stringify(dados);
     const anterior = localStorage.getItem(STORAGE_KEY);
     if(anterior && anterior.length > 0 && payload.length < anterior.length * 0.6){
       console.warn("MetaDriver: payload muito menor que anterior, salvando backup e verificando");
       mdPushBackup(LOCAL_BACKUP_KEY, dados, "small-payload-warning");
     }
-    localStorage.setItem(mdScopedStorageKey(), payload);
-    localStorage.setItem(mdScopedDurableKey(), payload);
+    localStorage.setItem(STORAGE_KEY, payload);
+    localStorage.setItem(DURABLE_STATE_KEY, payload);
     const verificacao = localStorage.getItem(STORAGE_KEY);
     if(verificacao !== payload){
       throw new Error("Verificação de escrita falhou");
     }
-    idbSet(mdScopedKey(IDB_KEY), payload);
-    idbSet(mdScopedKey(DURABLE_STATE_KEY), payload);
+    idbSet(IDB_KEY, payload);
+    idbSet(DURABLE_STATE_KEY, payload);
     mdPushBackup(LOCAL_BACKUP_KEY, dados, "save");
     mdAppendJournal(dados, "save");
     try{ mdWriteOfflineSafeSnapshot(dados); }catch(e){}
   }catch(e){
     try{
-      dados = mdOwnerTagSnapshot(dados);
-  const payload = JSON.stringify(dados);
-      idbSet(mdScopedKey(IDB_KEY), payload);
-      idbSet(mdScopedKey(DURABLE_STATE_KEY), payload);
+      const payload = JSON.stringify(dados);
+      idbSet(IDB_KEY, payload);
+      idbSet(DURABLE_STATE_KEY, payload);
       mdPushBackup(LOCAL_BACKUP_KEY, dados, "fallback-idb");
       mdAppendJournal(dados, "fallback-idb");
       toast("⚠️ Falha ao salvar localmente. Abra no Chrome normal (não anônimo).");
@@ -3927,9 +3929,8 @@ async function cloudGetToken(){
 
 function cloudReadPendingSnapshot(){
   try{
-    const raw = localStorage.getItem(mdScopedPendingKey());
-    const parsed = raw ? JSON.parse(raw) : null;
-    return parsed && parsed.payload && mdOwnerMatches(parsed.payload) ? parsed : null;
+    const raw = localStorage.getItem(CLOUD_PENDING_KEY);
+    return raw ? JSON.parse(raw) : null;
   }catch(e){ return null; }
 }
 
@@ -3987,7 +3988,7 @@ function mdGetCurrentBestSeq(){
 function mdApplyExternalSnapshot(snapshot, reason, pushNow){
   try{
     if(!snapshot || typeof snapshot !== "object") return false;
-    const cloned = mdOwnerTagSnapshot(JSON.parse(JSON.stringify(snapshot)));
+    const cloned = JSON.parse(JSON.stringify(snapshot));
     dados = cloned;
     mdEnsureDataMeta(dados);
 
@@ -3999,12 +4000,12 @@ function mdApplyExternalSnapshot(snapshot, reason, pushNow){
     dados.__updated_at = dados.__last_local_write_at;
 
     const payload = JSON.stringify(dados);
-    try{ localStorage.setItem(mdScopedStorageKey(), payload); }catch(e){}
-    try{ localStorage.setItem(mdScopedDurableKey(), payload); }catch(e){}
-    try{ idbSet(mdScopedKey(IDB_KEY), payload); }catch(e){}
-    try{ idbSet(mdScopedKey(DURABLE_STATE_KEY), payload); }catch(e){}
+    try{ localStorage.setItem(STORAGE_KEY, payload); }catch(e){}
+    try{ localStorage.setItem(DURABLE_STATE_KEY, payload); }catch(e){}
+    try{ idbSet(IDB_KEY, payload); }catch(e){}
+    try{ idbSet(DURABLE_STATE_KEY, payload); }catch(e){}
     try{ if(typeof mdWriteOfflineSafeSnapshot === "function") mdWriteOfflineSafeSnapshot(dados); }catch(e){}
-    try{ mdPushBackup(mdScopedLocalBackupKey(), dados, reason || "external"); }catch(e){}
+    try{ mdPushBackup(LOCAL_BACKUP_KEY, dados, reason || "external"); }catch(e){}
     try{ mdAppendJournal(dados, reason || "external"); }catch(e){}
 
     if(pushNow){
@@ -4027,13 +4028,13 @@ function mdApplyExternalSnapshot(snapshot, reason, pushNow){
 function mdBuildDiagnosticsObject(){
   try{
     const pending = cloudReadPendingSnapshot();
-    const localRaw = localStorage.getItem(mdScopedStorageKey());
-    const durableRaw = localStorage.getItem(mdScopedDurableKey());
+    const localRaw = localStorage.getItem(STORAGE_KEY);
+    const durableRaw = localStorage.getItem(DURABLE_STATE_KEY);
     const localObj = mdSafeJsonParse(localRaw);
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v107',
+      app_version: 'MetaDriver v108',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -4068,10 +4069,10 @@ function mdBuildDiagnosticsObject(){
         pending_updated_at: pending && pending.updated_at || ''
       },
       backups: {
-        local_ring: mdReadBackupRing(mdScopedLocalBackupKey()).slice(0,8).map(function(item){
+        local_ring: mdReadBackupRing(LOCAL_BACKUP_KEY).slice(0,8).map(function(item){
           return { ts:item.ts, rev:item.rev, reason:item.reason, order: mdSnapshotOrderValue(item.snapshot||{}) };
         }),
-        cloud_ring: mdReadBackupRing(mdScopedCloudBackupKey()).slice(0,8).map(function(item){
+        cloud_ring: mdReadBackupRing(CLOUD_BACKUP_KEY).slice(0,8).map(function(item){
           return { ts:item.ts, rev:item.rev, reason:item.reason, order: mdSnapshotOrderValue(item.snapshot||{}) };
         })
       },
@@ -4152,10 +4153,9 @@ async function mdRunRollbackSelfTest(){
 function cloudWritePendingSnapshot(snapshot){
   try{
     if(!snapshot || typeof snapshot !== "object") return false;
-    const tagged = mdOwnerTagSnapshot(snapshot);
-    localStorage.setItem(mdScopedPendingKey(), JSON.stringify({
-      updated_at: tagged.__cloud_updated_at || new Date().toISOString(),
-      payload: tagged
+    localStorage.setItem(CLOUD_PENDING_KEY, JSON.stringify({
+      updated_at: snapshot.__cloud_updated_at || new Date().toISOString(),
+      payload: snapshot
     }));
     return true;
   }catch(e){ return false; }
@@ -4166,14 +4166,14 @@ function cloudClearPendingSnapshot(expectedTs){
     const cur = cloudReadPendingSnapshot();
     if(!cur) return;
     if(!expectedTs || String(cur.updated_at || "") === String(expectedTs || "")){
-      localStorage.removeItem(mdScopedPendingKey());
+      localStorage.removeItem(CLOUD_PENDING_KEY);
     }
   }catch(e){}
 }
 
 function cloudMarkLastOk(ts){
   try{
-    localStorage.setItem(mdScopedLastOkKey(), String(ts || new Date().toISOString()));
+    localStorage.setItem(CLOUD_LAST_OK_KEY, String(ts || new Date().toISOString()));
   }catch(e){}
 }
 
@@ -4249,7 +4249,7 @@ async function cloudFetchRow(token, userId){
 function mdSyncBackupsFromCloud(backups){
   try{
     if(!Array.isArray(backups) || !backups.length) return;
-    let ring = mdReadBackupRing(mdScopedCloudBackupKey()).concat(mdReadBackupRing(mdScopedLocalBackupKey()));
+    let ring = mdReadBackupRing(CLOUD_BACKUP_KEY).concat(mdReadBackupRing(LOCAL_BACKUP_KEY));
     ring = ring.concat(backups.filter(function(item){ return item && item.snapshot; }));
     const seen = new Set();
     ring = ring.filter(function(item){
@@ -4262,8 +4262,8 @@ function mdSyncBackupsFromCloud(backups){
       if(br !== ar) return br - ar;
       return (new Date((b && b.ts) || 0).getTime()||0) - (new Date((a && a.ts) || 0).getTime()||0);
     }).slice(0, 12);
-    mdWriteBackupRing(mdScopedCloudBackupKey(), ring);
-    mdWriteBackupRing(mdScopedLocalBackupKey(), ring);
+    mdWriteBackupRing(CLOUD_BACKUP_KEY, ring);
+    mdWriteBackupRing(LOCAL_BACKUP_KEY, ring);
   }catch(e){}
 }
 
@@ -4350,7 +4350,6 @@ function cloudApplyRemoteData(remoteData){
     if(!remoteData || typeof remoteData !== "object") return;
     mdEnsureDataMeta(dados);
     mdEnsureDataMeta(remoteData);
-
     if(mdShouldBlockSnapshot(remoteData)){
       console.warn("MetaDriver: remoto ignorado por trava temporária de estado");
       return;
@@ -4359,40 +4358,15 @@ function cloudApplyRemoteData(remoteData){
       console.warn("MetaDriver: remoto ignorado para evitar rollback local");
       return;
     }
-
-    const remoteSeq = Number(remoteData.__local_commit_seq || 0);
-    const localSeq = Number(dados.__local_commit_seq || 0);
-    const remoteTs = new Date(remoteData.__updated_at || remoteData.__cloud_updated_at || 0).getTime() || 0;
-    const localTs = new Date(dados.__updated_at || dados.__cloud_updated_at || 0).getTime() || 0;
-    const localUseful = cloudHasUsefulData(dados);
-    const remoteUseful = cloudHasUsefulData(remoteData);
-
-    if(!remoteUseful) return;
-
-    // v101 - restore/sync por snapshot único completo, sem merge
-    if(localUseful){
-      if(remoteSeq < localSeq) return;
-      if(remoteSeq === localSeq && remoteTs <= localTs) return;
-    }
-
-    dados = mdOwnerTagSnapshot(JSON.parse(JSON.stringify(remoteData)));
-    try{ dados.__skip_operational_day_turn = true; }catch(e){}
+    // v108 - não mescla e não sobrescreve local útil automaticamente
+    if(cloudHasUsefulData(dados)) return;
+    dados = JSON.parse(JSON.stringify(remoteData));
     mdEnsureDataMeta(dados);
-    dados.__dirty_local = false;
-    dados.__last_synced_commit_seq = Number(dados.__local_commit_seq || dados.__last_synced_commit_seq || 0);
-    dados.__cloud_updated_at = dados.__updated_at || mdNowIso();
-
-    mdPushBackup(mdScopedLocalBackupKey(), dados, "remote-snapshot");
+    mdPushBackup(LOCAL_BACKUP_KEY, dados, "remote-apply-v108");
     if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
     try{
-      if(typeof mdWriteOfflineSafeSnapshot === "function") mdWriteOfflineSafeSnapshot(dados);
-    }catch(e){}
-    try{
-      if(String(dados.horarioInicioFora || "").trim()){
-        iniciarTimerGanhoHoraTempoReal();
-      }else{
-        pararTimerGanhoHoraTempoReal();
-      }
+      if(String(dados.horarioInicioFora || "").trim()) iniciarTimerGanhoHoraTempoReal();
+      else pararTimerGanhoHoraTempoReal();
     }catch(e){}
     try{ atualizar(); }catch(e){}
     try{ atualizarCarro(); }catch(e){}
@@ -4406,7 +4380,6 @@ async function cloudPushNow(snapshotOverride){
     const token = await cloudGetToken();
     if(!token) return false;
     const userId = await cloudResolveUserId(token).catch(function(){ return ""; });
-    if(userId) try{ mdWriteActiveUserId(userId); }catch(e){}
     if(!userId) return false;
 
     const pending = snapshotOverride || cloudReadPendingSnapshot();
@@ -4515,24 +4488,29 @@ async function cloudBoot(force){
     ]) || dados;
 
     const localUseful = localBest && cloudHasUsefulData(localBest);
-    if(localUseful && force !== true){
-      __cloudBootDoneOnce = true;
+
+    // v108 - prioridade local absoluta:
+    // se já há dado local útil, nuvem NÃO sobrescreve automaticamente.
+    if(localUseful){
+      dados = JSON.parse(JSON.stringify(localBest));
+      mdEnsureDataMeta(dados);
+      if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
       const pending = cloudReadPendingSnapshot();
       if(__cloudDirty || (pending && pending.payload && cloudHasUsefulData(pending.payload))){
         cloudScheduleSave(120);
       }
+      __cloudBootDoneOnce = true;
       return;
     }
 
     const token = await cloudGetToken();
     if(!token){
-      __cloudBootDoneOnce = !!localUseful;
+      __cloudBootDoneOnce = false;
       return;
     }
     const userId = await cloudResolveUserId(token).catch(function(){ return ""; });
-    if(userId) try{ mdWriteActiveUserId(userId); }catch(e){}
     if(!userId){
-      __cloudBootDoneOnce = !!localUseful;
+      __cloudBootDoneOnce = false;
       return;
     }
 
@@ -4541,23 +4519,9 @@ async function cloudBoot(force){
     mdSyncBackupsFromCloud(remoteWrapped && remoteWrapped.backups ? remoteWrapped.backups : []);
     const remoteSnapshot = remoteWrapped && remoteWrapped.snapshot ? remoteWrapped.snapshot : null;
 
-    if(remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
-      const localSeq = Number(localBest && localBest.__local_commit_seq || 0);
-      const remoteSeq = Number(remoteSnapshot.__local_commit_seq || 0);
-      const localTs = new Date(localBest && (localBest.__updated_at || localBest.__cloud_updated_at) || 0).getTime() || 0;
-      const remoteTs = new Date(remoteSnapshot.__updated_at || remoteSnapshot.__cloud_updated_at || 0).getTime() || 0;
-
-      if(!localUseful || remoteSeq > localSeq || (remoteSeq === localSeq && remoteTs > localTs)){
-        cloudApplyRemoteData(remoteSnapshot);
-      } else if(localUseful){
-        dados = JSON.parse(JSON.stringify(localBest));
-        mdEnsureDataMeta(dados);
-        if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
-      }
-    } else if(localUseful){
-      dados = JSON.parse(JSON.stringify(localBest));
-      mdEnsureDataMeta(dados);
-      if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
+    // Só aplica remoto se o local estiver vazio/inútil
+    if(!localUseful && remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
+      cloudApplyRemoteData(remoteSnapshot);
     }
 
     const pending = cloudReadPendingSnapshot();
@@ -5987,8 +5951,150 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
   return true;
 }
 
+
+window.__dayTurn4hState = window.__dayTurn4hState || {
+  open:false,
+  diaAtualUber:"",
+  diaAnteriorUber:"",
+  turnKey:"",
+  replaceOnNext:true
+};
+
+function formatDayTurn4hDisplay(valueStr){
+  const n = parseFloat(String(valueStr || "").replace(",", ".")) || 0;
+  return "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function refreshDayTurn4hDisplay(){
+  const hidden = document.getElementById("dayTurn4hHiddenInput");
+  const value = document.getElementById("dayTurn4hValue");
+  if(!hidden || !value) return;
+  value.textContent = formatDayTurn4hDisplay(hidden.value || "");
+}
+function openVirada4hModal(valorInicial, diaAtualUber, diaAnteriorUber, turnKey){
+  const overlay = document.getElementById("dayTurn4hOverlay");
+  const panel = document.getElementById("dayTurn4hPanel");
+  const hidden = document.getElementById("dayTurn4hHiddenInput");
+  if(!overlay || !panel || !hidden) return false;
+  window.__dayTurn4hState = {
+    open:true,
+    diaAtualUber:String(diaAtualUber || ""),
+    diaAnteriorUber:String(diaAnteriorUber || ""),
+    turnKey:String(turnKey || ""),
+    replaceOnNext:true
+  };
+  hidden.value = String(Number(valorInicial || 0));
+  refreshDayTurn4hDisplay();
+  overlay.classList.add("show");
+  panel.classList.add("show");
+  return true;
+}
+function closeVirada4hModal(){
+  const overlay = document.getElementById("dayTurn4hOverlay");
+  const panel = document.getElementById("dayTurn4hPanel");
+  if(overlay) overlay.classList.remove("show");
+  if(panel) panel.classList.remove("show");
+  window.__dayTurn4hState.open = false;
+}
+function cancelVirada4hModal(){
+  closeVirada4hModal();
+  try{ toast("⚠️ Virou 4h. Atualize o saldo final do dia e confirme para encerrar a sessão."); }catch(e){}
+}
+function appendDayTurn4hKey(key){
+  const hidden = document.getElementById("dayTurn4hHiddenInput");
+  if(!hidden) return;
+  let current = String(hidden.value || "");
+  if(window.__dayTurn4hState.replaceOnNext){
+    current = "";
+    window.__dayTurn4hState.replaceOnNext = false;
+  }
+  if(String(key) === "."){
+    if(current.includes(".")) return;
+    if(!current) current = "0";
+  }else if(!/^[0-9]$/.test(String(key))){
+    return;
+  }
+  current += String(key);
+  current = current.replace(/^0+(?=\d)/, "");
+  hidden.value = current;
+  refreshDayTurn4hDisplay();
+}
+function backspaceDayTurn4hValue(){
+  const hidden = document.getElementById("dayTurn4hHiddenInput");
+  if(!hidden) return;
+  if(window.__dayTurn4hState.replaceOnNext){
+    hidden.value = "";
+    window.__dayTurn4hState.replaceOnNext = false;
+  }else{
+    hidden.value = String(hidden.value || "").slice(0,-1);
+  }
+  refreshDayTurn4hDisplay();
+}
+function clearDayTurn4hValue(){
+  const hidden = document.getElementById("dayTurn4hHiddenInput");
+  if(!hidden) return;
+  hidden.value = "";
+  window.__dayTurn4hState.replaceOnNext = false;
+  refreshDayTurn4hDisplay();
+}
+function confirmVirada4hModal(){
+  const hidden = document.getElementById("dayTurn4hHiddenInput");
+  if(!hidden) return false;
+  const valorNormalizado = Number(String(hidden.value || "").trim().replace(",", "."));
+  if(!isFinite(valorNormalizado) || valorNormalizado < 0){
+    try{ toast("❌ Saldo final inválido. Informe um valor válido."); }catch(e){}
+    return false;
+  }
+
+  dados.saldoAtualFora = valorNormalizado;
+  dados.ganhoDiarioAtual = valorNormalizado;
+  try{
+    const saldoAtualElVirada = document.getElementById("saldoAtualFora");
+    if(saldoAtualElVirada) saldoAtualElVirada.value = String(valorNormalizado);
+  }catch(e){}
+
+  try{
+    finalizarSessaoGanhoHoraInterno({
+      silent: true,
+      skipSave: true,
+      skipUpdate: true,
+      naoIniciarProxima: true,
+      horaFim: '04:00',
+      dataFim: getViradaOperacional(new Date())
+    });
+  }catch(e){}
+
+  try{ salvarResumoDiaGanhoHora(window.__dayTurn4hState.diaAnteriorUber); }catch(e){}
+  limparDadosGanhoHora(true);
+  dados.ganhoHoraDiaRef = String(window.__dayTurn4hState.diaAtualUber || dataUberISO());
+  dados.saldoAtualFora = 0;
+  dados.ganhoDiarioAtual = 0;
+  dados.saldoAnteriorFora = 0;
+  dados.ganhoHoraSessaoAtiva = false;
+  dados.horarioInicioFora = "";
+  dados.ganhoHoraSessaoDiaRef = "";
+  dados.horasDecorridasFora = 0;
+  dados.ganhoHoraAtualFora = 0;
+  try{
+    const saldoAtualElNovoDia = document.getElementById("saldoAtualFora");
+    if(saldoAtualElNovoDia) saldoAtualElNovoDia.value = "";
+  }catch(e){}
+  try{
+    const horarioElNovoDia = document.getElementById("horarioInicioFora");
+    if(horarioElNovoDia) horarioElNovoDia.value = "";
+  }catch(e){}
+  try{
+    localStorage.setItem("md_last_4am_turn_key_v102", String(window.__dayTurn4hState.turnKey || ""));
+  }catch(e){}
+  salvar();
+  atualizar();
+  try{ toast("✅ Dia finalizado às 4h. Sessão encerrada e saldo zerado para iniciar o novo dia."); }catch(e){}
+  closeVirada4hModal();
+  return true;
+}
+
 function ensureGanhoHoraDiaAtual(){
   try{
+    if(!!dados.__skip_operational_day_turn) return false;
     if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
     if(!dados.ganhoHoraDiaRef) dados.ganhoHoraDiaRef = dataUberISO();
 
@@ -5996,10 +6102,9 @@ function ensureGanhoHoraDiaAtual(){
     const hora = agora.getHours();
     const minuto = agora.getMinutes();
 
-    // v100 - só roda exatamente às 04:00
     if(!(hora === 4 && minuto === 0)) return false;
 
-    const chaveViradaHoje = (function(){
+    const turnKey = (function(){
       const yyyy = agora.getFullYear();
       const mm = String(agora.getMonth()+1).padStart(2,'0');
       const dd = String(agora.getDate()).padStart(2,'0');
@@ -6007,8 +6112,8 @@ function ensureGanhoHoraDiaAtual(){
     })();
 
     try{
-      const ultimaVirada = localStorage.getItem("md_last_4am_turn_key_v100") || "";
-      if(ultimaVirada === chaveViradaHoje){
+      const ultimaVirada = localStorage.getItem("md_last_4am_turn_key_v102") || "";
+      if(ultimaVirada === turnKey){
         return false;
       }
     }catch(e){}
@@ -6030,50 +6135,10 @@ function ensureGanhoHoraDiaAtual(){
     const temSessaoEmAndamento = !!dados.ganhoHoraSessaoAtiva && !!String(dados.horarioInicioFora || '').trim();
 
     if(temSessaoEmAndamento){
-      const mensagemVirada = "Dia finalizado.\nA sessão será finalizada.\n\nAtualize o saldo final do dia e toque em OK para concluir.";
-      let valorInformado = null;
-      try{
-        valorInformado = prompt(mensagemVirada, String(Number(dados.saldoAtualFora || 0)).replace('.', ','));
-      }catch(e){
-        valorInformado = null;
-      }
-
-      if(valorInformado === null){
-        try{
-          toast("⚠️ Virou 4h. Atualize o saldo final do dia e confirme para encerrar a sessão.");
-        }catch(e){}
-        return false;
-      }
-
-      const valorNormalizado = Number(String(valorInformado || '').trim().replace(',', '.'));
-      if(!isFinite(valorNormalizado) || valorNormalizado < 0){
-        try{
-          toast("❌ Saldo final inválido. Informe um valor válido.");
-        }catch(e){}
-        return false;
-      }
-
-      dados.saldoAtualFora = valorNormalizado;
-      dados.ganhoDiarioAtual = valorNormalizado;
-
-      try{
-        const saldoAtualElVirada = document.getElementById("saldoAtualFora");
-        if(saldoAtualElVirada) saldoAtualElVirada.value = String(valorNormalizado);
-      }catch(e){}
-
-      try{
-        finalizarSessaoGanhoHoraInterno({
-          silent: true,
-          skipSave: true,
-          skipUpdate: true,
-          naoIniciarProxima: true,
-          horaFim: '04:00',
-          dataFim: getViradaOperacional(agora)
-        });
-      }catch(e){}
+      if(window.__dayTurn4hState && window.__dayTurn4hState.open) return false;
+      openVirada4hModal(Number(dados.saldoAtualFora || 0), diaAtualUber, diaAnteriorUber, turnKey);
+      return false;
     }
-
-    try{ salvarResumoDiaGanhoHora(diaAnteriorUber); }catch(e){}
 
     limparDadosGanhoHora(true);
     dados.ganhoHoraDiaRef = diaAtualUber;
@@ -6085,23 +6150,14 @@ function ensureGanhoHoraDiaAtual(){
     dados.ganhoHoraSessaoDiaRef = "";
     dados.horasDecorridasFora = 0;
     dados.ganhoHoraAtualFora = 0;
-
     try{
       const saldoAtualElNovoDia = document.getElementById("saldoAtualFora");
       if(saldoAtualElNovoDia) saldoAtualElNovoDia.value = "";
     }catch(e){}
-    try{
-      const horarioElNovoDia = document.getElementById("horarioInicioFora");
-      if(horarioElNovoDia) horarioElNovoDia.value = "";
-    }catch(e){}
-
-    try{ localStorage.setItem("md_last_4am_turn_key_v100", chaveViradaHoje); }catch(e){}
-
+    try{ localStorage.setItem("md_last_4am_turn_key_v102", turnKey); }catch(e){}
     salvar();
     atualizar();
-    try{
-      toast("✅ Dia finalizado às 4h. Sessão encerrada e saldo zerado para iniciar o novo dia.");
-    }catch(e){}
+    try{ toast("✅ Virou 4h. Saldo zerado para iniciar o novo dia."); }catch(e){}
     return true;
   }catch(e){
     return false;
@@ -6109,6 +6165,7 @@ function ensureGanhoHoraDiaAtual(){
 }
 
 function salvarGanhosForaTempoReal(){
+  try{ delete dados.__skip_operational_day_turn; }catch(e){}
   ensureGanhoHoraDiaAtual();
   if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
   if(!dados.ganhoHoraDiaRef) dados.ganhoHoraDiaRef = dataUberISO();
@@ -7609,12 +7666,15 @@ try{ syncSaldoAtualLockWithFab(); }catch(e){}
 setInterval(function(){ try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} try{ syncSaldoAtualLockWithFab(); }catch(e){} }, 800);
 
 function bootApp(){
-try{document.body.classList.add('preload')}catch(e){}
+  // v102 - mantém UI oculta até aplicar colapsos e layout inicial
+  try{ document.body.classList.add("preload"); }catch(e){}
   // v57 - garante visibilidade
   try{
     document.documentElement.style.opacity = '';
     document.documentElement.style.pointerEvents = '';
   }catch(e){}
+  try{ ensureFirstInstallCollapsed(); }catch(e){}
+  try{ initSectionCollapse(); }catch(e){}
   // v57 - calcular altura real da topbar e aplicar nas tabs para sticky preciso
   try{
     const topbar = document.querySelector('.topbar');
@@ -7624,8 +7684,6 @@ try{document.body.classList.add('preload')}catch(e){}
       tabsWrap.style.top = h + 'px';
     }
   }catch(e){}
-  try{ ensureFirstInstallCollapsed(); }catch(e){}
-  try{ initSectionCollapse(); }catch(e){}
   try{ ensureGanhoHoraDiaAtual(); }catch(e){}
   try{ setInterval(function(){ try{ ensureGanhoHoraDiaAtual(); }catch(e){} }, 15000); }catch(e){}
   try{ updateUberClock(); setInterval(updateUberClock, 1000); }catch(e){}
@@ -7635,8 +7693,16 @@ try{document.body.classList.add('preload')}catch(e){}
       iniciarTimerGanhoHoraTempoReal();
     }
   }catch(e){}
-  setTimeout(function(){ try{ cloudBoot(true);
-try{requestAnimationFrame(()=>requestAnimationFrame(()=>document.body.classList.remove('preload')))}catch(e){document.body.classList.remove('preload')} }catch(e){} }, cloudHasUsefulData(dados) ? 120 : 30);
+  setTimeout(function(){ try{ cloudBoot(true); }catch(e){} }, cloudHasUsefulData(dados) ? 120 : 30);
+  try{
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        document.body.classList.remove("preload");
+      });
+    });
+  }catch(e){
+    try{ document.body.classList.remove("preload"); }catch(_e){}
+  }
 }
 if(document.readyState === "loading"){
   document.addEventListener("DOMContentLoaded", ()=>{ bootApp(); try{ initTabs(); }catch(e){}; try{ bindSectionHeaders(); }catch(e){} });
@@ -7646,10 +7712,20 @@ if(document.readyState === "loading"){
 }
 // Em alguns celulares, ao voltar para o app (bfcache), reaplica o estado
 window.addEventListener("pageshow", ()=>{
+  try{ document.body.classList.add("preload"); }catch(e){}
   try{ initSectionCollapse(); }catch(e){}
   try{ applyQuickBalanceFabStateHard(); }catch(e){}
   // v57 - reforça restauração ao reabrir do cache do navegador
   try{ if(window.__mdRestoreScrollBurst) window.__mdRestoreScrollBurst(); else if(window.__mdRestoreScroll) window.__mdRestoreScroll(true); }catch(e){}
+  try{
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        document.body.classList.remove("preload");
+      });
+    });
+  }catch(e){
+    try{ document.body.classList.remove("preload"); }catch(_e){}
+  }
 });
 
 function bindSectionHeaders(){
@@ -8816,11 +8892,15 @@ function logoutApp(){
 
 function mdResumeRestoreSafely(){
   try{
-    if(mdStateLocked() && cloudHasUsefulData(dados)){
+    if(cloudHasUsefulData(dados)){
+      const pending = cloudReadPendingSnapshot();
+      if(__cloudDirty || (pending && pending.payload && cloudHasUsefulData(pending.payload))){
+        cloudScheduleSave(120);
+      }
       return;
     }
   }catch(e){}
-  try{ mdResumeRestoreSafely(); }catch(e){}
+  try{ cloudBoot(true); }catch(e){}
 }
 
 window.addEventListener("load", function(){
@@ -8836,6 +8916,35 @@ window.addEventListener("load", function(){
 </script>
 
 <button type="button" id="quickBalanceFab" class="quick-balance-fab" onclick="toggleQuickBalancePanel(true)" aria-label="Atualizar saldo atual rápido"><span class="quick-balance-fab-inner"><span id="quickBalanceFabValue" class="quickBalanceFabValue quick-balance-fab-value">R$ 0</span></span></button>
+
+
+<div id="dayTurn4hOverlay" class="dayturn-overlay" onclick="if(event.target.id==='dayTurn4hOverlay')cancelVirada4hModal()"></div>
+<div id="dayTurn4hPanel" class="dayturn-panel" role="dialog" aria-modal="true" aria-labelledby="dayTurn4hTitle">
+  <div class="dayturn-title" id="dayTurn4hTitle">Dia finalizado</div>
+  <div class="dayturn-sub">A sessão será finalizada. Atualize o saldo final do dia e toque em OK para concluir.</div>
+  <div class="dayturn-display">
+    <div id="dayTurn4hValue" class="dayturn-value">R$ 0,00</div>
+  </div>
+  <input type="text" id="dayTurn4hHiddenInput" class="quick-balance-hidden-input" inputmode="none" readonly tabindex="-1" aria-hidden="true">
+  <div class="dayturn-keypad">
+    <button type="button" class="quick-balance-key" onclick="appendDayTurn4hKey('1')">1</button>
+    <button type="button" class="quick-balance-key" onclick="appendDayTurn4hKey('2')">2</button>
+    <button type="button" class="quick-balance-key" onclick="appendDayTurn4hKey('3')">3</button>
+    <button type="button" class="quick-balance-key" onclick="appendDayTurn4hKey('4')">4</button>
+    <button type="button" class="quick-balance-key" onclick="appendDayTurn4hKey('5')">5</button>
+    <button type="button" class="quick-balance-key" onclick="appendDayTurn4hKey('6')">6</button>
+    <button type="button" class="quick-balance-key" onclick="appendDayTurn4hKey('7')">7</button>
+    <button type="button" class="quick-balance-key" onclick="appendDayTurn4hKey('8')">8</button>
+    <button type="button" class="quick-balance-key" onclick="appendDayTurn4hKey('9')">9</button>
+    <button type="button" class="quick-balance-key" onclick="clearDayTurn4hValue()">Limpar</button>
+    <button type="button" class="quick-balance-key" onclick="appendDayTurn4hKey('0')">0</button>
+    <button type="button" class="quick-balance-key" onclick="backspaceDayTurn4hValue()">⌫</button>
+  </div>
+  <div class="dayturn-actions">
+    <button type="button" class="cancel" onclick="cancelVirada4hModal()">Cancelar</button>
+    <button type="button" onclick="confirmVirada4hModal()">OK</button>
+  </div>
+</div>
 
 <div id="quickBalanceOverlay" class="quick-balance-overlay" onclick="toggleQuickBalancePanel(false)"></div>
 
