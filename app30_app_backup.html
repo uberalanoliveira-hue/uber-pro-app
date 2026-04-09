@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v103</title>
+<title>MetaDriver v101</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -229,27 +229,6 @@ window.addEventListener("online", function(){
 window.addEventListener("pageshow", function(){
   try{ mdResumeRestoreSafely(); }catch(e){}
 });
-
-
-/* v103 - impedir pull-to-refresh no app */
-(function(){
-  let startY = 0;
-  document.addEventListener('touchstart', function(e){
-    if(!e.touches || !e.touches.length) return;
-    startY = e.touches[0].clientY || 0;
-  }, {passive:true});
-  document.addEventListener('touchmove', function(e){
-    try{
-      const y = e.touches && e.touches[0] ? e.touches[0].clientY : 0;
-      const scrollingEl = document.scrollingElement || document.documentElement;
-      const atTop = (scrollingEl.scrollTop || window.scrollY || 0) <= 0;
-      const panelOpen = !!document.querySelector('.quick-balance-panel.show');
-      if(!panelOpen && atTop && y > startY + 6){
-        e.preventDefault();
-      }
-    }catch(err){}
-  }, {passive:false});
-})();
 
 </script>
 
@@ -885,23 +864,6 @@ input.negative-value, input.negative-value::placeholder{
   overflow:hidden;
   text-overflow:ellipsis;
 }
-
-html, body{
-  overscroll-behavior-y:none;
-}
-body{
-  -webkit-overflow-scrolling:touch;
-}
-.quick-balance-panel{
-  top:max(12px, env(safe-area-inset-top));
-  max-height:calc(100vh - max(12px, env(safe-area-inset-top)) - 24px);
-  overflow-y:auto;
-}
-.quick-balance-keypad{
-  height:auto;
-  max-height:34vh;
-}
-
 .quick-balance-overlay{
   position:fixed;
   inset:0;
@@ -2997,7 +2959,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v103</div>
+  <div class="menu-note" style="text-align:center;">v101</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -3296,7 +3258,7 @@ const DEV_LOCAL_MODE = true;
       <div id="formKmAtual" class="form hidden" style="display:none;">
         <div class="row">
           <input type="date" id="kmAtualData" />
-          <input type="text" id="kmAtualValor" inputmode="none" autocomplete="off" readonly data-keypad-mode="km" placeholder="KM atual" onclick="openMetaTotalKeypadFor('kmAtualValor')" onfocus="this.blur(); openMetaTotalKeypadFor('kmAtualValor');" />
+          <input type="number" id="kmAtualValor" inputmode="numeric" placeholder="KM atual" />
         </div>
         <button type="button" onclick="salvarKmAtual()">Salvar</button>
       </div>
@@ -3983,7 +3945,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v103',
+      app_version: 'MetaDriver v101',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -6852,11 +6814,6 @@ let metaTotalTargetId = "metaTotal";
 let metaTotalTargetMode = "default";
 
 function formatMetaTotalDisplay(valueStr){
-  const mode = getMetaTotalTargetMode ? getMetaTotalTargetMode() : "default";
-  if(mode === "km"){
-    const n = parseInt(String(valueStr || "").replace(/\D/g,"")) || 0;
-    return n ? n.toLocaleString("pt-BR") : "0";
-  }
   const n = parseFloat(String(valueStr || "").replace(",", ".")) || 0;
   return "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
@@ -6883,12 +6840,6 @@ function applyMetaTotalValue(){
   const hidden = document.getElementById("metaTotalHiddenInput");
   const visible = getMetaTotalTarget();
   if(!hidden || !visible) return;
-  const mode = getMetaTotalTargetMode ? getMetaTotalTargetMode() : "default";
-  if(mode === "km"){
-    const cleaned = String(hidden.value || "").replace(/\D/g,"");
-    visible.value = cleaned ? String(parseInt(cleaned,10)) : "";
-    return;
-  }
   visible.value = String(hidden.value || "");
   syncMetaAutoFromInputs();
 }
@@ -6901,9 +6852,7 @@ function appendMetaTotalKey(key){
     current = "";
     metaTotalReplaceOnNextInput = false;
   }
-  const mode = getMetaTotalTargetMode ? getMetaTotalTargetMode() : "default";
   if(String(key) === "."){
-    if(mode === "km") return;
     if(current.includes(".")) return;
     if(!current) current = "0";
   }else if(!/^[0-9]$/.test(String(key))){
@@ -7026,12 +6975,8 @@ function toggleMetaTotalKeypad(forceOpen, targetId){
   panel.classList.toggle("show", abrir);
   overlay.classList.toggle("show", abrir);
   if(abrir){
-    const mode = visible.getAttribute("data-keypad-mode") || "default";
     hidden.value = String(visible.value || "");
     metaTotalReplaceOnNextInput = true;
-    if(mode === "km"){
-      hidden.value = String((visible.value || "")).replace(/\D/g,"");
-    }
     refreshMetaTotalDisplay();
     positionMetaTotalKeypad();
     try{
@@ -8330,7 +8275,7 @@ function toggleKmAtualForm(forceClose=false){
   if(isHidden){
     form.classList.remove("hidden");
     form.style.display = "";
-    setTimeout(()=>{ try{ openMetaTotalKeypadFor("kmAtualValor"); }catch(e){} }, 50);
+    setTimeout(()=>{ try{ document.getElementById("kmAtualValor").focus(); }catch(e){} }, 50);
   }else{
     form.classList.add("hidden");
     form.style.display = "none";
