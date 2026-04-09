@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v112</title>
+<title>MetaDriver v113</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -912,6 +912,46 @@ input.negative-value, input.negative-value::placeholder{
   overflow:hidden;
   text-overflow:ellipsis;
 }
+
+/* v113 diagnostics */
+.md-diag-fab{
+  position:fixed;
+  right:12px;
+  bottom:12px;
+  z-index:1305;
+  border:none;
+  border-radius:999px;
+  min-width:56px;
+  height:40px;
+  padding:0 14px;
+  background:rgba(15,23,42,.95);
+  color:#fff;
+  box-shadow:0 10px 24px rgba(0,0,0,.35);
+  font-weight:900;
+}
+.md-diag-overlay{
+  position:fixed; inset:0; z-index:1310; background:rgba(0,0,0,.55); display:none;
+}
+.md-diag-overlay.show{display:block;}
+.md-diag-panel{
+  position:fixed; inset:12px; z-index:1311; display:none;
+  background:rgba(15,23,42,.98); color:#fff; border:1px solid rgba(255,255,255,.12);
+  border-radius:18px; box-shadow:0 20px 50px rgba(0,0,0,.45); overflow:hidden;
+}
+.md-diag-panel.show{display:flex; flex-direction:column;}
+.md-diag-head{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.08); font-weight:900;
+}
+.md-diag-head-actions{display:flex; gap:8px;}
+.md-diag-head-actions button{
+  width:auto; min-width:0; padding:8px 10px; border-radius:10px; font-size:12px;
+}
+.md-diag-body{
+  padding:12px 14px; overflow:auto; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  white-space:pre-wrap; word-break:break-word; font-size:12px; line-height:1.45; flex:1;
+}
+
 .quick-balance-overlay{
   position:fixed;
   inset:0;
@@ -2974,7 +3014,8 @@ const DEV_LOCAL_MODE = true;
 
   async function refreshAccessTokenIfNeeded(force){
     const sess = readStoredSession();
-    if(!force && hasUsableToken(sess)) return sess.access_token || "";
+    if(!force && hasUsableToken(sess)) mdDiagPush("cloudGetToken:return_cached_or_refresh", { token_present: !!(sess.access_token || "") });
+    return sess.access_token || "";
     if(!sess.refresh_token) return sess.access_token || "";
 
     try{
@@ -3079,7 +3120,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v112</div>
+  <div class="menu-note" style="text-align:center;">v113</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -3937,6 +3978,7 @@ function cloudGetStoredTokenSync(){
   try{ return localStorage.getItem("sb_token") || ""; }catch(e){ return ""; }
 }
 async function cloudGetToken(){
+  mdDiagPush("cloudGetToken:start");
   let fast = "";
   try{ fast = localStorage.getItem("sb_token") || ""; }catch(e){ fast = ""; }
   try{
@@ -4065,7 +4107,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v111',
+      app_version: 'MetaDriver v113',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -4221,10 +4263,13 @@ async function cloudGetUser(token){
   return user;
 }
 async function cloudResolveUserId(token){
+  mdDiagPush("cloudResolveUserId:start", { token_present: !!token });
   const cached = cloudReadCachedUserId();
-  if(cached) return cached;
+  if(cached){ mdDiagPush("cloudResolveUserId:cached", { user_id: String(cached||"") }); return cached; }
   const user = await cloudGetUser(token);
-  return (user && user.id) ? user.id : "";
+  const __uid = (user && user.id) ? user.id : "";
+  mdDiagPush("cloudResolveUserId:return", { user_id: String(__uid||"") });
+  return __uid;
 }
 
 function cloudHasUsefulData(obj){
@@ -4262,6 +4307,7 @@ function cloudHasUsefulData(obj){
 }
 
 async function cloudFetchRow(token, userId){
+  mdDiagPush("cloudFetchRow:start", { user_id: String(userId||""), token_present: !!token });
   const res = await fetch(
     CLOUD_SUPABASE_URL + "/rest/v1/" + CLOUD_TABLE + "?select=payload,updated_at&user_id=eq." + encodeURIComponent(userId),
     {
@@ -4377,6 +4423,7 @@ function mdRemoteWouldRollback(remoteData){
 }
 
 function cloudApplyRemoteData(remoteData){
+  mdDiagPush("cloudApplyRemoteData:start", { useful: !!(typeof cloudHasUsefulData==="function" && cloudHasUsefulData(remoteData || {})), commit_seq: Number(remoteData && remoteData.__local_commit_seq || 0) });
   try{
     if(!remoteData || typeof remoteData !== "object") return;
     mdEnsureDataMeta(dados);
@@ -4402,6 +4449,7 @@ function cloudApplyRemoteData(remoteData){
     try{ atualizar(); }catch(e){}
     try{ atualizarCarro(); }catch(e){}
   }catch(e){
+    mdDiagPush("cloudApplyRemoteData:error", { message: String((e && e.message) || e || "") });
     console.warn("cloudApplyRemoteData", e);
   }
 }
@@ -4427,6 +4475,7 @@ async function cloudPushNow(snapshotOverride){
     const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
     const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
     const remoteSnapshot = remoteWrapped && remoteWrapped.snapshot ? remoteWrapped.snapshot : null;
+    mdDiagPush("cloudBoot:remote_state", { has_remote_snapshot: !!remoteSnapshot, remote_useful: !!(remoteSnapshot && cloudHasUsefulData(remoteSnapshot)), remote_commit_seq: Number(remoteSnapshot && remoteSnapshot.__local_commit_seq || 0), remote_updated_at: remoteSnapshot && (remoteSnapshot.__updated_at || remoteSnapshot.__cloud_updated_at) || "" });
 
     const localSeq = Number(best.__local_commit_seq || 0);
     const remoteSeq = Number(remoteSnapshot && remoteSnapshot.__local_commit_seq || 0);
@@ -4500,6 +4549,7 @@ function cloudScheduleSave(delayMs){
 }
 
 async function cloudBoot(force){
+  mdDiagPush("cloudBoot:start", { force: force === true });
   if(__cloudBootStarted) return;
   if(__cloudBootDoneOnce && force !== true) return;
   __cloudBootStarted = true;
@@ -4519,6 +4569,7 @@ async function cloudBoot(force){
     ]) || dados;
 
     const localUseful = localBest && cloudHasUsefulData(localBest);
+    mdDiagPush("cloudBoot:local_state", { local_useful: !!localUseful, local_commit_seq: Number(localBest && localBest.__local_commit_seq || 0), local_updated_at: localBest && (localBest.__updated_at || localBest.__cloud_updated_at) || "" });
 
     // v108 - prioridade local absoluta:
     // se já há dado local útil, nuvem NÃO sobrescreve automaticamente.
@@ -4552,6 +4603,7 @@ async function cloudBoot(force){
 
     // Só aplica remoto se o local estiver vazio/inútil
     if(!localUseful && remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
+      mdDiagPush("cloudBoot:apply_remote");
       cloudApplyRemoteData(remoteSnapshot);
     }
 
@@ -4560,8 +4612,10 @@ async function cloudBoot(force){
       cloudScheduleSave(120);
     }
 
+    mdDiagPush("cloudBoot:done", { current_useful: !!cloudHasUsefulData(dados || {}), current_commit_seq: Number(dados && dados.__local_commit_seq || 0) });
     __cloudBootDoneOnce = cloudHasUsefulData(dados);
   }catch(e){
+    mdDiagPush("cloudBoot:error", { message: String((e && e.message) || e || "") });
     console.warn("cloudBoot", e);
   }finally{
     __cloudBootStarted = false;
@@ -6596,6 +6650,21 @@ function exportarRelatorioPDF(){
         setTimeout(()=>window.print(), 250);
       <\/script>
     <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v84 · app</div>
+
+<button type="button" id="mdDiagFab" class="md-diag-fab" onclick="mdOpenDiagPanel()">DIAG</button>
+<div id="mdDiagOverlay" class="md-diag-overlay" onclick="mdCloseDiagPanel()"></div>
+<div id="mdDiagPanel" class="md-diag-panel" role="dialog" aria-modal="true" aria-labelledby="mdDiagTitle">
+  <div class="md-diag-head">
+    <div id="mdDiagTitle">Diagnóstico restore v113</div>
+    <div class="md-diag-head-actions">
+      <button type="button" class="secondary" onclick="mdCopyDiag()">Copiar</button>
+      <button type="button" class="secondary" onclick="mdRefreshDiag()">Atualizar</button>
+      <button type="button" class="cancel" onclick="mdCloseDiagPanel()">Fechar</button>
+    </div>
+  </div>
+  <div id="mdDiagBody" class="md-diag-body">Carregando…</div>
+</div>
+
 </body>
     </html>  `);
   w.document.close();
@@ -9065,6 +9134,21 @@ window.addEventListener("load", function(){
     <button type="button" id="btnSalvarSaldoAtualMenu" onclick="salvarPreferenciaSaldoAtualButton(); return false;">Salvar</button>
     <button type="button" class="secondary" onclick="fecharSaldoAtualButtonMenu()">Fechar</button>
   </div>
+</div>
+
+
+<button type="button" id="mdDiagFab" class="md-diag-fab" onclick="mdOpenDiagPanel()">DIAG</button>
+<div id="mdDiagOverlay" class="md-diag-overlay" onclick="mdCloseDiagPanel()"></div>
+<div id="mdDiagPanel" class="md-diag-panel" role="dialog" aria-modal="true" aria-labelledby="mdDiagTitle">
+  <div class="md-diag-head">
+    <div id="mdDiagTitle">Diagnóstico restore v113</div>
+    <div class="md-diag-head-actions">
+      <button type="button" class="secondary" onclick="mdCopyDiag()">Copiar</button>
+      <button type="button" class="secondary" onclick="mdRefreshDiag()">Atualizar</button>
+      <button type="button" class="cancel" onclick="mdCloseDiagPanel()">Fechar</button>
+    </div>
+  </div>
+  <div id="mdDiagBody" class="md-diag-body">Carregando…</div>
 </div>
 
 </body>
