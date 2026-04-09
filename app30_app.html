@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v98</title>
+<title>MetaDriver v100</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -2959,7 +2959,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v98</div>
+  <div class="menu-note" style="text-align:center;">v100</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -3944,7 +3944,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v84',
+      app_version: 'MetaDriver v100',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -5900,102 +5900,124 @@ function finalizarSessaoGanhoHoraInterno(opcoes){
 }
 
 function ensureGanhoHoraDiaAtual(){
-  const diaAtualUber = dataUberISO();
-  const agora = new Date();
-  const sessoes = Array.isArray(dados.ganhoHoraSessoes) ? dados.ganhoHoraSessoes : [];
-  const temSessaoLegadaSemDia = sessoes.some(s => s && !String(s.diaRef || '').trim());
-  const sessaoEmAndamentoDia = String(dados.ganhoHoraSessaoDiaRef || '').trim();
+  try{
+    if(!Array.isArray(dados.ganhoHoraSessoes)) dados.ganhoHoraSessoes = [];
+    if(!dados.ganhoHoraDiaRef) dados.ganhoHoraDiaRef = dataUberISO();
 
-  if(!dados.ganhoHoraDiaRef){
+    const agora = new Date();
+    const hora = agora.getHours();
+    const minuto = agora.getMinutes();
+
+    // v100 - só roda exatamente às 04:00
+    if(!(hora === 4 && minuto === 0)) return false;
+
+    const chaveViradaHoje = (function(){
+      const yyyy = agora.getFullYear();
+      const mm = String(agora.getMonth()+1).padStart(2,'0');
+      const dd = String(agora.getDate()).padStart(2,'0');
+      return yyyy + "-" + mm + "-" + dd;
+    })();
+
+    try{
+      const ultimaVirada = localStorage.getItem("md_last_4am_turn_key_v100") || "";
+      if(ultimaVirada === chaveViradaHoje){
+        return false;
+      }
+    }catch(e){}
+
+    const diaAtualUber = dataUberISO();
+    const diaAnteriorUber = (function(){
+      const d = new Date(agora.getTime());
+      d.setDate(d.getDate() - 1);
+      const base = new Date(d.getTime());
+      if(base.getHours() < 4){
+        base.setDate(base.getDate() - 1);
+      }
+      const yyyy = base.getFullYear();
+      const mm = String(base.getMonth()+1).padStart(2,'0');
+      const dd = String(base.getDate()).padStart(2,'0');
+      return yyyy + "-" + mm + "-" + dd;
+    })();
+
+    const temSessaoEmAndamento = !!dados.ganhoHoraSessaoAtiva && !!String(dados.horarioInicioFora || '').trim();
+
+    if(temSessaoEmAndamento){
+      const mensagemVirada = "Dia finalizado.\nA sessão será finalizada.\n\nAtualize o saldo final do dia e toque em OK para concluir.";
+      let valorInformado = null;
+      try{
+        valorInformado = prompt(mensagemVirada, String(Number(dados.saldoAtualFora || 0)).replace('.', ','));
+      }catch(e){
+        valorInformado = null;
+      }
+
+      if(valorInformado === null){
+        try{
+          toast("⚠️ Virou 4h. Atualize o saldo final do dia e confirme para encerrar a sessão.");
+        }catch(e){}
+        return false;
+      }
+
+      const valorNormalizado = Number(String(valorInformado || '').trim().replace(',', '.'));
+      if(!isFinite(valorNormalizado) || valorNormalizado < 0){
+        try{
+          toast("❌ Saldo final inválido. Informe um valor válido.");
+        }catch(e){}
+        return false;
+      }
+
+      dados.saldoAtualFora = valorNormalizado;
+      dados.ganhoDiarioAtual = valorNormalizado;
+
+      try{
+        const saldoAtualElVirada = document.getElementById("saldoAtualFora");
+        if(saldoAtualElVirada) saldoAtualElVirada.value = String(valorNormalizado);
+      }catch(e){}
+
+      try{
+        finalizarSessaoGanhoHoraInterno({
+          silent: true,
+          skipSave: true,
+          skipUpdate: true,
+          naoIniciarProxima: true,
+          horaFim: '04:00',
+          dataFim: getViradaOperacional(agora)
+        });
+      }catch(e){}
+    }
+
+    try{ salvarResumoDiaGanhoHora(diaAnteriorUber); }catch(e){}
+
+    limparDadosGanhoHora(true);
     dados.ganhoHoraDiaRef = diaAtualUber;
-  }
-
-  const diaAnteriorUber = String(dados.ganhoHoraDiaRef || '').trim();
-  const mudouDia = diaAnteriorUber !== diaAtualUber;
-  const precisaCorrigirLegado = agora.getHours() >= 4 && (
-    temSessaoLegadaSemDia ||
-    (sessaoEmAndamentoDia && sessaoEmAndamentoDia !== diaAtualUber)
-  );
-
-  if(!mudouDia && !precisaCorrigirLegado) return false;
-
-  let saldoAtualAntesVirada = Number(dados.saldoAtualFora || 0);
-  const horaAtual = String(agora.getHours()).padStart(2,'0') + ':' + String(agora.getMinutes()).padStart(2,'0');
-  const temSessaoEmAndamento = !!dados.ganhoHoraSessaoAtiva && !!String(dados.horarioInicioFora || '').trim();
-
-  if(temSessaoEmAndamento){
-    const mensagemVirada = "Virou 4h. O dia será finalizado e a sessão em andamento será encerrada.\n\nAtualize abaixo o saldo final do dia e toque em OK para concluir.";
-    let valorInformado = null;
-    try{
-      valorInformado = prompt(mensagemVirada, String(Number(dados.saldoAtualFora || 0)).replace('.', ','));
-    }catch(e){
-      valorInformado = null;
-    }
-    if(valorInformado === null){
-      try{
-        toast("⚠️ Virada de 4h pendente. Atualize o saldo final e confirme para encerrar o dia.");
-      }catch(e){}
-      return false;
-    }
-
-    const valorNormalizado = Number(String(valorInformado || '').trim().replace(',', '.'));
-    if(!isFinite(valorNormalizado) || valorNormalizado < 0){
-      try{
-        toast("❌ Saldo final inválido. Informe um valor válido para encerrar o dia.");
-      }catch(e){}
-      return false;
-    }
-
-    saldoAtualAntesVirada = valorNormalizado;
-    dados.saldoAtualFora = valorNormalizado;
-    dados.ganhoDiarioAtual = valorNormalizado;
+    dados.saldoAtualFora = 0;
+    dados.ganhoDiarioAtual = 0;
+    dados.saldoAnteriorFora = 0;
+    dados.ganhoHoraSessaoAtiva = false;
+    dados.horarioInicioFora = "";
+    dados.ganhoHoraSessaoDiaRef = "";
+    dados.horasDecorridasFora = 0;
+    dados.ganhoHoraAtualFora = 0;
 
     try{
-      const saldoAtualElVirada = document.getElementById("saldoAtualFora");
-      if(saldoAtualElVirada) saldoAtualElVirada.value = String(valorNormalizado);
+      const saldoAtualElNovoDia = document.getElementById("saldoAtualFora");
+      if(saldoAtualElNovoDia) saldoAtualElNovoDia.value = "";
+    }catch(e){}
+    try{
+      const horarioElNovoDia = document.getElementById("horarioInicioFora");
+      if(horarioElNovoDia) horarioElNovoDia.value = "";
     }catch(e){}
 
+    try{ localStorage.setItem("md_last_4am_turn_key_v100", chaveViradaHoje); }catch(e){}
+
+    salvar();
+    atualizar();
     try{
-      finalizarSessaoGanhoHoraInterno({
-        silent: true,
-        skipSave: true,
-        skipUpdate: true,
-        naoIniciarProxima: true,
-        horaFim: '04:00',
-        dataFim: getViradaOperacional(new Date())
-      });
+      toast("✅ Dia finalizado às 4h. Sessão encerrada e saldo zerado para iniciar o novo dia.");
     }catch(e){}
+    return true;
+  }catch(e){
+    return false;
   }
-
-  try{ salvarResumoDiaGanhoHora(diaAnteriorUber); }catch(e){}
-
-  limparDadosGanhoHora(true);
-  dados.ganhoHoraDiaRef = diaAtualUber;
-  dados.saldoAtualFora = 0;
-  dados.ganhoDiarioAtual = 0;
-  dados.saldoAnteriorFora = 0;
-  dados.ganhoHoraSessaoAtiva = false;
-  // v98 - ao virar 4h, o novo dia começa zerado e exige nova sessão manual
-  dados.horarioInicioFora = "";
-  dados.ganhoHoraSessaoDiaRef = "";
-  dados.horasDecorridasFora = 0;
-  dados.ganhoHoraAtualFora = 0;
-
-  try{
-    const saldoAtualElNovoDia = document.getElementById("saldoAtualFora");
-    if(saldoAtualElNovoDia) saldoAtualElNovoDia.value = "";
-  }catch(e){}
-  try{
-    const horarioElNovoDia = document.getElementById("horarioInicioFora");
-    if(horarioElNovoDia) horarioElNovoDia.value = "";
-  }catch(e){}
-
-  salvar();
-  atualizar();
-  try{
-    toast("✅ Dia finalizado às 4h. Sessão encerrada e saldo zerado para iniciar o novo dia.");
-  }catch(e){}
-  return true;
 }
 
 function salvarGanhosForaTempoReal(){
