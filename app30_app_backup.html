@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v110</title>
+<title>MetaDriver v111</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -2968,34 +2968,6 @@ const DEV_LOCAL_MODE = true;
 
   window.mdEnsureActiveSession = refreshAccessTokenIfNeeded;
 
-window.__mdNeedsRemoteRestore = false;
-
-async function mdRequireValidSessionForApp(){
-  try{
-    const sess = readStoredSession ? readStoredSession() : null;
-    const hasAnySession = !!(sess && (sess.access_token || sess.refresh_token));
-    const token = await refreshAccessTokenIfNeeded(false).catch(function(){ return ""; });
-    if(token){
-      try{
-        const user = await cloudGetUser(token).catch(function(){ return null; });
-        if(user && user.id){
-          try{ localStorage.setItem("sb_user_id", user.id); }catch(e){}
-        }
-      }catch(e){}
-      return token;
-    }
-    if(hasAnySession){
-      try{ localStorage.setItem("md_force_restore_after_login", "1"); }catch(e){}
-    }
-    try{ window.location.replace("login.html?restore=1"); }catch(e){}
-    return "";
-  }catch(e){
-    try{ window.location.replace("login.html?restore=1"); }catch(_e){}
-    return "";
-  }
-}
-
-
   (async function(){
     try{
       const sess = readStoredSession();
@@ -3076,7 +3048,7 @@ async function mdRequireValidSessionForApp(){
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v110</div>
+  <div class="menu-note" style="text-align:center;">v111</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -4062,7 +4034,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v110',
+      app_version: 'MetaDriver v111',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -4517,7 +4489,8 @@ async function cloudBoot(force){
 
     const localUseful = localBest && cloudHasUsefulData(localBest);
 
-    // v109 - se existe local útil, local ganha e a nuvem não sobrescreve automaticamente
+    // v108 - prioridade local absoluta:
+    // se já há dado local útil, nuvem NÃO sobrescreve automaticamente.
     if(localUseful){
       dados = JSON.parse(JSON.stringify(localBest));
       mdEnsureDataMeta(dados);
@@ -4530,9 +4503,7 @@ async function cloudBoot(force){
       return;
     }
 
-    // v109 - se local está vazio/inútil, restore remoto passa a ser obrigatório
-    const token = await cloudGetToken().catch(function(){ return ""; });
-    if(!token){ console.warn("MetaDriver: sem token, restore remoto indisponível"); __cloudBootDoneOnce = false; return; }
+    const token = await cloudGetToken();
     if(!token){
       __cloudBootDoneOnce = false;
       return;
@@ -4548,20 +4519,14 @@ async function cloudBoot(force){
     mdSyncBackupsFromCloud(remoteWrapped && remoteWrapped.backups ? remoteWrapped.backups : []);
     const remoteSnapshot = remoteWrapped && remoteWrapped.snapshot ? remoteWrapped.snapshot : null;
 
-    if(remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
-      const restored = mdApplyExternalSnapshot(remoteSnapshot, "remote-restore-v109", false);
-      if(restored){
-        try{
-          const payload = JSON.stringify(dados);
-          localStorage.setItem(STORAGE_KEY, payload);
-          localStorage.setItem(DURABLE_STATE_KEY, payload);
-          idbSet(IDB_KEY, payload);
-          idbSet(DURABLE_STATE_KEY, payload);
-          if(typeof mdWriteOfflineSafeSnapshot === "function") mdWriteOfflineSafeSnapshot(dados);
-        }catch(e){}
-        __cloudBootDoneOnce = true;
-        return;
-      }
+    // Só aplica remoto se o local estiver vazio/inútil
+    if(!localUseful && remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
+      cloudApplyRemoteData(remoteSnapshot);
+    }
+
+    const pending = cloudReadPendingSnapshot();
+    if(__cloudDirty || (pending && pending.payload && cloudHasUsefulData(pending.payload))){
+      cloudScheduleSave(120);
     }
 
     __cloudBootDoneOnce = cloudHasUsefulData(dados);
@@ -7701,9 +7666,6 @@ try{ syncSaldoAtualLockWithFab(); }catch(e){}
 setInterval(function(){ try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} try{ syncSaldoAtualLockWithFab(); }catch(e){} }, 800);
 
 function bootApp(){
-  mdRequireValidSessionForApp().then(function(token){
-    if(!token) return;
-
   // v102 - mantém UI oculta até aplicar colapsos e layout inicial
   try{ document.body.classList.add("preload"); }catch(e){}
   // v57 - garante visibilidade
@@ -7731,16 +7693,7 @@ function bootApp(){
       iniciarTimerGanhoHoraTempoReal();
     }
   }catch(e){}
-  try{
-    if(localStorage.getItem("md_force_restore_after_login") === "1"){
-      localStorage.removeItem("md_force_restore_after_login");
-      setTimeout(function(){ try{ cloudBoot(true); }catch(e){} }, 30);
-    }else{
-      setTimeout(function(){ try{ cloudBoot(true); }catch(e){} }, 30);
-    }
-  }catch(e){
-    setTimeout(function(){ try{ cloudBoot(true); }catch(e){} }, 30);
-  }
+  setTimeout(function(){ try{ cloudBoot(true); }catch(e){} }, cloudHasUsefulData(dados) ? 120 : 30);
   try{
     requestAnimationFrame(function(){
       requestAnimationFrame(function(){
