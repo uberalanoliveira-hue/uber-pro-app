@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v91</title>
+<title>MetaDriver v90</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -212,15 +212,23 @@ function lockSaldoAtualByFab(){
 document.addEventListener("DOMContentLoaded", function(){
   try{ lockSaldoAtualByFab(); }catch(e){}
 });
-
+window.addEventListener("pageshow", function(){
+  try{ lockSaldoAtualByFab(); }catch(e){}
+});
 setInterval(function(){
   try{ lockSaldoAtualByFab(); }catch(e){}
 }, 500);
 
 
-
-
-
+window.addEventListener("focus", function(){
+  try{ mdResumeRestoreSafely(); }catch(e){}
+});
+window.addEventListener("online", function(){
+  try{ mdResumeRestoreSafely(); }catch(e){}
+});
+window.addEventListener("pageshow", function(){
+  try{ mdResumeRestoreSafely(); }catch(e){}
+});
 
 </script>
 
@@ -2760,7 +2768,6 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   cursor:not-allowed !important;
 }
 
-body{visibility:hidden}
 </style>
 
 <style id="app30-auth-guard-style">
@@ -2952,7 +2959,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v91</div>
+  <div class="menu-note" style="text-align:center;">v90</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -4513,7 +4520,7 @@ window.addEventListener("pagehide", function(){
   try{ cloudPushNow(); }catch(e){}
 });
 window.addEventListener("beforeunload", function(){ try{ cloudPushNow(); }catch(e){} });
-
+window.addEventListener("online", function(){ try{ if(__cloudDirty || (cloudReadPendingSnapshot() && cloudReadPendingSnapshot().payload)) cloudPushNow(); }catch(e){} });
 // v57 - salva scroll continuamente
 window.addEventListener('scroll', function(){
   try{ if(window.__mdSaveScroll) window.__mdSaveScroll(); }catch(e){}
@@ -7463,7 +7470,7 @@ function initQuickBalanceFab(){
 
 document.addEventListener("DOMContentLoaded", function(){ initQuickBalanceFab(); try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} });
 try{ syncSaldoAtualLockWithFab(); }catch(e){}
-
+window.addEventListener("pageshow", function(){ try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} });
 try{ syncSaldoAtualLockWithFab(); }catch(e){}
 setInterval(function(){ try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} try{ syncSaldoAtualLockWithFab(); }catch(e){} }, 800);
 
@@ -7502,7 +7509,12 @@ if(document.readyState === "loading"){
   try{ bindSectionHeaders(); }catch(e){}
 }
 // Em alguns celulares, ao voltar para o app (bfcache), reaplica o estado
-
+window.addEventListener("pageshow", ()=>{
+  try{ initSectionCollapse(); }catch(e){}
+  try{ applyQuickBalanceFabStateHard(); }catch(e){}
+  // v57 - reforça restauração ao reabrir do cache do navegador
+  try{ if(window.__mdRestoreScrollBurst) window.__mdRestoreScrollBurst(); else if(window.__mdRestoreScroll) window.__mdRestoreScroll(true); }catch(e){}
+});
 
 function bindSectionHeaders(){
   try{
@@ -8402,7 +8414,10 @@ function atualizarIndicadorAbaManutencao(){
     setTimeout(_apply, 600);
     setTimeout(function(){ try{ maybeCarPopup(); }catch(e){} }, 900);
   });
-  
+  window.addEventListener("load", ()=>{
+    setTimeout(_apply, 200);
+    setTimeout(_apply, 900);
+  });
 
   // Watchdog leve
   setInterval(_apply, 1200);
@@ -8465,7 +8480,22 @@ function openLancSection(tipo){
 }
 
 // inicial: fecha tudo (só botões)
-
+window.addEventListener("load", ()=>{
+  try{
+    const secGanhos = document.getElementById("secGanhos");
+    const secGastos = document.getElementById("secGastos");
+    const secCombustivel = document.getElementById("secCombustivel");
+    const btnG = document.getElementById("btnSubGanhos");
+    const btnS = document.getElementById("btnSubGastos");
+    const btnC = document.getElementById("btnSubCombustivel");
+    if(secGanhos) secGanhos.classList.add("subcard-hidden");
+    if(secGastos) secGastos.classList.add("subcard-hidden");
+    if(secCombustivel) secCombustivel.classList.add("subcard-hidden");
+    if(btnG) btnG.classList.remove("active");
+    if(btnS) btnS.classList.remove("active");
+    if(btnC) btnC.classList.remove("active");
+  }catch(e){}
+});
 
 
 /* ===== Zerar por aba (Menu) ===== */
@@ -8562,7 +8592,7 @@ function restoreFromIDBIfNeeded(){
     });
   }catch(e){}
 }
-
+window.addEventListener("load", ()=>{ restoreFromIDBIfNeeded(); });
 
 
 
@@ -8593,7 +8623,17 @@ function toggleDiasNaoTrabalhadosTudo(forceOpen){
 
 
 /* ===== Lista Dias Não Trabalhados sempre inicia recolhida ===== */
-
+window.addEventListener("load", () => {
+  try{
+    const wrap = document.getElementById("wrapListaNaoTrab");
+    const arrow = document.getElementById("arrowListaNaoTrab");
+    if(wrap) wrap.style.display = "none";
+    if(arrow){
+      arrow.style.transform = "rotate(-90deg)";
+      arrow.style.display = "inline-block";
+    }
+  }catch(e){}
+});
 
 
 /* ===== Logout do app ===== */
@@ -8647,7 +8687,15 @@ function mdResumeRestoreSafely(){
   try{ mdResumeRestoreSafely(); }catch(e){}
 }
 
-
+window.addEventListener("load", function(){
+  try{
+    if(String(dados.horarioInicioFora || '').trim()){
+      iniciarTimerGanhoHoraTempoReal();
+    }else{
+      pararTimerGanhoHoraTempoReal();
+    }
+  }catch(e){}
+});
 
 </script>
 
