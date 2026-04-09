@@ -18,8 +18,17 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v95</title>
+<title>MetaDriver v96</title>
 <script>
+
+/* v96 - state lock to prevent overwrite */
+var __LOCK_STATE = false;
+function __setDadosSafe(novo){
+  if(__LOCK_STATE) return);
+  __setDadosSafe(novo);
+}
+function __lockState(){ __LOCK_STATE = true; }
+
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
   var KEY_Y = 'md_scroll_y';
@@ -212,40 +221,20 @@ function lockSaldoAtualByFab(){
 document.addEventListener("DOMContentLoaded", function(){
   try{ lockSaldoAtualByFab(); }catch(e){}
 });
-window.addEventListener("pageshow", function(){
-  try{ lockSaldoAtualByFab(); }catch(e){}
+ }catch(e){}
 });
 setInterval(function(){
   try{ lockSaldoAtualByFab(); }catch(e){}
 }, 500);
 
 
-window.addEventListener("focus", function(){
-  try{ mdResumeRestoreSafely(); }catch(e){}
+ }catch(e){}
 });
 window.addEventListener("online", function(){
   try{ mdResumeRestoreSafely(); }catch(e){}
 });
-window.addEventListener("pageshow", function(){
-  try{ mdResumeRestoreSafely(); }catch(e){}
+ }catch(e){}
 });
-
-
-/* v95 - local-only hosted mode (cloud runtime disabled intentionally) */
-try{
-  cloudFetchRow = async function(){ return null; };
-  cloudGetToken = async function(){ return ""; };
-  cloudResolveUserId = async function(){ return ""; };
-  cloudPushNow = async function(){ return false; };
-  cloudScheduleSave = function(){ return; };
-  mdResumeRestoreSafely = function(){ return; };
-  mdInitialHydrateAndRender = async function(){
-    try{ dados = loadDados() || dados; }catch(e){}
-    try{ atualizar(); }catch(e){}
-    try{ atualizarCarro(); }catch(e){}
-  };
-  cloudBoot = async function(){ return false; };
-}catch(e){}
 
 </script>
 
@@ -2976,7 +2965,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v95</div>
+  <div class="menu-note" style="text-align:center;">v96</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -3581,7 +3570,7 @@ function loadDados(){
   return null;
 }
 
-let dados = loadDados() || {
+let __setDadosSafe(loadDados() || {
   ganhos: [],
   gastos: [],
   abastecimentos: [],
@@ -3611,7 +3600,7 @@ let dados = loadDados() || {
   },
   metaSalva: false,
   ganhoHoraSessaoAtiva: false
-};
+});
 
 if(typeof dados.saldoAtualButtonAtivo !== "boolean"){ dados.saldoAtualButtonAtivo = getQuickBalanceFabPref ? getQuickBalanceFabPref() : true; }
 if(!dados.saldoAtualButtonPos || typeof dados.saldoAtualButtonPos !== "object"){
@@ -3766,7 +3755,7 @@ function mdPickBestSnapshot(candidates){
 mdEnsureDataMeta(dados);
 // Migração desativada (substituída por loadDados com legacyKeys)
 // v57.11 - salvar local-first durável com journal append-only
-function salvar(){
+function salvar(){ try{ __lockState(); }catch(e){}
   try{
     mdEnsureDataMeta(dados);
     dados.__rev = Number(dados.__rev || 0) + 1;
@@ -3805,15 +3794,15 @@ function salvar(){
 window.__salvarLocalOriginal = salvar;
 salvar = function(){
   try{
-    if(typeof dados === "object" && dados){
-      mdEnsureDataMeta(dados);
+    if(typeof __setDadosSafe(== "object" && dados){
+      mdEnsureDataMeta(dados));
       dados.__cloud_updated_at = mdNowIso();
     }
   }catch(e){}
   const r = window.__salvarLocalOriginal.apply(this, arguments);
   try{
-    if(typeof dados === "object" && dados){
-      cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
+    if(typeof __setDadosSafe(== "object" && dados){
+      cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados))));
     }
   }catch(e){}
   __cloudDirty = true;
@@ -3916,7 +3905,7 @@ function mdApplyExternalSnapshot(snapshot, reason, pushNow){
   try{
     if(!snapshot || typeof snapshot !== "object") return false;
     const cloned = JSON.parse(JSON.stringify(snapshot));
-    dados = cloned;
+    __setDadosSafe(cloned);
     mdEnsureDataMeta(dados);
 
     const bestSeq = mdGetCurrentBestSeq();
@@ -4321,7 +4310,7 @@ function cloudApplyRemoteData(remoteData){
     merged.__rev = Math.max(Number(dados.__rev || 0), Number(remoteData.__rev || 0));
     merged.__updated_at = mdPickBestSnapshot([{snapshot:dados},{snapshot:remoteData}]).__updated_at || mdNowIso();
     merged.__cloud_updated_at = mdNowIso();
-    dados = merged;
+    __setDadosSafe(merged);
     mdPushBackup(LOCAL_BACKUP_KEY, dados, "merge-remote");
     if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
     try{
@@ -4343,7 +4332,7 @@ async function cloudPushNow(snapshotOverride){
 
     const pending = snapshotOverride || cloudReadPendingSnapshot();
     const pendingPayload = pending && pending.payload ? pending.payload : null;
-    const localPayload = (typeof dados === "object" && dados) ? dados : null;
+    const localPayload = (typeof __setDadosSafe(== "object" && dados) ? dados : null);
     const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
     const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
     const remoteSnapshot = remoteWrapped.snapshot;
@@ -4396,7 +4385,7 @@ async function cloudPushNow(snapshotOverride){
     if(!res.ok) throw new Error("Falha ao salvar na nuvem");
 
     if(localPayload === dados){
-      dados = best;
+      __setDadosSafe(best);
       mdEnsureDataMeta(dados);
       dados.__last_synced_commit_seq = Number(dados.__local_commit_seq || 0);
       dados.__dirty_local = false;
@@ -4438,7 +4427,7 @@ async function cloudBoot(force){
   try{
     const recovered = await mdRecoverDurableStateFromIDB().catch(function(){ return null; });
     if(recovered && mdSnapshotOrderValue(recovered) > mdSnapshotOrderValue(dados) && !mdShouldBlockSnapshot(recovered)){
-      dados = JSON.parse(JSON.stringify(recovered));
+      __setDadosSafe(JSON.parse(JSON.stringify(recovered)));
       mdEnsureDataMeta(dados);
       try{ atualizar(); }catch(e){}
       try{ atualizarCarro(); }catch(e){}
@@ -4476,12 +4465,12 @@ async function cloudBoot(force){
       if(!localUseful || remoteOrder >= localOrder){
         cloudApplyRemoteData(remoteSnapshot);
       } else {
-        dados = JSON.parse(JSON.stringify(localBest));
+        __setDadosSafe(JSON.parse(JSON.stringify(localBest)));
         mdEnsureDataMeta(dados);
         if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
       }
     } else if(localUseful){
-      dados = JSON.parse(JSON.stringify(localBest));
+      __setDadosSafe(JSON.parse(JSON.stringify(localBest)));
       mdEnsureDataMeta(dados);
       if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
       cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
@@ -5410,6 +5399,7 @@ function importarBackup(ev){
       const applied = mdApplyExternalSnapshot(safe, "import-backup", true);
       if(!applied) throw new Error("Falha ao aplicar backup");
       toast("✅ Backup importado com sucesso.");
+try{ __lockState(); }catch(e){}
       closeMenu();
     }catch(e){
       try{ console.warn("importarBackup", e); }catch(_e){}
@@ -5427,7 +5417,7 @@ function zerarTudo(){
     localStorage.removeItem(CLOUD_PENDING_KEY);
     localStorage.removeItem(CLOUD_LAST_OK_KEY);
   }catch(e){}
-  dados = {
+  __setDadosSafe({
     ganhos: [],
     gastos: [],
     abastecimentos: [],
@@ -5450,7 +5440,7 @@ function zerarTudo(){
     combustivelModo: "fixo",
     combustivelPercentual: 0.30,
     combustivelReal: { kmRodados: 0, consumoMedio: 0, precoLitro: 0 }
-  };
+  });
   salvar();
   atualizar();
   toast("✅ Dados zerados.");
@@ -7487,7 +7477,7 @@ function initQuickBalanceFab(){
 
 document.addEventListener("DOMContentLoaded", function(){ initQuickBalanceFab(); try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} });
 try{ syncSaldoAtualLockWithFab(); }catch(e){}
-window.addEventListener("pageshow", function(){ try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} });
+ }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} });
 try{ syncSaldoAtualLockWithFab(); }catch(e){}
 setInterval(function(){ try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} try{ syncSaldoAtualLockWithFab(); }catch(e){} }, 800);
 
@@ -7526,8 +7516,7 @@ if(document.readyState === "loading"){
   try{ bindSectionHeaders(); }catch(e){}
 }
 // Em alguns celulares, ao voltar para o app (bfcache), reaplica o estado
-window.addEventListener("pageshow", ()=>{
-  try{ initSectionCollapse(); }catch(e){}
+ }catch(e){}
   try{ applyQuickBalanceFabStateHard(); }catch(e){}
   // v57 - reforça restauração ao reabrir do cache do navegador
   try{ if(window.__mdRestoreScrollBurst) window.__mdRestoreScrollBurst(); else if(window.__mdRestoreScroll) window.__mdRestoreScroll(true); }catch(e){}
@@ -7552,7 +7541,7 @@ function bindSectionHeaders(){
 
 
 try{ ensureGanhoHoraDiaAtual(); }catch(e){}
-mdInitialHydrateAndRender();
+try{ var d=loadDados(); if(d){ dados=d;} atualizar(); atualizarCarro(); }catch(e){}
 
 (function(){
   const metaIds = ["metaTotal", "dataLimite"];
@@ -8600,7 +8589,7 @@ function restoreFromIDBIfNeeded(){
       try{
         const parsed = JSON.parse(payload);
         if(parsed && typeof parsed === "object"){
-          dados = parsed;
+          __setDadosSafe(parsed);
           try{ localStorage.setItem(STORAGE_KEY, payload); }catch(e){}
           atualizar();
           try{ atualizarCarro(); }catch(e){}
@@ -8695,11 +8684,7 @@ function logoutApp(){
 }
 
 
-function mdResumeRestoreSafely(){
-  try{
-    if(mdStateLocked() && cloudHasUsefulData(dados)){
-      return;
-    }
+function mdResumeRestoreSafely(){ return; }
   }catch(e){}
   try{ mdResumeRestoreSafely(); }catch(e){}
 }
