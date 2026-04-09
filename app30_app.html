@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v100</title>
+<title>MetaDriver v101</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -2959,7 +2959,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v100</div>
+  <div class="menu-note" style="text-align:center;">v101</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -3747,6 +3747,7 @@ function mdPickBestSnapshot(candidates){
 }
 
 mdEnsureDataMeta(dados);
+    try{ dados.__skip_operational_day_turn = true; }catch(e){}
 // Migração desativada (substituída por loadDados com legacyKeys)
 // v57.11 - salvar local-first durável com journal append-only
 function salvar(){
@@ -3944,7 +3945,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v100',
+      app_version: 'MetaDriver v101',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -4260,6 +4261,7 @@ function cloudApplyRemoteData(remoteData){
     if(!remoteData || typeof remoteData !== "object") return;
     mdEnsureDataMeta(dados);
     mdEnsureDataMeta(remoteData);
+
     if(mdShouldBlockSnapshot(remoteData)){
       console.warn("MetaDriver: remoto ignorado por trava temporária de estado");
       return;
@@ -4268,53 +4270,46 @@ function cloudApplyRemoteData(remoteData){
       console.warn("MetaDriver: remoto ignorado para evitar rollback local");
       return;
     }
-    const arrayFields = ["ganhos","gastos","abastecimentos","naoTrabalhados",
-                         "ganhoHoraSessoes","ganhoHoraHistorico"];
-    const base = mdPickBestSnapshot([
-      { snapshot: dados },
-      { snapshot: remoteData }
-    ]) || remoteData;
-    const merged = Object.assign({}, base || {});
-    arrayFields.forEach(function(field){
-      merged[field] = cloudMergeArrays(
-        Array.isArray(dados[field]) ? dados[field] : [],
-        Array.isArray(remoteData[field]) ? remoteData[field] : []
-      );
-    });
-    const scalarPreferNewest = ["metaTotal","dataLimite","metaDiariaManual","saldoAtualFora","horarioInicioFora","ganhoHoraDiaRef","combustivelPercentual","combustivelModo","tema","ganhoDiarioAtual","ganhoHoraManual","saldoAnteriorFora","horasDecorridasFora","ganhoHoraAtualFora"];
-    scalarPreferNewest.forEach(function(field){
-      const localVal = dados[field];
-      const remoteVal = remoteData[field];
-      const localHas = localVal !== null && localVal !== undefined && localVal !== "";
-      const remoteHas = remoteVal !== null && remoteVal !== undefined && remoteVal !== "";
-      if(localHas && !remoteHas) merged[field] = localVal;
-      else if(remoteHas && !localHas) merged[field] = remoteVal;
-    });
-    const sessaoLocalAtiva = String(dados.horarioInicioFora || "").trim();
-    if(sessaoLocalAtiva){
-      merged.horarioInicioFora    = dados.horarioInicioFora;
-      merged.saldoAtualFora       = dados.saldoAtualFora;
-      merged.saldoAnteriorFora    = dados.saldoAnteriorFora;
-      merged.ganhoHoraSessaoDiaRef = dados.ganhoHoraSessaoDiaRef;
-      merged.ganhoHoraDiaRef      = dados.ganhoHoraDiaRef;
-      merged.horasDecorridasFora  = dados.horasDecorridasFora;
-      merged.ganhoHoraAtualFora   = dados.ganhoHoraAtualFora;
+
+    const remoteSeq = Number(remoteData.__local_commit_seq || 0);
+    const localSeq = Number(dados.__local_commit_seq || 0);
+    const remoteTs = new Date(remoteData.__updated_at || remoteData.__cloud_updated_at || 0).getTime() || 0;
+    const localTs = new Date(dados.__updated_at || dados.__cloud_updated_at || 0).getTime() || 0;
+    const localUseful = cloudHasUsefulData(dados);
+    const remoteUseful = cloudHasUsefulData(remoteData);
+
+    if(!remoteUseful) return;
+
+    // v101 - restore/sync por snapshot único completo, sem merge
+    if(localUseful){
+      if(remoteSeq < localSeq) return;
+      if(remoteSeq === localSeq && remoteTs <= localTs) return;
     }
-    mdEnsureDataMeta(merged);
-    merged.__rev = Math.max(Number(dados.__rev || 0), Number(remoteData.__rev || 0));
-    merged.__updated_at = mdPickBestSnapshot([{snapshot:dados},{snapshot:remoteData}]).__updated_at || mdNowIso();
-    merged.__cloud_updated_at = mdNowIso();
-    dados = merged;
-    mdPushBackup(LOCAL_BACKUP_KEY, dados, "merge-remote");
+
+    dados = JSON.parse(JSON.stringify(remoteData));
+    try{ dados.__skip_operational_day_turn = true; }catch(e){}
+    mdEnsureDataMeta(dados);
+    dados.__dirty_local = false;
+    dados.__last_synced_commit_seq = Number(dados.__local_commit_seq || dados.__last_synced_commit_seq || 0);
+    dados.__cloud_updated_at = dados.__updated_at || mdNowIso();
+
+    mdPushBackup(LOCAL_BACKUP_KEY, dados, "remote-snapshot");
     if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
+    try{
+      if(typeof mdWriteOfflineSafeSnapshot === "function") mdWriteOfflineSafeSnapshot(dados);
+    }catch(e){}
     try{
       if(String(dados.horarioInicioFora || "").trim()){
         iniciarTimerGanhoHoraTempoReal();
+      }else{
+        pararTimerGanhoHoraTempoReal();
       }
     }catch(e){}
     try{ atualizar(); }catch(e){}
-    try{ initTabs(); }catch(e){}
-  }catch(e){}
+    try{ atualizarCarro(); }catch(e){}
+  }catch(e){
+    console.warn("cloudApplyRemoteData", e);
+  }
 }
 
 async function cloudPushNow(snapshotOverride){
@@ -4327,73 +4322,69 @@ async function cloudPushNow(snapshotOverride){
     const pending = snapshotOverride || cloudReadPendingSnapshot();
     const pendingPayload = pending && pending.payload ? pending.payload : null;
     const localPayload = (typeof dados === "object" && dados) ? dados : null;
-    const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
-    const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
-    const remoteSnapshot = remoteWrapped.snapshot;
+
     const best = mdPickBestSnapshot([
       { snapshot: pendingPayload },
-      { snapshot: localPayload },
-      { snapshot: remoteSnapshot }
+      { snapshot: localPayload }
     ]);
+
     if(!best || !cloudHasUsefulData(best)) return false;
 
-    mdEnsureDataMeta(best);
-    best.__cloud_updated_at = mdNowIso();
+    const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
+    const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
+    const remoteSnapshot = remoteWrapped && remoteWrapped.snapshot ? remoteWrapped.snapshot : null;
 
-    const backupCandidates = []
-      .concat(mdReadBackupRing(LOCAL_BACKUP_KEY))
-      .concat(mdReadBackupRing(CLOUD_BACKUP_KEY))
-      .concat(Array.isArray(remoteWrapped.backups) ? remoteWrapped.backups : []);
-    backupCandidates.unshift(mdCreateBackupEntry(best, "cloud-push"));
-    const seen = new Set();
-    const backups = backupCandidates.filter(function(item){
-      if(!item || !item.snapshot) return false;
-      const sig = String(item.rev || "") + "|" + String(item.ts || "");
-      if(seen.has(sig)) return false;
-      seen.add(sig);
-      return true;
-    }).sort(function(a,b){
-      const ar = Number(a.rev || 0), br = Number(b.rev || 0);
-      if(br !== ar) return br - ar;
-      return (new Date(b.ts || 0).getTime()||0) - (new Date(a.ts || 0).getTime()||0);
-    }).slice(0, 8);
+    const localSeq = Number(best.__local_commit_seq || 0);
+    const remoteSeq = Number(remoteSnapshot && remoteSnapshot.__local_commit_seq || 0);
+    const localTs = new Date(best.__updated_at || best.__cloud_updated_at || 0).getTime() || 0;
+    const remoteTs = new Date(remoteSnapshot && (remoteSnapshot.__updated_at || remoteSnapshot.__cloud_updated_at) || 0).getTime() || 0;
 
-    const updatedAt = best.__cloud_updated_at;
-    const envelope = mdBuildCloudEnvelope(best, backups);
-    const body = [{
+    // v101 - envia snapshot único completo; não sobe se remoto for claramente mais novo
+    if(remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
+      if(remoteSeq > localSeq) return false;
+      if(remoteSeq === localSeq && remoteTs > localTs) return false;
+    }
+
+    const payloadToSend = JSON.parse(JSON.stringify(best));
+    mdEnsureDataMeta(payloadToSend);
+    payloadToSend.__dirty_local = false;
+    payloadToSend.__cloud_updated_at = mdNowIso();
+    payloadToSend.__last_synced_commit_seq = Number(payloadToSend.__local_commit_seq || 0);
+
+    const wrapped = mdWrapCloudPayload(payloadToSend, remoteWrapped && remoteWrapped.backups ? remoteWrapped.backups : []);
+    const body = {
       user_id: userId,
-      payload: envelope,
-      updated_at: updatedAt
-    }];
+      payload: wrapped,
+      commit_seq: Number(payloadToSend.__local_commit_seq || 0),
+      updated_at: payloadToSend.__cloud_updated_at,
+      device_id: mdEnsureDeviceId(),
+      schema_version: 1
+    };
 
-    const res = await fetch(CLOUD_SUPABASE_URL + "/rest/v1/" + CLOUD_TABLE, {
+    const resp = await fetch(CLOUD_SUPABASE_URL + "/rest/v1/" + CLOUD_TABLE, {
       method: "POST",
       headers: {
         "apikey": CLOUD_SUPABASE_KEY,
         "Authorization": "Bearer " + token,
         "Content-Type": "application/json",
-        "Prefer": "resolution=merge-duplicates,return=minimal"
+        "Prefer": "resolution=merge-duplicates,return=representation"
       },
       body: JSON.stringify(body)
-    });
-    if(!res.ok) throw new Error("Falha ao salvar na nuvem");
+    }).catch(function(){ return null; });
 
-    if(localPayload === dados){
-      dados = best;
-      mdEnsureDataMeta(dados);
-      dados.__last_synced_commit_seq = Number(dados.__local_commit_seq || 0);
-      dados.__dirty_local = false;
-      dados.__cloud_updated_at = updatedAt;
-      if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
+    if(!resp || !resp.ok){
+      return false;
     }
-    mdWriteBackupRing(CLOUD_BACKUP_KEY, backups);
-    mdPushBackup(LOCAL_BACKUP_KEY, best, "cloud-ok");
-    cloudClearPendingSnapshot(updatedAt);
-    cloudMarkLastOk(updatedAt);
+
+    dados = JSON.parse(JSON.stringify(payloadToSend));
+    mdEnsureDataMeta(dados);
     __cloudDirty = false;
+    cloudClearPendingSnapshot();
+    try{ if(typeof mdWriteOfflineSafeSnapshot === "function") mdWriteOfflineSafeSnapshot(dados); }catch(e){}
+    if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
     return true;
   }catch(e){
-    __cloudDirty = true;
+    console.warn("cloudPushNow", e);
     return false;
   }
 }
@@ -4415,9 +4406,6 @@ function cloudScheduleSave(delayMs){
 }
 
 async function cloudBoot(force){
-  if (dados && Object.keys(dados).length > 0 && force !== true) {
-    return;
-  }
   if(__cloudBootStarted) return;
   if(__cloudBootDoneOnce && force !== true) return;
   __cloudBootStarted = true;
@@ -4430,38 +4418,47 @@ async function cloudBoot(force){
       try{ atualizarCarro(); }catch(e){}
     }
 
+    const localBest = mdPickBestSnapshot([
+      { snapshot: dados },
+      { snapshot: recovered },
+      { snapshot: (typeof mdReadOfflineSafeSnapshot === "function" ? mdReadOfflineSafeSnapshot() : null) }
+    ]) || dados;
+
+    const localUseful = localBest && cloudHasUsefulData(localBest);
+    if(localUseful && force !== true){
+      __cloudBootDoneOnce = true;
+      const pending = cloudReadPendingSnapshot();
+      if(__cloudDirty || (pending && pending.payload && cloudHasUsefulData(pending.payload))){
+        cloudScheduleSave(120);
+      }
+      return;
+    }
+
     const token = await cloudGetToken();
     if(!token){
-      __cloudBootDoneOnce = false;
+      __cloudBootDoneOnce = !!localUseful;
       return;
     }
     const userId = await cloudResolveUserId(token).catch(function(){ return ""; });
     if(!userId){
-      __cloudBootDoneOnce = false;
+      __cloudBootDoneOnce = !!localUseful;
       return;
     }
 
-    const pending = cloudReadPendingSnapshot();
     const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
     const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
-    mdSyncBackupsFromCloud(remoteWrapped.backups || []);
+    mdSyncBackupsFromCloud(remoteWrapped && remoteWrapped.backups ? remoteWrapped.backups : []);
+    const remoteSnapshot = remoteWrapped && remoteWrapped.snapshot ? remoteWrapped.snapshot : null;
 
-    const remoteSnapshot = remoteWrapped.snapshot;
-    const localBest = mdPickBestSnapshot([
-      { snapshot: pending && pending.payload ? pending.payload : null },
-      { snapshot: dados },
-      { snapshot: recovered }
-    ]) || dados;
+    if(remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
+      const localSeq = Number(localBest && localBest.__local_commit_seq || 0);
+      const remoteSeq = Number(remoteSnapshot.__local_commit_seq || 0);
+      const localTs = new Date(localBest && (localBest.__updated_at || localBest.__cloud_updated_at) || 0).getTime() || 0;
+      const remoteTs = new Date(remoteSnapshot.__updated_at || remoteSnapshot.__cloud_updated_at || 0).getTime() || 0;
 
-    const remoteUseful = remoteSnapshot && cloudHasUsefulData(remoteSnapshot);
-    const localUseful = localBest && cloudHasUsefulData(localBest);
-
-    if(remoteUseful && (!localUseful || !mdRemoteWouldRollback(remoteSnapshot))){
-      const localOrder = mdSnapshotOrderValue(localBest || {});
-      const remoteOrder = mdSnapshotOrderValue(remoteSnapshot || {});
-      if(!localUseful || remoteOrder >= localOrder){
+      if(!localUseful || remoteSeq > localSeq || (remoteSeq === localSeq && remoteTs > localTs)){
         cloudApplyRemoteData(remoteSnapshot);
-      } else {
+      } else if(localUseful){
         dados = JSON.parse(JSON.stringify(localBest));
         mdEnsureDataMeta(dados);
         if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
@@ -4470,15 +4467,14 @@ async function cloudBoot(force){
       dados = JSON.parse(JSON.stringify(localBest));
       mdEnsureDataMeta(dados);
       if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
-      cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
+    }
+
+    const pending = cloudReadPendingSnapshot();
+    if(__cloudDirty || (pending && pending.payload && cloudHasUsefulData(pending.payload))){
       cloudScheduleSave(120);
     }
 
-    if(cloudHasUsefulData(dados)){
-      cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
-      cloudScheduleSave(120);
-    }
-    __cloudBootDoneOnce = true;
+    __cloudBootDoneOnce = cloudHasUsefulData(dados);
   }catch(e){
     console.warn("cloudBoot", e);
   }finally{
@@ -5371,6 +5367,7 @@ function importarBackup(ev){
       const ok = confirm("Importar vai SUBSTITUIR seus dados atuais por esse backup. Confirmar?");
       if(!ok) return;
 
+      try{ safe.__skip_operational_day_turn = true; }catch(e){}
       const applied = mdApplyExternalSnapshot(safe, "import-backup", true);
       if(!applied) throw new Error("Falha ao aplicar backup");
       toast("✅ Backup importado com sucesso.");
