@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v111</title>
+<title>MetaDriver v112</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -229,6 +229,37 @@ window.addEventListener("online", function(){
 window.addEventListener("pageshow", function(){
   try{ mdResumeRestoreSafely(); }catch(e){}
 });
+
+
+/* v112 - restore automático pós-login */
+(function(){
+  function hasUsefulLocal(){
+    try{
+      return typeof cloudHasUsefulData === "function" && cloudHasUsefulData(window.dados || {});
+    }catch(e){return false;}
+  }
+  function hasToken(){
+    try{
+      return !!(localStorage.getItem("sb_token") || localStorage.getItem("sb_refresh_token"));
+    }catch(e){return false;}
+  }
+  function tryRestore(){
+    try{
+      if(!hasUsefulLocal() && hasToken()){
+        setTimeout(function(){
+          try{ if(typeof cloudBoot === "function") cloudBoot(true); }catch(e){}
+        }, 50);
+      }
+    }catch(e){}
+  }
+  // run on load
+  tryRestore();
+  // run on focus (after login redirect)
+  window.addEventListener("focus", tryRestore, true);
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "visible") tryRestore();
+  });
+})();
 
 </script>
 
@@ -3048,7 +3079,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v111</div>
+  <div class="menu-note" style="text-align:center;">v112</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
