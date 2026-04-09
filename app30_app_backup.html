@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v96</title>
+<title>MetaDriver v98</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -2959,7 +2959,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v96</div>
+  <div class="menu-note" style="text-align:center;">v98</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -5919,10 +5919,42 @@ function ensureGanhoHoraDiaAtual(){
 
   if(!mudouDia && !precisaCorrigirLegado) return false;
 
-  const saldoAtualAntesVirada = Number(dados.saldoAtualFora || 0);
+  let saldoAtualAntesVirada = Number(dados.saldoAtualFora || 0);
   const horaAtual = String(agora.getHours()).padStart(2,'0') + ':' + String(agora.getMinutes()).padStart(2,'0');
   const temSessaoEmAndamento = !!dados.ganhoHoraSessaoAtiva && !!String(dados.horarioInicioFora || '').trim();
+
   if(temSessaoEmAndamento){
+    const mensagemVirada = "Virou 4h. O dia será finalizado e a sessão em andamento será encerrada.\n\nAtualize abaixo o saldo final do dia e toque em OK para concluir.";
+    let valorInformado = null;
+    try{
+      valorInformado = prompt(mensagemVirada, String(Number(dados.saldoAtualFora || 0)).replace('.', ','));
+    }catch(e){
+      valorInformado = null;
+    }
+    if(valorInformado === null){
+      try{
+        toast("⚠️ Virada de 4h pendente. Atualize o saldo final e confirme para encerrar o dia.");
+      }catch(e){}
+      return false;
+    }
+
+    const valorNormalizado = Number(String(valorInformado || '').trim().replace(',', '.'));
+    if(!isFinite(valorNormalizado) || valorNormalizado < 0){
+      try{
+        toast("❌ Saldo final inválido. Informe um valor válido para encerrar o dia.");
+      }catch(e){}
+      return false;
+    }
+
+    saldoAtualAntesVirada = valorNormalizado;
+    dados.saldoAtualFora = valorNormalizado;
+    dados.ganhoDiarioAtual = valorNormalizado;
+
+    try{
+      const saldoAtualElVirada = document.getElementById("saldoAtualFora");
+      if(saldoAtualElVirada) saldoAtualElVirada.value = String(valorNormalizado);
+    }catch(e){}
+
     try{
       finalizarSessaoGanhoHoraInterno({
         silent: true,
@@ -5939,18 +5971,29 @@ function ensureGanhoHoraDiaAtual(){
 
   limparDadosGanhoHora(true);
   dados.ganhoHoraDiaRef = diaAtualUber;
-  dados.saldoAtualFora = saldoAtualAntesVirada;
-  dados.ganhoDiarioAtual = saldoAtualAntesVirada;
-  dados.saldoAnteriorFora = saldoAtualAntesVirada;
-  // v57 - fix: ao virar 4h não inicia nova sessão automaticamente, usuário deve usar o botão Iniciar
+  dados.saldoAtualFora = 0;
+  dados.ganhoDiarioAtual = 0;
+  dados.saldoAnteriorFora = 0;
+  dados.ganhoHoraSessaoAtiva = false;
+  // v98 - ao virar 4h, o novo dia começa zerado e exige nova sessão manual
   dados.horarioInicioFora = "";
   dados.ganhoHoraSessaoDiaRef = "";
   dados.horasDecorridasFora = 0;
   dados.ganhoHoraAtualFora = 0;
+
+  try{
+    const saldoAtualElNovoDia = document.getElementById("saldoAtualFora");
+    if(saldoAtualElNovoDia) saldoAtualElNovoDia.value = "";
+  }catch(e){}
+  try{
+    const horarioElNovoDia = document.getElementById("horarioInicioFora");
+    if(horarioElNovoDia) horarioElNovoDia.value = "";
+  }catch(e){}
+
   salvar();
   atualizar();
   try{
-    toast("✅ Virou 4h: dia anterior salvo. Use Iniciar sessão para começar.");
+    toast("✅ Dia finalizado às 4h. Sessão encerrada e saldo zerado para iniciar o novo dia.");
   }catch(e){}
   return true;
 }
