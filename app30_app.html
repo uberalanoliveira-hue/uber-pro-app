@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v115</title>
+<title>MetaDriver v112</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -229,30 +229,6 @@ window.addEventListener("online", function(){
 window.addEventListener("pageshow", function(){
   try{ mdResumeRestoreSafely(); }catch(e){}
 });
-
-
-/* v115 minimal debug */
-window.__mdDebugState = window.__mdDebugState || {};
-function mdDebugSet(key, value){
-  try{
-    window.__mdDebugState[key] = value;
-    localStorage.setItem("md_debug_v115", JSON.stringify(window.__mdDebugState));
-  }catch(e){}
-}
-function mdDebugDump(){
-  try{
-    const cur = JSON.parse(localStorage.getItem("md_debug_v115") || "{}");
-    alert(JSON.stringify(cur, null, 2));
-  }catch(e){
-    alert("Sem debug disponível");
-  }
-}
-(function(){
-  try{
-    const cur = JSON.parse(localStorage.getItem("md_debug_v115") || "{}");
-    if(cur && typeof cur === "object") window.__mdDebugState = cur;
-  }catch(e){}
-})();
 
 </script>
 
@@ -2967,8 +2943,7 @@ const DEV_LOCAL_MODE = true;
 
   async function refreshAccessTokenIfNeeded(force){
     const sess = readStoredSession();
-    if(!force && hasUsableToken(sess)) mdDebugSet("cloudGetToken_result", { token_present: !!(sess.access_token || ""), expires_at: String(sess.expires_at || "") });
-    return sess.access_token || "";
+    if(!force && hasUsableToken(sess)) return sess.access_token || "";
     if(!sess.refresh_token) return sess.access_token || "";
 
     try{
@@ -3067,14 +3042,13 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="document.getElementById('importFile').click()">Importar backup</button></div>
   <div class="menu-item"><button class="secondary" onclick="exportarRelatorioPDF(); closeMenu();">Exportar relatório (PDF)</button></div>
   <div class="menu-item"><button class="secondary" onclick="mdRunRollbackSelfTest(); closeMenu();">Autoteste anti-rollback</button></div>
-  <div class="menu-item"><button class="secondary" onclick="mdDebugDump(); closeMenu();">Debug restore</button></div>
   <div class="menu-item"><button class="secondary" onclick="mdExportDiagnostics(); closeMenu();">Exportar diagnóstico</button></div>
   <div class="menu-item"><button class="danger" onclick="openZerar(); closeMenu();">Zerar dados (cuidado)</button></div>
   <div class="menu-item"><button class="secondary" onclick="location.href='painel.html'; closeMenu();">Gerenciar APP</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v115</div>
+  <div class="menu-note" style="text-align:center;">v111</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -3479,6 +3453,8 @@ const META_SCHEMA_VERSION = 2;
 let __cloudSaveTimer = null;
 let __cloudBootStarted = false;
 let __cloudBootDoneOnce = false;
+let __cloudHydrationResolved = false;
+let __cloudHydrationSource = "unknown";
 let __cloudDirty = false; // v57 - flag: só envia pra nuvem se houve mudança real
 
 // ===== Forçar aba inicial: sempre MetaDriver =====
@@ -3901,6 +3877,16 @@ function salvar(){
     }catch(_){ }
   }
 }
+function mdCanScheduleCloudWrite(snapshot){
+  try{
+    const snap = snapshot && typeof snapshot === "object" ? snapshot : (typeof dados === "object" ? dados : null);
+    if(!snap) return false;
+    if(cloudHasUsefulData(snap)) return true;
+    if(__cloudHydrationResolved) return false;
+    return false;
+  }catch(e){ return false; }
+}
+
 window.__salvarLocalOriginal = salvar;
 salvar = function(){
   try{
@@ -3911,12 +3897,12 @@ salvar = function(){
   }catch(e){}
   const r = window.__salvarLocalOriginal.apply(this, arguments);
   try{
-    if(typeof dados === "object" && dados){
+    if(typeof dados === "object" && dados && mdCanScheduleCloudWrite(dados)){
       cloudWritePendingSnapshot(JSON.parse(JSON.stringify(dados)));
+      __cloudDirty = true;
+      try{ cloudScheduleSave(); }catch(e){}
     }
   }catch(e){}
-  __cloudDirty = true;
-  try{ cloudScheduleSave(); }catch(e){}
   try{ if(cloudHasUsefulData(dados)) mdLockStateWrites(15000, mdSnapshotOrderValue(dados || {})); }catch(e){}
   return r;
 }
@@ -3932,7 +3918,6 @@ function cloudGetStoredTokenSync(){
   try{ return localStorage.getItem("sb_token") || ""; }catch(e){ return ""; }
 }
 async function cloudGetToken(){
-  mdDebugSet("cloudGetToken_called", new Date().toISOString());
   let fast = "";
   try{ fast = localStorage.getItem("sb_token") || ""; }catch(e){ fast = ""; }
   try{
@@ -4061,12 +4046,14 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v115',
+      app_version: 'MetaDriver v112',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
       cloud_boot_started: !!__cloudBootStarted,
       cloud_boot_done_once: !!__cloudBootDoneOnce,
+      cloud_hydration_resolved: !!__cloudHydrationResolved,
+      cloud_hydration_source: __cloudHydrationSource || '',
       cloud_dirty: !!__cloudDirty,
       current: {
         rev: Number(dados && dados.__rev || 0),
@@ -4217,13 +4204,10 @@ async function cloudGetUser(token){
   return user;
 }
 async function cloudResolveUserId(token){
-  mdDebugSet("cloudResolveUserId_called", { token_present: !!token, at: new Date().toISOString() });
   const cached = cloudReadCachedUserId();
-  if(cached){ mdDebugSet("cloudResolveUserId_cached", { user_id: String(cached || "") }); return cached; }
+  if(cached) return cached;
   const user = await cloudGetUser(token);
-  const __uid = (user && user.id) ? user.id : "";
-  mdDebugSet("cloudResolveUserId_result", { user_id: String(__uid || "") });
-  return __uid;
+  return (user && user.id) ? user.id : "";
 }
 
 function cloudHasUsefulData(obj){
@@ -4261,7 +4245,6 @@ function cloudHasUsefulData(obj){
 }
 
 async function cloudFetchRow(token, userId){
-  mdDebugSet("cloudFetchRow_called", { token_present: !!token, user_id: String(userId || ""), at: new Date().toISOString() });
   const res = await fetch(
     CLOUD_SUPABASE_URL + "/rest/v1/" + CLOUD_TABLE + "?select=payload,updated_at&user_id=eq." + encodeURIComponent(userId),
     {
@@ -4274,9 +4257,7 @@ async function cloudFetchRow(token, userId){
   );
   if(!res.ok) throw new Error("Falha ao ler nuvem");
   const rows = await res.json();
-  const __row = (Array.isArray(rows) && rows.length) ? rows[0] : null;
-  mdDebugSet("cloudFetchRow_result", { has_row: !!__row, updated_at: __row && __row.updated_at || "", has_payload: !!(__row && __row.payload) });
-  return __row;
+  return (Array.isArray(rows) && rows.length) ? rows[0] : null;
 }
 
 function mdSyncBackupsFromCloud(backups){
@@ -4410,6 +4391,9 @@ function cloudApplyRemoteData(remoteData){
 
 async function cloudPushNow(snapshotOverride){
   try{
+    if(!mdCanScheduleCloudWrite(snapshotOverride && snapshotOverride.payload ? snapshotOverride.payload : snapshotOverride || dados)){
+      return false;
+    }
     const token = await cloudGetToken();
     if(!token) return false;
     const userId = await cloudResolveUserId(token).catch(function(){ return ""; });
@@ -4429,7 +4413,6 @@ async function cloudPushNow(snapshotOverride){
     const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
     const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
     const remoteSnapshot = remoteWrapped && remoteWrapped.snapshot ? remoteWrapped.snapshot : null;
-    mdDebugSet("cloudBoot_remote", { has_remote_snapshot: !!remoteSnapshot, remote_useful: !!(remoteSnapshot && cloudHasUsefulData(remoteSnapshot)), remote_updated_at: remoteSnapshot && (remoteSnapshot.__updated_at || remoteSnapshot.__cloud_updated_at) || "" });
 
     const localSeq = Number(best.__local_commit_seq || 0);
     const remoteSeq = Number(remoteSnapshot && remoteSnapshot.__local_commit_seq || 0);
@@ -4488,6 +4471,11 @@ async function cloudPushNow(snapshotOverride){
 
 let __cloudSaveRetries = 0;
 function cloudScheduleSave(delayMs){
+  try{
+    if(!mdCanScheduleCloudWrite(dados)){
+      return false;
+    }
+  }catch(e){}
   clearTimeout(__cloudSaveTimer);
   const wait = typeof delayMs === "number" ? delayMs : 180;
   __cloudSaveTimer = setTimeout(async function(){
@@ -4503,7 +4491,6 @@ function cloudScheduleSave(delayMs){
 }
 
 async function cloudBoot(force){
-  mdDebugSet("cloudBoot_called", { force: force === true, at: new Date().toISOString() });
   if(__cloudBootStarted) return;
   if(__cloudBootDoneOnce && force !== true) return;
   __cloudBootStarted = true;
@@ -4523,7 +4510,6 @@ async function cloudBoot(force){
     ]) || dados;
 
     const localUseful = localBest && cloudHasUsefulData(localBest);
-    mdDebugSet("cloudBoot_local", { local_useful: !!localUseful, current_counts: { ganhos: Array.isArray(localBest && localBest.ganhos) ? localBest.ganhos.length : 0, gastos: Array.isArray(localBest && localBest.gastos) ? localBest.gastos.length : 0 } });
 
     // v108 - prioridade local absoluta:
     // se já há dado local útil, nuvem NÃO sobrescreve automaticamente.
@@ -4531,6 +4517,8 @@ async function cloudBoot(force){
       dados = JSON.parse(JSON.stringify(localBest));
       mdEnsureDataMeta(dados);
       if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
+      __cloudHydrationResolved = true;
+      __cloudHydrationSource = "local";
       const pending = cloudReadPendingSnapshot();
       if(__cloudDirty || (pending && pending.payload && cloudHasUsefulData(pending.payload))){
         cloudScheduleSave(120);
@@ -4541,11 +4529,15 @@ async function cloudBoot(force){
 
     const token = await cloudGetToken();
     if(!token){
+      __cloudHydrationResolved = true;
+      __cloudHydrationSource = "no-token";
       __cloudBootDoneOnce = false;
       return;
     }
     const userId = await cloudResolveUserId(token).catch(function(){ return ""; });
     if(!userId){
+      __cloudHydrationResolved = true;
+      __cloudHydrationSource = "no-user";
       __cloudBootDoneOnce = false;
       return;
     }
@@ -4558,7 +4550,11 @@ async function cloudBoot(force){
     // Só aplica remoto se o local estiver vazio/inútil
     if(!localUseful && remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
       cloudApplyRemoteData(remoteSnapshot);
+      __cloudHydrationSource = "remote";
+    }else{
+      __cloudHydrationSource = remoteSnapshot ? "remote-empty" : "no-remote-row";
     }
+    __cloudHydrationResolved = true;
 
     const pending = cloudReadPendingSnapshot();
     if(__cloudDirty || (pending && pending.payload && cloudHasUsefulData(pending.payload))){
@@ -4567,7 +4563,6 @@ async function cloudBoot(force){
 
     __cloudBootDoneOnce = cloudHasUsefulData(dados);
   }catch(e){
-    mdDebugSet("cloudBoot_error", { message: String((e && e.message) || e || "") });
     console.warn("cloudBoot", e);
   }finally{
     __cloudBootStarted = false;
@@ -4575,7 +4570,7 @@ async function cloudBoot(force){
 }
 
 async function mdInitialHydrateAndRender(){
-  if (dados && Object.keys(dados).length > 0) {
+  if (cloudHasUsefulData(dados)) {
     try { atualizar(); } catch(e){}
     try { atualizarCarro(); } catch(e){}
     return;
