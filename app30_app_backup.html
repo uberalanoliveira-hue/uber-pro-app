@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v127</title>
+<title>MetaDriver v128</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -3048,7 +3048,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v127</div>
+  <div class="menu-note" style="text-align:center;">v128</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -4094,7 +4094,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v127',
+      app_version: 'MetaDriver v128',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -4458,31 +4458,20 @@ function cloudApplyRemoteData(remoteData){
       console.warn("MetaDriver: remoto ignorado para evitar rollback local");
       return;
     }
-    const remoteTs = new Date(remoteData.__updated_at || remoteData.__cloud_updated_at || 0).getTime() || 0;
-    const localTs = new Date(dados.__updated_at || dados.__cloud_updated_at || 0).getTime() || 0;
-    const remoteSeq = Number(remoteData.__local_commit_seq || 0);
-    const localSeq = Number(dados.__local_commit_seq || 0);
-    const localUseful = cloudHasUsefulData(dados);
-    const shouldApply = cloudHasUsefulData(remoteData) && (!localUseful || remoteSeq > localSeq || (remoteSeq === localSeq && remoteTs >= localTs));
-    if(!shouldApply) return;
-    dados = JSON.parse(JSON.stringify(remoteData));
+    dados = Object.assign({}, dados || {}, remoteData || {});
     mdEnsureDataMeta(dados);
-    mdPushBackup(LOCAL_BACKUP_KEY, dados, "remote-apply-v126");
+    mdPushBackup(LOCAL_BACKUP_KEY, dados, "remote-apply-v128");
     if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
-    try{
-      if(String(dados.horarioInicioFora || "").trim()) iniciarTimerGanhoHoraTempoReal();
-      else pararTimerGanhoHoraTempoReal();
-    }catch(e){}
+    try{ if(String(dados.horarioInicioFora || "").trim()) iniciarTimerGanhoHoraTempoReal(); }catch(e){}
     try{ atualizar(); }catch(e){}
     try{ atualizarCarro(); }catch(e){}
-  }catch(e){
-    console.warn("cloudApplyRemoteData", e);
-  }
+    try{ initTabs(); }catch(e){}
+  }catch(e){}
 }
 
 async function cloudPushNow(snapshotOverride){
   try{
-    let token = await cloudGetToken();
+    let token = await cloudGetToken().catch(function(){ return ""; });
     if(!token && typeof window.mdEnsureActiveSession === "function"){
       token = await window.mdEnsureActiveSession(true).catch(function(){ return ""; });
       if(token){ try{ localStorage.setItem("sb_token", token || ""); }catch(e){} }
@@ -4493,37 +4482,16 @@ async function cloudPushNow(snapshotOverride){
     const userId = await cloudResolveUserId(token).catch(function(){ return ""; });
     if(!userId) return false;
 
-    const pending = snapshotOverride || cloudReadPendingSnapshot();
-    const pendingPayload = pending && pending.payload ? pending.payload : null;
-    const localPayload = (typeof dados === "object" && dados) ? dados : null;
-    const best = mdPickBestSnapshot([
-      { snapshot: pendingPayload },
-      { snapshot: localPayload }
-    ]);
-    if(!best || !cloudHasUsefulData(best)) return false;
+    const payloadSource = snapshotOverride || (typeof dados === "object" ? dados : null);
+    if(!payloadSource || !cloudHasUsefulData(payloadSource)) return false;
 
-    try{ cloudWritePendingSnapshot(JSON.parse(JSON.stringify(best))); }catch(e){}
-
-    const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
-    const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
-    const remoteSnapshot = remoteWrapped && remoteWrapped.snapshot ? remoteWrapped.snapshot : null;
-
-    const localSeq = Number(best.__local_commit_seq || 0);
-    const remoteSeq = Number(remoteSnapshot && remoteSnapshot.__local_commit_seq || 0);
-    const localTs = new Date(best.__updated_at || best.__cloud_updated_at || 0).getTime() || 0;
-    const remoteTs = new Date(remoteSnapshot && (remoteSnapshot.__updated_at || remoteSnapshot.__cloud_updated_at) || 0).getTime() || 0;
-    if(remoteSnapshot && cloudHasUsefulData(remoteSnapshot)){
-      if(remoteSeq > localSeq) return false;
-      if(remoteSeq === localSeq && remoteTs > localTs) return false;
-    }
-
-    const payloadToSend = JSON.parse(JSON.stringify(best));
+    const payloadToSend = JSON.parse(JSON.stringify(payloadSource));
     mdEnsureDataMeta(payloadToSend);
     payloadToSend.__dirty_local = false;
     payloadToSend.__cloud_updated_at = mdNowIso();
     payloadToSend.__last_synced_commit_seq = Number(payloadToSend.__local_commit_seq || 0);
 
-    const wrapped = mdWrapCloudPayload(payloadToSend, remoteWrapped && remoteWrapped.backups ? remoteWrapped.backups : []);
+    const wrapped = mdWrapCloudPayload(payloadToSend, []);
     const body = {
       user_id: userId,
       payload: wrapped,
@@ -4592,61 +4560,40 @@ async function cloudBoot(force){
     ]) || dados;
 
     const localUseful = !!(localBest && cloudHasUsefulData(localBest));
-    const localTs = new Date(
-      (localBest && (localBest.__cloud_updated_at || localBest.__updated_at || localBest.__last_local_write_at)) || 0
-    ).getTime() || 0;
-    const localSeq = Number((localBest && localBest.__local_commit_seq) || 0);
+    const localTs = new Date((localBest && (localBest.__cloud_updated_at || localBest.__updated_at || localBest.__last_local_write_at)) || 0).getTime() || 0;
 
     let token = await cloudGetToken().catch(function(){ return ""; });
-    let userId = "";
-    if(token){
-      userId = await mdBootstrapUserScope(token).catch(function(){ return ""; });
-      if(!userId){
-        userId = await cloudResolveUserId(token).catch(function(){ return ""; });
-      }
+    if(!token){
+      __cloudBootDoneOnce = localUseful;
+      return;
+    }
+    await mdBootstrapUserScope(token).catch(function(){ return ""; });
+    const userId = await cloudResolveUserId(token).catch(function(){ return ""; });
+    if(!userId){
+      __cloudBootDoneOnce = localUseful;
+      return;
     }
 
-    let remoteSnapshot = null;
-    let remoteRowUpdatedAt = 0;
-    if(token && userId){
-      const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
-      const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
-      mdSyncBackupsFromCloud(remoteWrapped && remoteWrapped.backups ? remoteWrapped.backups : []);
-      remoteSnapshot = remoteWrapped && remoteWrapped.snapshot ? remoteWrapped.snapshot : null;
-      remoteRowUpdatedAt = new Date((remoteRow && remoteRow.updated_at) || 0).getTime() || 0;
-    }
-
-    const remoteUseful = !!(remoteSnapshot && cloudHasUsefulData(remoteSnapshot));
-    const remoteSeq = Number((remoteSnapshot && remoteSnapshot.__local_commit_seq) || 0);
+    const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
+    const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
+    mdSyncBackupsFromCloud(remoteWrapped && remoteWrapped.backups ? remoteWrapped.backups : []);
+    const remoteSnapshot = remoteWrapped && remoteWrapped.snapshot ? remoteWrapped.snapshot : null;
     const remoteTs = Math.max(
-      remoteRowUpdatedAt,
+      new Date((remoteRow && remoteRow.updated_at) || 0).getTime() || 0,
       new Date((remoteSnapshot && (remoteSnapshot.__cloud_updated_at || remoteSnapshot.__updated_at || remoteSnapshot.__last_local_write_at)) || 0).getTime() || 0
     );
 
-    const shouldApplyRemote = !!(
-      remoteUseful &&
-      (
-        !localUseful ||
-        remoteSeq > localSeq ||
-        (remoteSeq === localSeq && remoteTs >= localTs)
-      )
-    );
-
-    if(shouldApplyRemote){
+    if(remoteSnapshot && (remoteTs > localTs || !localUseful)){
       cloudApplyRemoteData(remoteSnapshot);
-    }else if(localBest && localBest !== dados && !mdShouldBlockSnapshot(localBest)){
-      dados = JSON.parse(JSON.stringify(localBest));
-      mdEnsureDataMeta(dados);
-      if(window.__salvarLocalOriginal) window.__salvarLocalOriginal();
-    }else if(localUseful && window.__salvarLocalOriginal){
-      window.__salvarLocalOriginal();
+      try{ toast("☁️ Dados restaurados da nuvem."); }catch(e){}
+      __cloudBootDoneOnce = true;
+      return;
     }
 
-    const pending = cloudReadPendingSnapshot();
-    if(__cloudDirty || (pending && pending.payload && cloudHasUsefulData(pending.payload))){
-      cloudScheduleSave(120);
+    if(localUseful){
+      cloudPushNow(localBest);
     }
-    __cloudBootDoneOnce = cloudHasUsefulData(dados);
+    __cloudBootDoneOnce = localUseful;
   }catch(e){
     console.warn("cloudBoot", e);
   }finally{
@@ -6706,7 +6653,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v127 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v128 · app</div>
 </body>
     </html>  `);
   w.document.close();
