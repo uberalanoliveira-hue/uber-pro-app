@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v130</title>
+<title>MetaDriver v131</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -2859,6 +2859,20 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 
 </style>
 
+<script id="auth-guard">
+(function(){
+  try{
+    var token = localStorage.getItem("sb_token") || "";
+    if(!token){
+      location.replace("login.html");
+      return;
+    }
+  }catch(e){
+    location.replace("login.html");
+  }
+})();
+</script>
+
 <style id="app30-auth-guard-style">
 #app30LogoutBtn{
   position:fixed; top:12px; right:12px; z-index:2147483647;
@@ -2910,95 +2924,6 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 </style>
 
 
-<script id="auth-guard">
-const DEV_LOCAL_MODE = true;
-(function(){
-  const AUTH_SKEW_MS = 60000;
-
-  function readStoredSession(){
-    try{
-      return {
-        access_token: localStorage.getItem("sb_token") || "",
-        refresh_token: localStorage.getItem("sb_refresh_token") || "",
-        expires_at: Number(localStorage.getItem("sb_expires_at") || 0)
-      };
-    }catch(e){
-      return { access_token:"", refresh_token:"", expires_at:0 };
-    }
-  }
-
-  function saveStoredSession(data){
-    try{
-      if(data && data.access_token) localStorage.setItem("sb_token", data.access_token || "");
-      if(data && data.refresh_token) localStorage.setItem("sb_refresh_token", data.refresh_token || "");
-      if(data && data.expires_at) localStorage.setItem("sb_expires_at", String(data.expires_at || 0));
-    }catch(e){}
-  }
-
-  function hasUsableToken(sess){
-    try{
-      return !!(sess && sess.access_token && Number(sess.expires_at || 0) * 1000 > (Date.now() + AUTH_SKEW_MS));
-    }catch(e){ return false; }
-  }
-
-  async function refreshAccessTokenIfNeeded(force){
-    const sess = readStoredSession();
-    if(!force && hasUsableToken(sess)) return sess.access_token || "";
-    if(!sess.refresh_token) return sess.access_token || "";
-
-    try{
-      const res = await fetch("https://xoqlgwjpmdkiazwpwhmn.supabase.co/auth/v1/token?grant_type=refresh_token", {
-        method: "POST",
-        headers: {
-          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InhvcWxnd2pwbWRraWF6d3B3aG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjY1OTksImV4cCI6MjA4NzU0MjU5OX0.txohC3MvvEDaCCVRouVPDrmVaAO1PJxY0LawUttj9PA",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ refresh_token: sess.refresh_token })
-      });
-      const raw = await res.text();
-      let data = null;
-      try{ data = raw ? JSON.parse(raw) : null; }catch(e){ data = null; }
-      if(res.ok && data && data.access_token){
-        saveStoredSession(data);
-        return data.access_token || "";
-      }
-    }catch(e){}
-    return sess.access_token || "";
-  }
-
-  window.mdEnsureActiveSession = refreshAccessTokenIfNeeded;
-
-  (async function(){
-    try{
-      const sess = readStoredSession();
-      if(!sess.access_token && !sess.refresh_token){
-        window.__mdAuthOptionalMode = true;
-        return;
-      }
-      const token = await refreshAccessTokenIfNeeded(false);
-      if(!token){
-        window.__mdAuthOptionalMode = true;
-        return;
-      }
-    }catch(e){
-      window.__mdAuthOptionalMode = true;
-    }
-  })();
-
-  document.addEventListener("DOMContentLoaded", function(){
-    const hiddenQuickInput = document.getElementById("quickSaldoAtual");
-    if(hiddenQuickInput){
-      hiddenQuickInput.addEventListener("focus", function(){
-        try{ this.blur(); }catch(e){}
-      });
-      hiddenQuickInput.addEventListener("touchstart", function(e){
-        e.preventDefault();
-      }, {passive:false});
-    }
-  });
-})();
-</script>
-
 </head>
 <body class="preload">
 
@@ -3048,7 +2973,7 @@ const DEV_LOCAL_MODE = true;
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v130</div>
+  <div class="menu-note" style="text-align:center;">v131</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -4088,7 +4013,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v130',
+      app_version: 'MetaDriver v131',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -6601,7 +6526,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v130 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v131 · app</div>
 </body>
     </html>  `);
   w.document.close();
