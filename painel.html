@@ -2,8 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MetaDriver (painel)</title>
+<title>MetaDriver v126 · painel</title>
 <style>
 :root { color-scheme: dark; }
 * { box-sizing: border-box; }
@@ -21,6 +24,23 @@ button.secondary { background:rgba(255,255,255,.06); color:#fff; border:1px soli
 #msg { margin-top:10px; padding:10px; border-radius:10px; display:none; background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.10); font-size:13px; line-height:1.35; }
 .danger { background:rgba(239,68,68,.10)!important; border-color:rgba(239,68,68,.45)!important; }
 .small { font-size:12px; opacity:.9; margin-top:8px; }
+
+.version-debug-badge{
+  position:fixed;
+  right:10px;
+  bottom:10px;
+  z-index:2147483647;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(15,23,42,.88);
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.2px;
+  opacity:.95;
+}
+
 </style>
 </head>
 <body>
@@ -56,12 +76,43 @@ button.secondary { background:rgba(255,255,255,.06); color:#fff; border:1px soli
   function clearSession() {
     try {
       localStorage.removeItem("sb_token");
-      localStorage.removeItem("sb_refresh_token");
+      localStorage.removeItem("sb_refresh_token");\n      localStorage.removeItem("sb_user_id");
       localStorage.removeItem("sb_expires_at");
     } catch(e) {}
   }
   function logout() { clearSession(); location.replace(LOGIN_PAGE); }
-  function getToken() { try { return localStorage.getItem("sb_token") || ""; } catch(e) { return ""; } }
+
+  async function refreshSession() {
+    var refreshToken = "";
+    try { refreshToken = localStorage.getItem("sb_refresh_token") || ""; } catch(e) {}
+    if (!refreshToken) return "";
+    var res = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=refresh_token", {
+      method: "POST",
+      headers: { "apikey": SUPABASE_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+    var txt = await res.text();
+    var data = null; try { data = txt ? JSON.parse(txt) : null; } catch(e) { data = null; }
+    if (res.ok && data && data.access_token) {
+      try {
+        localStorage.setItem("sb_token", data.access_token || "");
+        localStorage.setItem("sb_refresh_token", data.refresh_token || refreshToken);
+        localStorage.setItem("sb_expires_at", String(data.expires_at || 0));
+      } catch(e) {}
+      return data.access_token || "";
+    }
+    return "";
+  }
+
+  async function getToken() {
+    try {
+      var token = localStorage.getItem("sb_token") || "";
+      var expiresAt = Number(localStorage.getItem("sb_expires_at") || 0);
+      if (token && expiresAt * 1000 > Date.now() + 60000) return token;
+      var renewed = await refreshSession();
+      return renewed || token || "";
+    } catch(e) { return ""; }
+  }
   function api(path, method, body, token, extraHeaders) {
     var headers = {"apikey": SUPABASE_KEY, "Content-Type": "application/json", "Authorization": "Bearer " + SUPABASE_KEY};
     if(token) headers["Authorization"] = "Bearer " + token;
@@ -91,7 +142,7 @@ button.secondary { background:rgba(255,255,255,.06); color:#fff; border:1px soli
   function updateAccess(userId, token, patch) { return api("/rest/v1/user_access?user_id=eq." + encodeURIComponent(userId), "PATCH", patch, token, {"Prefer":"return=representation","Accept":"application/json"}); }
   async function loadPanel() {
     hideMsg();
-    var token = getToken();
+    var token = await getToken();
     if(!token) { location.replace(LOGIN_PAGE); return; }
     setTechStatus("carregando");
     try {
@@ -120,5 +171,6 @@ button.secondary { background:rgba(255,255,255,.06); color:#fff; border:1px soli
   loadPanel();
 })();
 </script>
+<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v84 · painel</div>
 </body>
 </html>

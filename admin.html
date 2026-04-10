@@ -2,8 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin - MetaDriver</title>
+<title>MetaDriver v126 · admin</title>
 <style>
 :root {
   color-scheme: dark;
@@ -207,6 +210,23 @@ button {
   .user-summary { grid-template-columns:34px 1fr; }
   .user-summary .badge { grid-column:2; justify-self:start; }
 }
+
+.version-debug-badge{
+  position:fixed;
+  right:10px;
+  bottom:10px;
+  z-index:2147483647;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(15,23,42,.88);
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.2px;
+  opacity:.95;
+}
+
 </style>
 </head>
 <body>
@@ -649,25 +669,6 @@ initAdmin();
 })();
 </script>
 
-
-
-
-<div id="saldoAtualButtonMenuOverlay" class="quick-balance-overlay" onclick="fecharSaldoAtualButtonMenu()"></div>
-
-<div id="saldoAtualButtonMenuPanel" class="quick-balance-panel" role="dialog" aria-modal="true" aria-labelledby="saldoAtualButtonMenuTitle">
-  <div id="saldoAtualButtonMenuTitle" class="quick-balance-title">Botão de saldo atual</div>
-  <div class="quick-balance-sub">Ative ou desative o botão flutuante. Mesmo desligado, a atualização do saldo atual continua normal pela seção <b>Ganho por hora</b>.</div>
-  <div style="display:grid;gap:10px;">
-    <label class="fuel-radio" style="display:flex;align-items:center;gap:10px;">
-      <input type="checkbox" id="toggleSaldoAtualButtonCheckbox" onchange="salvarPreferenciaSaldoAtualButton()">
-      <span>Ativar botão flutuante</span>
-    </label>
-  </div>
-  <div class="quick-balance-actions" style="margin-top:12px;">
-    <button type="button" onclick="salvarPreferenciaSaldoAtualButton()">Salvar</button>
-    <button type="button" class="secondary" onclick="fecharSaldoAtualButtonMenu()">Fechar</button>
-  </div>
-</div>
-
+<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v84 · admin</div>
 </body>
 </html>
