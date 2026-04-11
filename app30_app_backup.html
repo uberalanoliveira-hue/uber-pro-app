@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v143</title>
+<title>MetaDriver v144</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -904,20 +904,21 @@ input.negative-value, input.negative-value::placeholder{
 .quick-balance-overlay.show{display:block;}
 .quick-balance-panel{
   position:fixed;
-  right:12px;
-  left:12px;
-  bottom:24px;
+  inset:0;
   z-index:1201;
-  background:rgba(15,23,42,.985);
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:22px;
-  box-shadow:0 24px 60px rgba(0,0,0,.5);
-  padding:16px;
+  background:rgba(15,23,42,.995);
+  border:none;
+  border-radius:0;
+  box-shadow:none;
+  padding:max(8px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
   display:none;
-  max-width:460px;
-  margin-left:auto;
+  max-width:none;
+  margin:0;
+  max-height:none;
+  overflow:hidden;
+  flex-direction:column;
 }
-.quick-balance-panel.show{display:block;}
+.quick-balance-panel.show{display:flex;}
 .quick-balance-title{
   font-weight:900;
   font-size:20px;
@@ -934,7 +935,7 @@ input.negative-value, input.negative-value::placeholder{
   display:flex;
   align-items:center;
   justify-content:center;
-  height:24vh;
+  height:88px;
   border-radius:22px;
   border:2px solid rgba(255,255,255,.38);
   background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
@@ -988,14 +989,18 @@ input.negative-value, input.negative-value::placeholder{
   display:grid;
   grid-template-columns:repeat(3, 1fr);
   gap:10px;
-  height:40vh;
+  flex:1 1 auto;
+  min-height:0;
+  height:auto;
+  grid-auto-rows:minmax(54px,1fr);
+  align-content:stretch;
 }
 
 
 .quick-balance-key{
   border:none;
   border-radius:18px;
-  font-size:32px;
+  font-size:26px;
   font-weight:900;
   background:rgba(255,255,255,.08);
   color:#fff;
@@ -1015,8 +1020,8 @@ input.negative-value, input.negative-value::placeholder{
   margin-top:12px;
 }
 .quick-balance-actions button{
-  min-height:64px;
-  font-size:20px;
+  min-height:52px;
+  font-size:17px;
   font-weight:900;
   border-radius:18px;
 }
@@ -1290,6 +1295,59 @@ input.negative-value, input.negative-value::placeholder{
   border-radius:18px;
 }
 
+
+/* v144 - isolamento dos teclados MetaDriver */
+.meta-total-panel{
+  display:flex !important;
+  flex-direction:column !important;
+  padding:8px !important;
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+}
+.meta-total-panel .quick-balance-keypad{
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  height:auto !important;
+  gap:6px !important;
+  grid-auto-rows:minmax(44px,1fr) !important;
+  align-content:stretch !important;
+  margin-bottom:6px !important;
+}
+.meta-total-panel .quick-balance-key{
+  min-height:44px !important;
+  font-size:22px !important;
+  border-radius:12px !important;
+}
+.meta-total-panel .quick-balance-actions{
+  flex:0 0 auto !important;
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:6px !important;
+  margin-top:0 !important;
+  position:relative !important;
+  inset:auto !important;
+}
+.meta-total-panel .quick-balance-actions button{
+  min-height:42px !important;
+  font-size:15px !important;
+  border-radius:12px !important;
+}
+@media (max-width:420px){
+  .meta-total-panel{
+    left:10px !important;
+    right:10px !important;
+    padding:8px !important;
+  }
+  .meta-total-panel .quick-balance-key{
+    min-height:42px !important;
+    font-size:20px !important;
+  }
+  .meta-total-panel .quick-balance-actions button{
+    min-height:40px !important;
+    font-size:14px !important;
+  }
+}
+
 </style>
 
 <script id="auth-guard">
@@ -1406,7 +1464,7 @@ input.negative-value, input.negative-value::placeholder{
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v143</div>
+  <div class="menu-note" style="text-align:center;">v144</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -2454,7 +2512,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v143',
+      app_version: 'MetaDriver v144',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -4998,7 +5056,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v143 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v144 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -5528,7 +5586,7 @@ function positionMetaTotalKeypad(){
     panel.style.top = 'auto';
     panel.style.bottom = '12px';
     panel.style.maxHeight = Math.max(170, Math.min(320, viewportHeight * 0.42)) + 'px';
-    panel.style.overflowY = 'auto';
+    panel.style.overflowY = 'hidden';
     return;
   }
 
