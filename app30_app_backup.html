@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v147</title>
+<title>MetaDriver v148</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -3135,7 +3135,7 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v147</div>
+  <div class="menu-note" style="text-align:center;">v148</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -4183,7 +4183,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v147',
+      app_version: 'MetaDriver v148',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -6764,7 +6764,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v147 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v148 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -7241,19 +7241,16 @@ function ensureLancamentoInputVisibleAboveKeypad(){
     const visible = getMetaTotalTarget();
     const panel = document.getElementById("metaTotalPanel");
     if(!visible || !panel || !panel.classList.contains("show")) return;
-    const mode = getMetaTotalTargetMode();
-    if(mode !== "lancamentos") return;
 
-    const rect = visible.getBoundingClientRect();
-    const panelRect = panel.getBoundingClientRect();
     const marginTop = 12;
     const marginBottom = 14;
 
+    const rect = visible.getBoundingClientRect();
+    const panelRect = panel.getBoundingClientRect();
     const desiredBottom = panelRect.top - marginBottom;
-    const currentBottom = rect.bottom;
 
-    if(currentBottom > desiredBottom){
-      const delta = currentBottom - desiredBottom + marginTop;
+    if(rect.bottom > desiredBottom){
+      const delta = rect.bottom - desiredBottom + marginTop;
       window.scrollBy({ top: delta, left: 0, behavior: "instant" });
     }else if(rect.top < marginTop){
       const deltaUp = rect.top - marginTop;
@@ -7278,6 +7275,7 @@ function positionMetaTotalKeypad(){
   const panel = document.getElementById("metaTotalPanel");
   const visible = getMetaTotalTarget();
   if(!panel || !visible || !panel.classList.contains("show")) return;
+
   const rect = visible.getBoundingClientRect();
   const cardBody = visible.closest('.card-body');
   const cardRect = cardBody ? cardBody.getBoundingClientRect() : rect;
@@ -7285,23 +7283,12 @@ function positionMetaTotalKeypad(){
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
   const margin = viewportWidth <= 420 ? 10 : 12;
   const minPanelWidth = 220;
-  const mode = getMetaTotalTargetMode();
-
-  if(mode === "lancamentos"){
-    panel.style.position = 'fixed';
-    panel.style.left = margin + 'px';
-    panel.style.right = margin + 'px';
-    panel.style.top = 'auto';
-    panel.style.bottom = '12px';
-    panel.style.maxHeight = Math.max(170, Math.min(320, viewportHeight * 0.42)) + 'px';
-    panel.style.overflowY = 'auto';
-    return;
-  }
 
   const left = Math.max(margin, Math.min(cardRect.left, viewportWidth - margin - minPanelWidth));
   const right = Math.max(margin, viewportWidth - Math.max(cardRect.right, left + minPanelWidth));
   const top = Math.max(rect.bottom + 6, margin);
   const maxHeight = Math.max(170, viewportHeight - top - 8);
+
   panel.style.position = 'fixed';
   panel.style.left = left + 'px';
   panel.style.right = right + 'px';
@@ -7327,11 +7314,7 @@ function toggleMetaTotalKeypad(forceOpen, targetId){
     metaTotalReplaceOnNextInput = true;
     refreshMetaTotalDisplay();
     positionMetaTotalKeypad();
-    try{
-      if(metaTotalTargetMode === "lancamentos"){
-        ensureLancamentoInputVisibleAboveKeypad();
-      }
-    }catch(e){}
+    try{ ensureLancamentoInputVisibleAboveKeypad(); }catch(e){}
   }else{
     metaTotalReplaceOnNextInput = false;
     metaTotalTargetMode = "default";
