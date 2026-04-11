@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v142</title>
+<title>MetaDriver v143</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -904,21 +904,20 @@ input.negative-value, input.negative-value::placeholder{
 .quick-balance-overlay.show{display:block;}
 .quick-balance-panel{
   position:fixed;
-  inset:0;
+  right:12px;
+  left:12px;
+  bottom:24px;
   z-index:1201;
-  background:rgba(15,23,42,.995);
-  border:none;
-  border-radius:0;
-  box-shadow:none;
-  padding:max(8px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+  background:rgba(15,23,42,.985);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:22px;
+  box-shadow:0 24px 60px rgba(0,0,0,.5);
+  padding:16px;
   display:none;
-  max-width:none;
-  margin:0;
-  max-height:none;
-  overflow:hidden;
-  flex-direction:column;
+  max-width:460px;
+  margin-left:auto;
 }
-.quick-balance-panel.show{display:flex;}
+.quick-balance-panel.show{display:block;}
 .quick-balance-title{
   font-weight:900;
   font-size:20px;
@@ -935,7 +934,7 @@ input.negative-value, input.negative-value::placeholder{
   display:flex;
   align-items:center;
   justify-content:center;
-  height:88px;
+  height:24vh;
   border-radius:22px;
   border:2px solid rgba(255,255,255,.38);
   background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
@@ -989,18 +988,14 @@ input.negative-value, input.negative-value::placeholder{
   display:grid;
   grid-template-columns:repeat(3, 1fr);
   gap:10px;
-  flex:1 1 auto;
-  min-height:0;
-  height:auto;
-  grid-auto-rows:minmax(54px,1fr);
-  align-content:stretch;
+  height:40vh;
 }
 
 
 .quick-balance-key{
   border:none;
   border-radius:18px;
-  font-size:26px;
+  font-size:32px;
   font-weight:900;
   background:rgba(255,255,255,.08);
   color:#fff;
@@ -1020,8 +1015,8 @@ input.negative-value, input.negative-value::placeholder{
   margin-top:12px;
 }
 .quick-balance-actions button{
-  min-height:52px;
-  font-size:17px;
+  min-height:64px;
+  font-size:20px;
   font-weight:900;
   border-radius:18px;
 }
@@ -1411,7 +1406,7 @@ input.negative-value, input.negative-value::placeholder{
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v142</div>
+  <div class="menu-note" style="text-align:center;">v143</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -2459,7 +2454,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v142',
+      app_version: 'MetaDriver v143',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -5003,7 +4998,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v142 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v143 · app</div>
 </body>
     </html>  `);
   w.document.close();
