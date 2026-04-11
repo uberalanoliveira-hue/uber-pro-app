@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v149</title>
+<title>MetaDriver v150</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -3003,6 +3003,15 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   flex:1 !important;
 }
 
+
+/* v150 MetaDriver keyboards fixed bottom, no internal scroll */
+#metaTotalPanel{
+  overflow:hidden !important;
+}
+#metaTotalPanel.show{
+  display:block !important;
+}
+
 </style>
 
 <script id="auth-guard">
@@ -3135,7 +3144,7 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v149</div>
+  <div class="menu-note" style="text-align:center;">v150</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -4183,7 +4192,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v149',
+      app_version: 'MetaDriver v150',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -6764,7 +6773,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v149 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v150 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -7242,19 +7251,17 @@ function ensureLancamentoInputVisibleAboveKeypad(){
     const panel = document.getElementById("metaTotalPanel");
     if(!visible || !panel || !panel.classList.contains("show")) return;
 
-    const marginTop = 12;
-    const marginBottom = 14;
-
     const rect = visible.getBoundingClientRect();
     const panelRect = panel.getBoundingClientRect();
+    const marginTop = 12;
+    const marginBottom = 14;
     const desiredBottom = panelRect.top - marginBottom;
 
     if(rect.bottom > desiredBottom){
       const delta = rect.bottom - desiredBottom + marginTop;
-      window.scrollBy({ top: delta, left: 0, behavior: "instant" });
+      window.scrollBy(0, delta);
     }else if(rect.top < marginTop){
-      const deltaUp = rect.top - marginTop;
-      window.scrollBy({ top: deltaUp, left: 0, behavior: "instant" });
+      window.scrollBy(0, rect.top - marginTop);
     }
 
     setTimeout(function(){
@@ -7263,8 +7270,7 @@ function ensureLancamentoInputVisibleAboveKeypad(){
         const panelRect2 = panel.getBoundingClientRect();
         const desiredBottom2 = panelRect2.top - marginBottom;
         if(rect2.bottom > desiredBottom2){
-          const delta2 = rect2.bottom - desiredBottom2 + marginTop;
-          window.scrollBy({ top: delta2, left: 0, behavior: "instant" });
+          window.scrollBy(0, rect2.bottom - desiredBottom2 + marginTop);
         }
       }catch(e){}
     }, 60);
@@ -7276,22 +7282,18 @@ function positionMetaTotalKeypad(){
   const visible = getMetaTotalTarget();
   if(!panel || !visible || !panel.classList.contains("show")) return;
 
-  const rect = visible.getBoundingClientRect();
-  const cardBody = visible.closest('.card-body');
-  const cardRect = cardBody ? cardBody.getBoundingClientRect() : rect;
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
   const margin = viewportWidth <= 420 ? 10 : 12;
-  const minPanelWidth = 220;
-
-  const left = Math.max(margin, Math.min(cardRect.left, viewportWidth - margin - minPanelWidth));
-  const right = Math.max(margin, viewportWidth - Math.max(cardRect.right, left + minPanelWidth));
-  const top = Math.max(rect.bottom + 6, margin);
+  const panelWidth = Math.max(220, Math.min(viewportWidth - (margin * 2), 420));
 
   panel.style.position = 'fixed';
-  panel.style.left = left + 'px';
-  panel.style.right = right + 'px';
-  panel.style.top = top + 'px';
-  panel.style.bottom = 'auto';
+  panel.style.left = '50%';
+  panel.style.right = 'auto';
+  panel.style.transform = 'translateX(-50%)';
+  panel.style.width = panelWidth + 'px';
+  panel.style.maxWidth = 'calc(100vw - ' + (margin * 2) + 'px)';
+  panel.style.top = 'auto';
+  panel.style.bottom = '12px';
   panel.style.maxHeight = '';
   panel.style.overflowY = '';
 }
@@ -7320,6 +7322,9 @@ function toggleMetaTotalKeypad(forceOpen, targetId){
     panel.style.bottom = '';
     panel.style.left = '';
     panel.style.right = '';
+    panel.style.transform = '';
+    panel.style.width = '';
+    panel.style.maxWidth = '';
     panel.style.maxHeight = '';
     panel.style.overflowY = '';
     panel.style.position = '';
