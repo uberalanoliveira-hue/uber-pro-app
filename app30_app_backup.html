@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v135</title>
+<title>MetaDriver v138</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -479,6 +479,19 @@ button:active{transform:scale(0.99);}
   flex:1 1 auto;
   min-width:0;
 }
+.li-date-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  line-height:1.15;
+  gap:2px;
+  flex:0 0 auto;
+}
+.li-time{
+  font-size:11px;
+  opacity:.78;
+  white-space:nowrap;
+}
 .li-date,.li-app,.li-value{
   white-space:nowrap;
   flex:0 0 auto;
@@ -891,22 +904,18 @@ input.negative-value, input.negative-value::placeholder{
 .quick-balance-overlay.show{display:block;}
 .quick-balance-panel{
   position:fixed;
-  right:0;
-  left:0;
-  top:0;
-  bottom:0;
+  inset:0;
   z-index:1201;
   background:rgba(15,23,42,.995);
   border:none;
   border-radius:0;
   box-shadow:none;
-  padding:8px 10px max(10px, env(safe-area-inset-bottom));
+  padding:max(8px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
   display:none;
   max-width:none;
-  margin-left:0;
+  margin:0;
   max-height:none;
   overflow:hidden;
-  display:flex;
   flex-direction:column;
 }
 .quick-balance-panel.show{display:flex;}
@@ -926,7 +935,7 @@ input.negative-value, input.negative-value::placeholder{
   display:flex;
   align-items:center;
   justify-content:center;
-  height:min(20dvh, 132px);
+  height:88px;
   border-radius:22px;
   border:2px solid rgba(255,255,255,.38);
   background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
@@ -980,14 +989,18 @@ input.negative-value, input.negative-value::placeholder{
   display:grid;
   grid-template-columns:repeat(3, 1fr);
   gap:10px;
-  height:min(34dvh, 270px);
+  flex:1 1 auto;
+  min-height:0;
+  height:auto;
+  grid-auto-rows:minmax(54px,1fr);
+  align-content:stretch;
 }
 
 
 .quick-balance-key{
   border:none;
   border-radius:18px;
-  font-size:28px;
+  font-size:26px;
   font-weight:900;
   background:rgba(255,255,255,.08);
   color:#fff;
@@ -1007,8 +1020,8 @@ input.negative-value, input.negative-value::placeholder{
   margin-top:12px;
 }
 .quick-balance-actions button{
-  min-height:56px;
-  font-size:18px;
+  min-height:52px;
+  font-size:17px;
   font-weight:900;
   border-radius:18px;
 }
@@ -2978,7 +2991,7 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v135</div>
+  <div class="menu-note" style="text-align:center;">v138</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -3615,14 +3628,6 @@ async function mdRecoverDurableStateFromIDB(){
 
 function loadDados(){
   try{
-    // Ao reabrir com sessão ainda ativa, recuperar primeiro o escopo local do usuário.
-    if(!__mdActiveUserId){
-      try{
-        const cachedUid = localStorage.getItem("sb_user_id") || "";
-        if(cachedUid) mdSetActiveUserScope(cachedUid);
-      }catch(e){}
-    }
-
     const bestLocal = mdChooseBestLocalSnapshotSync();
     if(bestLocal){
       try{ mdWriteLS(STORAGE_KEY, JSON.stringify(bestLocal)); }catch(e){}
@@ -4034,7 +4039,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v135',
+      app_version: 'MetaDriver v138',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -4911,9 +4916,33 @@ function salvarHoras(){
 }
 
 
+
+function horaAtualLancamento(){
+  try{
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    return hh + ":" + mm;
+  }catch(e){
+    return "00:00";
+  }
+}
+function itemOrderTs(item){
+  try{
+    const data = String((item && item.data) || "").slice(0,10);
+    const hora = String((item && (item.hora || item.horario)) || "00:00").slice(0,5);
+    if(!data) return 0;
+    const iso = data + "T" + hora + ":00";
+    const ts = new Date(iso).getTime();
+    return Number.isFinite(ts) ? ts : 0;
+  }catch(e){
+    return 0;
+  }
+}
+
 function addGanho(){
   const valor = parseFloat(document.getElementById("valorGanho").value);
-  const app = document.getElementById("descricaoGanho").value.trim() || "Sem descrição";
+  const app = document.getElementById("appGanho").value;
   let data = document.getElementById("dataGanho").value;
 
   if(data === hojeISO()){
@@ -4921,6 +4950,7 @@ function addGanho(){
   }
 
   if(!isNaN(valor) && data){
+    const hora = horaAtualLancamento();
     const detalhe = (window.dados && dados.ultimoGanhoDetalhado && Number(dados.ultimoGanhoDetalhado.total || 0) === Number(valor))
       ? { uber: Number(dados.ultimoGanhoDetalhado.uber || 0), n99: Number(dados.ultimoGanhoDetalhado.n99 || 0) }
       : { uber: 0, n99: 0 };
@@ -4931,6 +4961,7 @@ function addGanho(){
       if(detalhe.uber > 0){
         dados.ganhos.push({
           data,
+          hora,
           app: appBase ? appBase + " - Uber" : "Uber",
           valor: detalhe.uber,
           uber: detalhe.uber,
@@ -4940,6 +4971,7 @@ function addGanho(){
       if(detalhe.n99 > 0){
         dados.ganhos.push({
           data,
+          hora,
           app: appBase ? appBase + " - 99" : "99",
           valor: detalhe.n99,
           uber: 0,
@@ -4947,7 +4979,7 @@ function addGanho(){
         });
       }
     }else{
-      dados.ganhos.push({data, app, valor, uber: 0, n99: 0});
+      dados.ganhos.push({data, hora, app, valor, uber: 0, n99: 0});
     }
 
     salvar();
@@ -4964,16 +4996,15 @@ function syncGanhoDoSaldoRapido(valorSaldoAtual, uberPart, n99Part){
   const uber = Number(uberPart || 0);
   const n99 = Number(n99Part || 0);
   const dataRef = dataUberISO();
+  const hora = horaAtualLancamento();
   if(!Array.isArray(dados.ganhos)) dados.ganhos = [];
 
-  // Prioridade 1: lançamento manual já existente na data
   let idx = dados.ganhos.findIndex(g =>
     g &&
     String(g.data || "").slice(0,10) === dataRef &&
     String(g.app || "").trim() !== "Saldo atual (botão)"
   );
 
-  // Prioridade 2: lançamento já criado pelo botão na data
   if(idx < 0){
     idx = dados.ganhos.findIndex(g =>
       g &&
@@ -4983,13 +5014,13 @@ function syncGanhoDoSaldoRapido(valorSaldoAtual, uberPart, n99Part){
   }
 
   if(idx >= 0){
-    // remove o registro agregado antigo para recriar separado
     dados.ganhos.splice(idx, 1);
   }
 
   if(uber > 0){
     dados.ganhos.push({
       data: dataRef,
+      hora,
       app: "Uber",
       valor: uber,
       uber,
@@ -4999,6 +5030,7 @@ function syncGanhoDoSaldoRapido(valorSaldoAtual, uberPart, n99Part){
   if(n99 > 0){
     dados.ganhos.push({
       data: dataRef,
+      hora,
       app: "99",
       valor: n99,
       uber: 0,
@@ -5008,6 +5040,7 @@ function syncGanhoDoSaldoRapido(valorSaldoAtual, uberPart, n99Part){
   if(uber <= 0 && n99 <= 0 && valor > 0){
     dados.ganhos.push({
       data: dataRef,
+      hora,
       app: "Saldo atual (botão)",
       valor,
       uber: 0,
@@ -5027,7 +5060,7 @@ function addGasto(){
   }
 
   if(!isNaN(valor) && data){
-    dados.gastos.push({data, desc: desc || "Gasto", valor});
+    dados.gastos.push({data, hora: horaAtualLancamento(), desc: desc || "Gasto", valor});
     salvar();
     atualizar();
     document.getElementById("valorGasto").value="";
@@ -5041,7 +5074,7 @@ function addAbastecimento(){
   const valor = parseFloat(document.getElementById("valorAbastecimento").value);
   const data = document.getElementById("dataAbastecimento").value;
   if(!isNaN(valor) && data){
-    dados.abastecimentos.push({data, valor});
+    dados.abastecimentos.push({data, hora: horaAtualLancamento(), valor});
     salvar();
     atualizar();
     document.getElementById("valorAbastecimento").value="";
@@ -6375,9 +6408,9 @@ function exportarRelatorioPDF(){
   const liquido = bruto - combustivelDisponivel - gastosExtras;
   const saldoTotal = liquido + saldoCombustivel;
 
-  const ganhosOrdenados = dados.ganhos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
-  const gastosOrdenados = dados.gastos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
-  const abastecOrdenados = dados.abastecimentos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
+  const ganhosOrdenados = dados.ganhos.slice().sort((a,b)=> itemOrderTs(b) - itemOrderTs(a));
+  const gastosOrdenados = dados.gastos.slice().sort((a,b)=> itemOrderTs(b) - itemOrderTs(a));
+  const abastecOrdenados = dados.abastecimentos.slice().sort((a,b)=> itemOrderTs(b) - itemOrderTs(a));
 
   const hoje = uberHojeMidnight();
   let diasCalendario = 0;
@@ -6551,7 +6584,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v135 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v138 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -6842,12 +6875,12 @@ const fuelCfg = getCombustivelConfig(bruto);
     "<span style=\"white-space:nowrap;\">Saldo total 💰+⛽: <span class='" + ((liquido + saldoCombustivel) < 0 ? "dangerText" : "highlight") + "'>R$ " + (liquido + saldoCombustivel).toFixed(2) + "</span></span>"
 
   document.getElementById("listaGanhos").innerHTML =
-    dados.ganhos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0)).map(item=>{
+    dados.ganhos.slice().sort((a,b)=> itemOrderTs(b) - itemOrderTs(a)).map(item=>{
       const idx = dados.ganhos.indexOf(item);
       return `
         <div class="list-item">
           <div class="list-left">
-            <span class="li-date">${item.data}</span>
+            <span class="li-date-wrap"><span class="li-date">${item.data}</span><span class="li-time">${item.hora || item.horario || "--:--"}</span></span>
             <span class="li-app">• ${item.app}</span>
             <span class="li-value ${Number(item.valor) < 0 ? 'dangerText' : ''}">• R$ ${Number(item.valor).toFixed(2)}</span>
           </div>
@@ -6862,12 +6895,12 @@ const fuelCfg = getCombustivelConfig(bruto);
         </div>`;
     }).join("");
 document.getElementById("listaGastos").innerHTML =
-    dados.gastos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0)).map(item=>{
+    dados.gastos.slice().sort((a,b)=> itemOrderTs(b) - itemOrderTs(a)).map(item=>{
       const idx = dados.gastos.indexOf(item);
       return `
         <div class="list-item">
           <div class="list-left">
-            <span class="li-date">${item.data}</span>
+            <span class="li-date-wrap"><span class="li-date">${item.data}</span><span class="li-time">${item.hora || item.horario || "--:--"}</span></span>
             <span class="li-desc">• ${item.desc}</span>
             <span class="li-value ${Number(item.valor) < 0 ? 'dangerText' : ''}">• R$ ${Number(item.valor).toFixed(2)}</span>
           </div>
@@ -6883,12 +6916,12 @@ document.getElementById("listaGastos").innerHTML =
     }).join("");
 
   document.getElementById("listaAbastecimentos").innerHTML =
-    dados.abastecimentos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0)).map(item=>{
+    dados.abastecimentos.slice().sort((a,b)=> itemOrderTs(b) - itemOrderTs(a)).map(item=>{
       const idx = dados.abastecimentos.indexOf(item);
       return `
         <div class="list-item">
           <div class="list-left">
-            <span class="li-date">${item.data}</span>
+            <span class="li-date-wrap"><span class="li-date">${item.data}</span><span class="li-time">${item.hora || item.horario || "--:--"}</span></span>
             <span class="li-value ${Number(item.valor) < 0 ? 'dangerText' : ''}">• R$ ${Number(item.valor).toFixed(2)}</span>
           </div>
           <div class="action-menu">
@@ -6912,7 +6945,7 @@ document.getElementById("listaGastos").innerHTML =
         return `
           <div class="list-item">
             <div class="list-left">
-              <span class="li-date">${item.data}</span>
+              <span class="li-date-wrap"><span class="li-date">${item.data}</span><span class="li-time">${item.hora || item.horario || "--:--"}</span></span>
               <span class="li-desc">${motivo}</span>
             </div>
             <div class="action-menu">
@@ -9052,13 +9085,36 @@ window.addEventListener("load", function(){
 </script>
 
 <style id="quick-balance-fullscreen-fix">
-.quick-balance-title,.quick-balance-sub,.quick-balance-display-top,.quick-balance-split{display:none !important;}
-.quick-balance-display{height:88px !important; min-height:88px !important; margin-bottom:8px !important; flex:0 0 auto;}
-.quick-balance-display-inner{border-radius:16px !important;}
-.quick-balance-display-bottom{padding:6px 10px !important;}
-.quick-balance-value{font-size:min(14vw,56px) !important;}
-.quick-balance-keypad{flex:1 1 auto; height:auto !important; min-height:0 !important; grid-auto-rows:minmax(54px,1fr) !important; align-content:stretch !important; margin-bottom:8px !important;}
-.quick-balance-key{font-size:26px !important; min-height:0 !important; height:100% !important;}
-.quick-balance-actions{flex:0 0 auto; margin-top:0 !important;}
-.quick-balance-actions button{min-height:52px !important; font-size:17px !important;}
+.quick-balance-title,
+.quick-balance-sub,
+.quick-balance-display-top,
+.quick-balance-split{
+  display:none !important;
+}
+.quick-balance-display{
+  min-height:88px !important;
+  flex:0 0 auto;
+  margin-bottom:8px !important;
+}
+.quick-balance-display-inner{
+  border-radius:16px !important;
+  width:100% !important;
+}
+.quick-balance-display-bottom{
+  padding:6px 10px !important;
+}
+.quick-balance-value{
+  font-size:min(14vw,56px) !important;
+}
+.quick-balance-keypad{
+  margin-bottom:8px !important;
+}
+.quick-balance-key{
+  min-height:0 !important;
+  height:100% !important;
+}
+.quick-balance-actions{
+  flex:0 0 auto;
+  margin-top:0 !important;
+}
 </style>
