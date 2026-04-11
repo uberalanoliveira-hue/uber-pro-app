@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v131</title>
+<title>MetaDriver v134</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -893,16 +893,19 @@ input.negative-value, input.negative-value::placeholder{
   position:fixed;
   right:12px;
   left:12px;
-  bottom:24px;
+  top:max(6px, env(safe-area-inset-top));
+  bottom:max(10px, env(safe-area-inset-bottom));
   z-index:1201;
   background:rgba(15,23,42,.985);
   border:1px solid rgba(255,255,255,.12);
   border-radius:22px;
   box-shadow:0 24px 60px rgba(0,0,0,.5);
-  padding:16px;
+  padding:12px 14px;
   display:none;
   max-width:460px;
   margin-left:auto;
+  max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px);
+  overflow:auto;
 }
 .quick-balance-panel.show{display:block;}
 .quick-balance-title{
@@ -921,7 +924,7 @@ input.negative-value, input.negative-value::placeholder{
   display:flex;
   align-items:center;
   justify-content:center;
-  height:24vh;
+  height:min(20dvh, 132px);
   border-radius:22px;
   border:2px solid rgba(255,255,255,.38);
   background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
@@ -975,14 +978,14 @@ input.negative-value, input.negative-value::placeholder{
   display:grid;
   grid-template-columns:repeat(3, 1fr);
   gap:10px;
-  height:40vh;
+  height:min(34dvh, 270px);
 }
 
 
 .quick-balance-key{
   border:none;
   border-radius:18px;
-  font-size:32px;
+  font-size:28px;
   font-weight:900;
   background:rgba(255,255,255,.08);
   color:#fff;
@@ -1002,8 +1005,8 @@ input.negative-value, input.negative-value::placeholder{
   margin-top:12px;
 }
 .quick-balance-actions button{
-  min-height:64px;
-  font-size:20px;
+  min-height:56px;
+  font-size:18px;
   font-weight:900;
   border-radius:18px;
 }
@@ -2973,7 +2976,7 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v131</div>
+  <div class="menu-note" style="text-align:center;">v134</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -3875,6 +3878,14 @@ salvar = function(){
   }catch(e){}
   const r = window.__salvarLocalOriginal.apply(this, arguments);
   try{ __cloudDirty = true; }catch(e){}
+  try{
+    if(typeof dados === "object" && dados){
+      const snap = JSON.parse(JSON.stringify(dados));
+      Promise.resolve().then(function(){ return cloudPushNow(snap); }).catch(function(){});
+    }else{
+      Promise.resolve().then(function(){ return cloudPushNow(); }).catch(function(){});
+    }
+  }catch(e){}
   try{ cloudScheduleSave(); }catch(e){}
   return r;
 }
@@ -4013,7 +4024,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v131',
+      app_version: 'MetaDriver v134',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -4385,7 +4396,7 @@ async function cloudPushNow(snapshotOverride){
     if(!user || !user.id) return false;
 
     const source = snapshotOverride && snapshotOverride.payload ? snapshotOverride.payload : (snapshotOverride || dados);
-    if(!source || !cloudHasUsefulData(source)) return false;
+    if(!source || typeof source !== "object") return false;
 
     const payloadToSend = JSON.parse(JSON.stringify(source));
     mdEnsureDataMeta(payloadToSend);
@@ -4402,6 +4413,7 @@ async function cloudPushNow(snapshotOverride){
       CLOUD_SUPABASE_URL + "/rest/v1/" + CLOUD_TABLE + "?on_conflict=user_id",
       {
         method: "POST",
+        keepalive: true,
         headers: {
           "apikey": CLOUD_SUPABASE_KEY,
           "Authorization": "Bearer " + token,
@@ -4450,6 +4462,15 @@ async function cloudBoot(force){
       localStorage.setItem("sb_user_id", user.id);
     }catch(e){}
 
+    // Re-hidratar local correto APÓS ativar o escopo do usuário.
+    try{
+      const scopedLocal = mdChooseBestLocalSnapshotSync();
+      if(scopedLocal && !mdShouldBlockSnapshot(scopedLocal)){
+        dados = JSON.parse(JSON.stringify(scopedLocal));
+        mdEnsureDataMeta(dados);
+      }
+    }catch(e){}
+
     const remoteRow = await cloudFetchRow(token, user.id);
     const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
     const remoteData = remoteWrapped && remoteWrapped.snapshot ? remoteWrapped.snapshot : (remoteRow && remoteRow.payload ? remoteRow.payload : null);
@@ -4463,7 +4484,7 @@ async function cloudBoot(force){
     }
 
     if(cloudHasUsefulData(dados)){
-      cloudPushNow();
+      cloudPushNow(JSON.parse(JSON.stringify(dados)));
     }
   }catch(e){
     console.warn("cloudBoot", e);
@@ -4474,16 +4495,6 @@ async function cloudBoot(force){
 
 async function mdInitialHydrateAndRender(){
   try{
-    const localBest = mdPickBestSnapshot([
-      { snapshot: dados },
-      { snapshot: (typeof mdReadOfflineSafeSnapshot === "function" ? mdReadOfflineSafeSnapshot() : null) }
-    ]) || dados;
-    const localUseful = cloudHasUsefulData(localBest);
-    const localTs = new Date(
-      (localBest && (localBest.__cloud_updated_at || localBest.__updated_at || localBest.__last_local_write_at)) || 0
-    ).getTime() || 0;
-    const localSeq = Number((localBest && localBest.__local_commit_seq) || 0);
-
     let token = cloudGetStoredTokenSync();
     if(!token){
       try{ token = await cloudGetToken(); }catch(e){}
@@ -4497,6 +4508,23 @@ async function mdInitialHydrateAndRender(){
       }
     }
 
+    // Só depois de ativar o escopo é que escolhemos o melhor snapshot local.
+    const localBest = mdPickBestSnapshot([
+      { snapshot: dados },
+      { snapshot: (typeof mdReadOfflineSafeSnapshot === "function" ? mdReadOfflineSafeSnapshot() : null) },
+      { snapshot: (typeof mdChooseBestLocalSnapshotSync === "function" ? mdChooseBestLocalSnapshotSync() : null) }
+    ]) || dados;
+
+    if(localBest && localBest !== dados && !mdShouldBlockSnapshot(localBest)){
+      dados = JSON.parse(JSON.stringify(localBest));
+      mdEnsureDataMeta(dados);
+    }
+
+    const localUseful = cloudHasUsefulData(dados);
+    const localTs = new Date(
+      (dados && (dados.__cloud_updated_at || dados.__updated_at || dados.__last_local_write_at)) || 0
+    ).getTime() || 0;
+
     let remoteSnapshot = null;
     let remoteRowUpdatedAt = 0;
     if(token && userId){
@@ -4507,27 +4535,14 @@ async function mdInitialHydrateAndRender(){
     }
 
     const remoteUseful = !!(remoteSnapshot && cloudHasUsefulData(remoteSnapshot));
-    const remoteSeq = Number((remoteSnapshot && remoteSnapshot.__local_commit_seq) || 0);
     const remoteTs = Math.max(
       remoteRowUpdatedAt,
       new Date((remoteSnapshot && (remoteSnapshot.__cloud_updated_at || remoteSnapshot.__updated_at || remoteSnapshot.__last_local_write_at)) || 0).getTime() || 0
     );
 
-    const shouldApplyRemote = !!(
-      remoteUseful &&
-      (
-        !localUseful ||
-        remoteSeq > localSeq ||
-        (remoteSeq === localSeq && remoteTs >= localTs)
-      )
-    );
-
-    if(shouldApplyRemote){
+    if(remoteUseful && (remoteTs >= localTs || !localUseful)){
       try{ if(userId) mdSetActiveUserScope(userId); }catch(e){}
       mdApplyExternalSnapshot(remoteSnapshot, "remote-hydrate", false);
-    }else if(localBest && localBest !== dados && !mdShouldBlockSnapshot(localBest)){
-      dados = JSON.parse(JSON.stringify(localBest));
-      mdEnsureDataMeta(dados);
     }
   }catch(e){}
   try{ atualizar(); }catch(e){}
@@ -4537,7 +4552,7 @@ async function mdInitialHydrateAndRender(){
 window.addEventListener("pagehide", function(){
   try{ cloudPushNow(); }catch(e){}
 });
-window.addEventListener("beforeunload", function(){ try{ cloudPushNow(); }catch(e){} });
+window.addEventListener("beforeunload", function(){ try{ cloudPushNow(JSON.parse(JSON.stringify(dados || {}))); }catch(e){} });
 window.addEventListener("online", function(){ try{ if(__cloudDirty || (cloudReadPendingSnapshot() && cloudReadPendingSnapshot().payload)) cloudPushNow(); }catch(e){} });
 // v57 - salva scroll continuamente
 window.addEventListener('scroll', function(){
@@ -4546,7 +4561,7 @@ window.addEventListener('scroll', function(){
 
 document.addEventListener("visibilitychange", function(){
   try{
-    if(document.visibilityState === "hidden") cloudPushNow();
+    if(document.visibilityState === "hidden") cloudPushNow(JSON.parse(JSON.stringify(dados || {})));
   }catch(e){}
 });
 // v57 - save inteligente a cada 60s: só envia pra nuvem se houve mudança real
@@ -6526,7 +6541,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v131 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v134 · app</div>
 </body>
     </html>  `);
   w.document.close();
