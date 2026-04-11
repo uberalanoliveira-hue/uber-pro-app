@@ -904,21 +904,27 @@ input.negative-value, input.negative-value::placeholder{
 .quick-balance-overlay.show{display:block;}
 .quick-balance-panel{
   position:fixed;
-  inset:0;
+  top:0;
+  right:0;
+  bottom:0;
+  left:0;
+  width:100vw;
+  height:100dvh;
   z-index:1201;
-  background:rgba(15,23,42,.995);
+  background:rgba(15,23,42,1);
   border:none;
   border-radius:0;
   box-shadow:none;
   padding:max(8px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
   display:none;
-  max-width:none;
   margin:0;
-  max-height:none;
   overflow:hidden;
-  flex-direction:column;
+  box-sizing:border-box;
+  display:none;
+  grid-template-rows:auto 1fr auto;
+  gap:8px;
 }
-.quick-balance-panel.show{display:flex;}
+.quick-balance-panel.show{display:grid;}
 .quick-balance-title{
   font-weight:900;
   font-size:20px;
@@ -935,7 +941,7 @@ input.negative-value, input.negative-value::placeholder{
   display:flex;
   align-items:center;
   justify-content:center;
-  height:88px;
+  height:76px;
   border-radius:22px;
   border:2px solid rgba(255,255,255,.38);
   background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
@@ -989,10 +995,9 @@ input.negative-value, input.negative-value::placeholder{
   display:grid;
   grid-template-columns:repeat(3, 1fr);
   gap:10px;
-  flex:1 1 auto;
   min-height:0;
-  height:auto;
-  grid-auto-rows:minmax(54px,1fr);
+  height:100%;
+  grid-auto-rows:minmax(52px,1fr);
   align-content:stretch;
 }
 
@@ -2873,6 +2878,82 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 #saldoAtualFora[readonly]{
   opacity:.78 !important;
   cursor:not-allowed !important;
+}
+
+
+.quick-balance-title,
+.quick-balance-sub,
+.quick-balance-display-top,
+.quick-balance-split{
+  display:none !important;
+}
+.quick-balance-display{
+  min-height:88px !important;
+  flex:0 0 auto;
+  margin-bottom:8px !important;
+}
+.quick-balance-display-inner{
+  width:100% !important;
+  border-radius:16px !important;
+}
+.quick-balance-display-bottom{
+  padding:6px 10px !important;
+}
+.quick-balance-value{
+  font-size:min(14vw,56px) !important;
+}
+.quick-balance-keypad{
+  margin-bottom:8px !important;
+}
+.quick-balance-key{
+  min-height:0 !important;
+  height:100% !important;
+}
+.quick-balance-actions{
+  margin-top:0 !important;
+}
+
+
+.quick-balance-overlay{
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100dvh !important;
+}
+.quick-balance-panel{
+  max-width:none !important;
+  max-height:none !important;
+}
+.quick-balance-title,
+.quick-balance-sub,
+.quick-balance-display-top,
+.quick-balance-split{
+  display:none !important;
+}
+.quick-balance-display{
+  min-height:76px !important;
+  margin:0 !important;
+}
+.quick-balance-display-inner{
+  width:100% !important;
+  height:100% !important;
+}
+.quick-balance-display-bottom{
+  padding:4px 8px !important;
+}
+.quick-balance-value{
+  font-size:min(13vw,52px) !important;
+}
+.quick-balance-keypad{
+  margin:0 !important;
+}
+.quick-balance-actions{
+  display:grid !important;
+  grid-template-columns:1fr 1fr 1fr !important;
+  gap:10px !important;
+}
+.quick-balance-actions button{
+  min-height:50px !important;
 }
 
 </style>
@@ -4932,8 +5013,7 @@ function itemOrderTs(item){
     const data = String((item && item.data) || "").slice(0,10);
     const hora = String((item && (item.hora || item.horario)) || "00:00").slice(0,5);
     if(!data) return 0;
-    const iso = data + "T" + hora + ":00";
-    const ts = new Date(iso).getTime();
+    const ts = new Date(data + "T" + hora + ":00").getTime();
     return Number.isFinite(ts) ? ts : 0;
   }catch(e){
     return 0;
@@ -4942,7 +5022,7 @@ function itemOrderTs(item){
 
 function addGanho(){
   const valor = parseFloat(document.getElementById("valorGanho").value);
-  const app = document.getElementById("appGanho").value;
+  const app = document.getElementById("descricaoGanho").value.trim() || "Sem descrição";
   let data = document.getElementById("dataGanho").value;
 
   if(data === hojeISO()){
@@ -4955,28 +5035,12 @@ function addGanho(){
       ? { uber: Number(dados.ultimoGanhoDetalhado.uber || 0), n99: Number(dados.ultimoGanhoDetalhado.n99 || 0) }
       : { uber: 0, n99: 0 };
 
-    const appBase = String(app || "").trim();
-
     if(detalhe.uber > 0 || detalhe.n99 > 0){
       if(detalhe.uber > 0){
-        dados.ganhos.push({
-          data,
-          hora,
-          app: appBase ? appBase + " - Uber" : "Uber",
-          valor: detalhe.uber,
-          uber: detalhe.uber,
-          n99: 0
-        });
+        dados.ganhos.push({data, hora, app: app + " - Uber", valor: detalhe.uber, uber: detalhe.uber, n99: 0});
       }
       if(detalhe.n99 > 0){
-        dados.ganhos.push({
-          data,
-          hora,
-          app: appBase ? appBase + " - 99" : "99",
-          valor: detalhe.n99,
-          uber: 0,
-          n99: detalhe.n99
-        });
+        dados.ganhos.push({data, hora, app: app + " - 99", valor: detalhe.n99, uber: 0, n99: detalhe.n99});
       }
     }else{
       dados.ganhos.push({data, hora, app, valor, uber: 0, n99: 0});
@@ -5018,34 +5082,13 @@ function syncGanhoDoSaldoRapido(valorSaldoAtual, uberPart, n99Part){
   }
 
   if(uber > 0){
-    dados.ganhos.push({
-      data: dataRef,
-      hora,
-      app: "Uber",
-      valor: uber,
-      uber,
-      n99: 0
-    });
+    dados.ganhos.push({ data:dataRef, hora, app:"Uber", valor:uber, uber, n99:0 });
   }
   if(n99 > 0){
-    dados.ganhos.push({
-      data: dataRef,
-      hora,
-      app: "99",
-      valor: n99,
-      uber: 0,
-      n99
-    });
+    dados.ganhos.push({ data:dataRef, hora, app:"99", valor:n99, uber:0, n99 });
   }
   if(uber <= 0 && n99 <= 0 && valor > 0){
-    dados.ganhos.push({
-      data: dataRef,
-      hora,
-      app: "Saldo atual (botão)",
-      valor,
-      uber: 0,
-      n99: 0
-    });
+    dados.ganhos.push({ data:dataRef, hora, app:"Saldo atual (botão)", valor, uber:0, n99:0 });
   }
 }
 
@@ -6408,9 +6451,9 @@ function exportarRelatorioPDF(){
   const liquido = bruto - combustivelDisponivel - gastosExtras;
   const saldoTotal = liquido + saldoCombustivel;
 
-  const ganhosOrdenados = dados.ganhos.slice().sort((a,b)=> itemOrderTs(b) - itemOrderTs(a));
-  const gastosOrdenados = dados.gastos.slice().sort((a,b)=> itemOrderTs(b) - itemOrderTs(a));
-  const abastecOrdenados = dados.abastecimentos.slice().sort((a,b)=> itemOrderTs(b) - itemOrderTs(a));
+  const ganhosOrdenados = dados.ganhos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
+  const gastosOrdenados = dados.gastos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
+  const abastecOrdenados = dados.abastecimentos.slice().sort((a,b)=> (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
 
   const hoje = uberHojeMidnight();
   let diasCalendario = 0;
@@ -6945,7 +6988,7 @@ document.getElementById("listaGastos").innerHTML =
         return `
           <div class="list-item">
             <div class="list-left">
-              <span class="li-date-wrap"><span class="li-date">${item.data}</span><span class="li-time">${item.hora || item.horario || "--:--"}</span></span>
+              <span class="li-date">${item.data}</span>
               <span class="li-desc">${motivo}</span>
             </div>
             <div class="action-menu">
@@ -9083,38 +9126,3 @@ window.addEventListener("load", function(){
   }catch(e){}
 })();
 </script>
-
-<style id="quick-balance-fullscreen-fix">
-.quick-balance-title,
-.quick-balance-sub,
-.quick-balance-display-top,
-.quick-balance-split{
-  display:none !important;
-}
-.quick-balance-display{
-  min-height:88px !important;
-  flex:0 0 auto;
-  margin-bottom:8px !important;
-}
-.quick-balance-display-inner{
-  border-radius:16px !important;
-  width:100% !important;
-}
-.quick-balance-display-bottom{
-  padding:6px 10px !important;
-}
-.quick-balance-value{
-  font-size:min(14vw,56px) !important;
-}
-.quick-balance-keypad{
-  margin-bottom:8px !important;
-}
-.quick-balance-key{
-  min-height:0 !important;
-  height:100% !important;
-}
-.quick-balance-actions{
-  flex:0 0 auto;
-  margin-top:0 !important;
-}
-</style>
