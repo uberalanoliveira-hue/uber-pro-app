@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v150</title>
+<title>MetaDriver v151</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -3012,6 +3012,26 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   display:block !important;
 }
 
+
+/* v151 MetaDriver keyboards bottom-fixed with content height only */
+#metaTotalPanel{
+  overflow:visible !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+}
+#metaTotalPanel.show{
+  display:inline-flex !important;
+  flex-direction:column !important;
+}
+#metaTotalPanel .quick-balance-keypad{
+  flex:0 0 auto !important;
+  height:auto !important;
+}
+#metaTotalPanel .quick-balance-actions{
+  flex:0 0 auto !important;
+}
+
 </style>
 
 <script id="auth-guard">
@@ -3144,7 +3164,7 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v150</div>
+  <div class="menu-note" style="text-align:center;">v151</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -4192,7 +4212,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v150',
+      app_version: 'MetaDriver v151',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -6773,7 +6793,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v150 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v151 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -7294,8 +7314,11 @@ function positionMetaTotalKeypad(){
   panel.style.maxWidth = 'calc(100vw - ' + (margin * 2) + 'px)';
   panel.style.top = 'auto';
   panel.style.bottom = '12px';
-  panel.style.maxHeight = '';
-  panel.style.overflowY = '';
+  panel.style.height = 'auto';
+  panel.style.minHeight = '0';
+  panel.style.maxHeight = 'none';
+  panel.style.overflow = 'visible';
+  panel.style.overflowY = 'visible';
 }
 
 function toggleMetaTotalKeypad(forceOpen, targetId){
