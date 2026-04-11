@@ -6,7 +6,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MetaDriver v145 · reset</title>
+<title>MetaDriver v147 · reset</title>
 <style>
 :root { color-scheme: dark; }
 * { box-sizing: border-box; }
@@ -93,6 +93,22 @@ button {
   font-weight:700;
   letter-spacing:.2px;
   opacity:.95;
+}
+
+
+/* FIX MetaDriver keyboards */
+.meta-total-panel .quick-balance-actions{
+  display:flex !important;
+  gap:10px;
+}
+.meta-total-panel .quick-balance-actions button{
+  flex:1 !important;
+  height:70px !important;
+  min-height:70px !important;
+  max-height:80px !important;
+}
+.meta-total-panel .quick-balance-keypad{
+  flex:1 !important;
 }
 
 </style>
@@ -279,6 +295,6 @@ button {
   boot();
 })();
 </script>
-<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v145 · reset</div>
+<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v147 · reset</div>
 </body>
 </html>

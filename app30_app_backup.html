@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v145</title>
+<title>MetaDriver v147</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -2987,6 +2987,22 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 .quick-balance-actions button{
   min-height:50px;
 }
+
+/* FIX MetaDriver keyboards */
+.meta-total-panel .quick-balance-actions{
+  display:flex !important;
+  gap:10px;
+}
+.meta-total-panel .quick-balance-actions button{
+  flex:1 !important;
+  height:70px !important;
+  min-height:70px !important;
+  max-height:80px !important;
+}
+.meta-total-panel .quick-balance-keypad{
+  flex:1 !important;
+}
+
 </style>
 
 <script id="auth-guard">
@@ -3051,6 +3067,22 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   padding-bottom:14px !important;
 }
 
+
+/* FIX MetaDriver keyboards */
+.meta-total-panel .quick-balance-actions{
+  display:flex !important;
+  gap:10px;
+}
+.meta-total-panel .quick-balance-actions button{
+  flex:1 !important;
+  height:70px !important;
+  min-height:70px !important;
+  max-height:80px !important;
+}
+.meta-total-panel .quick-balance-keypad{
+  flex:1 !important;
+}
+
 </style>
 
 
@@ -3103,7 +3135,7 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v145</div>
+  <div class="menu-note" style="text-align:center;">v147</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -4151,7 +4183,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v145',
+      app_version: 'MetaDriver v147',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -6663,6 +6695,22 @@ function exportarRelatorioPDF(){
   padding-bottom:14px !important;
 }
 
+
+/* FIX MetaDriver keyboards */
+.meta-total-panel .quick-balance-actions{
+  display:flex !important;
+  gap:10px;
+}
+.meta-total-panel .quick-balance-actions button{
+  flex:1 !important;
+  height:70px !important;
+  min-height:70px !important;
+  max-height:80px !important;
+}
+.meta-total-panel .quick-balance-keypad{
+  flex:1 !important;
+}
+
 </style>
     </head>
     <body>
@@ -6716,7 +6764,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v145 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v147 · app</div>
 </body>
     </html>  `);
   w.document.close();
