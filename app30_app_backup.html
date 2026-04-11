@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v152</title>
+<title>MetaDriver v153</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -2988,95 +2988,66 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   min-height:50px;
 }
 
-/* FIX MetaDriver keyboards */
-.meta-total-panel .quick-balance-actions{
-  display:flex !important;
-  gap:10px;
-}
-.meta-total-panel .quick-balance-actions button{
-  flex:1 !important;
-  height:70px !important;
-  min-height:70px !important;
-  max-height:80px !important;
-}
-.meta-total-panel .quick-balance-keypad{
-  flex:1 !important;
-}
-
-
-/* v150 MetaDriver keyboards fixed bottom, no internal scroll */
-#metaTotalPanel{
-  overflow:hidden !important;
-}
-#metaTotalPanel.show{
-  display:block !important;
-}
-
-
-/* v151 MetaDriver keyboards bottom-fixed with content height only */
-#metaTotalPanel{
-  overflow:visible !important;
-  height:auto !important;
-  min-height:0 !important;
-  max-height:none !important;
-}
-#metaTotalPanel.show{
-  display:inline-flex !important;
-  flex-direction:column !important;
-}
-#metaTotalPanel .quick-balance-keypad{
-  flex:0 0 auto !important;
-  height:auto !important;
-}
-#metaTotalPanel .quick-balance-actions{
-  flex:0 0 auto !important;
-}
-
-
-/* v152 MetaDriver keyboard: half-screen fixed to bottom */
-#metaTotalPanel{
+/* v153 MetaDriver keyboard only */
+.meta-total-panel{
+  left:0 !important;
+  right:0 !important;
+  top:auto !important;
+  bottom:0 !important;
+  width:100vw !important;
+  max-width:100vw !important;
+  margin:0 !important;
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom)) !important;
+  border-radius:18px 18px 0 0 !important;
   overflow:hidden !important;
   box-sizing:border-box !important;
+  background:rgba(15,23,42,.995) !important;
 }
-#metaTotalPanel.show{
+.meta-total-panel.show{
   display:flex !important;
   flex-direction:column !important;
   justify-content:space-between !important;
-  padding:10px 12px calc(10px + env(safe-area-inset-bottom)) !important;
-  border-radius:18px 18px 0 0 !important;
 }
-#metaTotalPanel .quick-balance-display{
+.meta-total-panel .quick-balance-display{
   flex:0 0 auto !important;
   height:72px !important;
   min-height:72px !important;
   margin-bottom:10px !important;
 }
-#metaTotalPanel .quick-balance-keypad{
+.meta-total-panel .quick-balance-display-inner{
+  width:100% !important;
+  height:100% !important;
+}
+.meta-total-panel .quick-balance-keypad{
   flex:1 1 auto !important;
-  min-height:0 !important;
-  height:auto !important;
   display:grid !important;
   grid-template-columns:repeat(3, 1fr) !important;
   grid-auto-rows:minmax(48px,1fr) !important;
   gap:10px !important;
+  min-height:0 !important;
+  height:auto !important;
   align-content:stretch !important;
   margin-bottom:10px !important;
 }
-#metaTotalPanel .quick-balance-key{
-  height:100% !important;
+.meta-total-panel .quick-balance-key{
   min-height:0 !important;
+  height:100% !important;
+  font-size:22px !important;
+  border-radius:12px !important;
 }
-#metaTotalPanel .quick-balance-actions{
+.meta-total-panel .quick-balance-actions{
   flex:0 0 auto !important;
   display:flex !important;
   gap:10px !important;
   margin-top:0 !important;
 }
-#metaTotalPanel .quick-balance-actions button{
+.meta-total-panel .quick-balance-actions button{
   flex:1 1 0 !important;
   height:58px !important;
   min-height:58px !important;
   max-height:58px !important;
+  font-size:16px !important;
+  border-radius:12px !important;
 }
 
 </style>
@@ -3143,22 +3114,6 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   padding-bottom:14px !important;
 }
 
-
-/* FIX MetaDriver keyboards */
-.meta-total-panel .quick-balance-actions{
-  display:flex !important;
-  gap:10px;
-}
-.meta-total-panel .quick-balance-actions button{
-  flex:1 !important;
-  height:70px !important;
-  min-height:70px !important;
-  max-height:80px !important;
-}
-.meta-total-panel .quick-balance-keypad{
-  flex:1 !important;
-}
-
 </style>
 
 
@@ -3211,7 +3166,7 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v152</div>
+  <div class="menu-note" style="text-align:center;">v153</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -4259,7 +4214,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v152',
+      app_version: 'MetaDriver v153',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -6771,22 +6726,6 @@ function exportarRelatorioPDF(){
   padding-bottom:14px !important;
 }
 
-
-/* FIX MetaDriver keyboards */
-.meta-total-panel .quick-balance-actions{
-  display:flex !important;
-  gap:10px;
-}
-.meta-total-panel .quick-balance-actions button{
-  flex:1 !important;
-  height:70px !important;
-  min-height:70px !important;
-  max-height:80px !important;
-}
-.meta-total-panel .quick-balance-keypad{
-  flex:1 !important;
-}
-
 </style>
     </head>
     <body>
@@ -6840,7 +6779,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v152 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v153 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -7325,11 +7264,9 @@ function ensureLancamentoInputVisibleAboveKeypad(){
     const desiredBottom = panelRect.top - marginBottom;
 
     if(rect.bottom > desiredBottom){
-      const delta = rect.bottom - desiredBottom + marginTop;
-      window.scrollBy({ top: delta, left: 0, behavior: "instant" });
+      window.scrollBy({ top: rect.bottom - desiredBottom + marginTop, left: 0, behavior: "instant" });
     }else if(rect.top < marginTop){
-      const deltaUp = rect.top - marginTop;
-      window.scrollBy({ top: deltaUp, left: 0, behavior: "instant" });
+      window.scrollBy({ top: rect.top - marginTop, left: 0, behavior: "instant" });
     }
 
     setTimeout(function(){
@@ -7338,8 +7275,7 @@ function ensureLancamentoInputVisibleAboveKeypad(){
         const panelRect2 = panel.getBoundingClientRect();
         const desiredBottom2 = panelRect2.top - marginBottom;
         if(rect2.bottom > desiredBottom2){
-          const delta2 = rect2.bottom - desiredBottom2 + marginTop;
-          window.scrollBy({ top: delta2, left: 0, behavior: "instant" });
+          window.scrollBy({ top: rect2.bottom - desiredBottom2 + marginTop, left: 0, behavior: "instant" });
         }
       }catch(e){}
     }, 80);
@@ -7349,18 +7285,17 @@ function ensureLancamentoInputVisibleAboveKeypad(){
 function positionMetaTotalKeypad(){
   const panel = document.getElementById("metaTotalPanel");
   if(!panel || !panel.classList.contains("show")) return;
-
   panel.style.position = 'fixed';
   panel.style.left = '0';
   panel.style.right = '0';
+  panel.style.bottom = '0';
+  panel.style.top = 'auto';
   panel.style.width = '100vw';
   panel.style.maxWidth = '100vw';
   panel.style.transform = '';
-  panel.style.top = 'auto';
-  panel.style.bottom = '0';
-  panel.style.height = '50vh';
-  panel.style.minHeight = '50vh';
-  panel.style.maxHeight = '50vh';
+  panel.style.height = '50dvh';
+  panel.style.minHeight = '50dvh';
+  panel.style.maxHeight = '50dvh';
   panel.style.overflow = 'hidden';
   panel.style.overflowY = 'hidden';
 }
