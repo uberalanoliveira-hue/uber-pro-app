@@ -1,7 +1,7 @@
 {
   "name": "MetaDriver",
   "short_name": "MetaDriver",
-  "start_url": "./index.html",
+  "start_url": "./app30_app.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0f172a",

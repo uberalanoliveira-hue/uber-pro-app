@@ -2,11 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MetaDriver v142</title>
+<title>MetaDriver</title>
 <style>
 :root {
   color-scheme: dark;
@@ -127,23 +124,6 @@ button.action {
   padding:6px 10px;
   font-size:12px;
 }
-
-.version-debug-badge{
-  position:fixed;
-  right:10px;
-  bottom:10px;
-  z-index:2147483647;
-  padding:6px 10px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(15,23,42,.88);
-  color:#fff;
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.2px;
-  opacity:.95;
-}
-
 </style>
 </head>
 <body>
@@ -207,7 +187,6 @@ button.action {
       localStorage.setItem("sb_token", data.access_token || "");
       localStorage.setItem("sb_refresh_token", data.refresh_token || "");
       localStorage.setItem("sb_expires_at", String(data.expires_at || 0));
-      if (data && data.user && data.user.id) localStorage.setItem("sb_user_id", data.user.id);
     } catch(e) {}
   }
   function clearSession() {
@@ -215,24 +194,11 @@ button.action {
       localStorage.removeItem("sb_token");
       localStorage.removeItem("sb_refresh_token");
       localStorage.removeItem("sb_expires_at");
-      localStorage.removeItem("sb_user_id");
     } catch(e) {}
   }
   function hasToken() {
-    try { return !!(localStorage.getItem("sb_token") || localStorage.getItem("sb_refresh_token") || ""); }
+    try { return !!(localStorage.getItem("sb_token") || ""); }
     catch(e) { return false; }
-  }
-
-  async function refreshSession() {
-    var refreshToken = "";
-    try { refreshToken = localStorage.getItem("sb_refresh_token") || ""; } catch(e) {}
-    if (!refreshToken) return null;
-    var data = await api("/auth/v1/token?grant_type=refresh_token", "POST", { refresh_token: refreshToken }, null);
-    if (data && data.access_token) {
-      saveSession(data);
-      return data;
-    }
-    return null;
   }
   async function api(path, method, body, token, extraHeaders) {
     var headers = {
@@ -299,98 +265,41 @@ button.action {
         return (Array.isArray(rows) && rows.length) ? rows[0] : null;
       });
   }
-
-function cloudUnwrapPayload(payload) {
-  try {
-    if (!payload || typeof payload !== "object") return null;
-    if (payload.schema_version && payload.snapshot && typeof payload.snapshot === "object") {
-      return payload.snapshot;
+  function cloudRestoreToLocal(payload) {
+    try {
+      if (!payload || typeof payload !== "object") return false;
+      localStorage.setItem("controleUberProDados", JSON.stringify(payload));
+      return true;
+    } catch(e) {
+      return false;
     }
-    return payload;
-  } catch(e) {
-    return null;
   }
-}
-function sanitizeStorageSuffix(value) {
-  try { return String(value || "").replace(/[^a-zA-Z0-9_-]/g, "_"); } catch(e) { return ""; }
-}
-function scopedKey(baseKey, userId) {
-  var suffix = sanitizeStorageSuffix(userId || "");
-  return suffix ? (baseKey + "__u_" + suffix) : baseKey;
-}
-function cloudRestoreToLocal(payload, userId) {
-  try {
-    var snapshot = cloudUnwrapPayload(payload);
-    if (!snapshot || typeof snapshot !== "object") return false;
-    var raw = JSON.stringify(snapshot);
-
-    var STORAGE_KEY = "controleUberProDados";
-    var OFFLINE_SAFE_SNAPSHOT_KEY = STORAGE_KEY + "__offline_safe_snapshot_v83";
-    var DURABLE_STATE_KEY = STORAGE_KEY + "__durable_snapshot_v1";
-
-    // legado/global para compatibilidade
-    localStorage.setItem(STORAGE_KEY, raw);
-    localStorage.setItem(OFFLINE_SAFE_SNAPSHOT_KEY, raw);
-    localStorage.setItem(DURABLE_STATE_KEY, raw);
-
-    // escopo por usuário usado pela base nova
-    localStorage.setItem(scopedKey(STORAGE_KEY, userId), raw);
-    localStorage.setItem(scopedKey(OFFLINE_SAFE_SNAPSHOT_KEY, userId), raw);
-    localStorage.setItem(scopedKey(DURABLE_STATE_KEY, userId), raw);
-
-    return true;
-  } catch(e) {
-    return false;
-  }
-}
   async function validateAndGo(session) {
-  var user = await getUser(session.access_token);
-  try { if (user && user.id) localStorage.setItem("sb_user_id", user.id); } catch(e) {}
-  var access = await getAccess(user.id, session.access_token);
-  if (!access) {
-    access = await createAccess(user.id, session.access_token, user.user_metadata && user.user_metadata.nome, user.email);
-  }
-  if (access.status === "blocked") {
-    location.href = "painel.html?expired=1";
-    return;
-  }
-  if (access.status === "trial" && access.trial_end && isExpired(access.trial_end)) {
-    await updateAccess(user.id, session.access_token, { status: "blocked" });
-    location.href = "painel.html?expired=1";
-    return;
-  }
-
-  try {
-    var cloudRow = await cloudFetchRow(user.id, session.access_token);
-    if (cloudRow && cloudRow.payload) {
-      cloudRestoreToLocal(cloudRow.payload, user.id);
+    var user = await getUser(session.access_token);
+    var access = await getAccess(user.id, session.access_token);
+    if (!access) {
+      access = await createAccess(user.id, session.access_token, user.user_metadata && user.user_metadata.nome, user.email);
     }
-  } catch(e) {}
+    if (access.status === "blocked") {
+      location.href = "painel.html?expired=1";
+      return;
+    }
+    if (access.status === "trial" && access.trial_end && isExpired(access.trial_end)) {
+      await updateAccess(user.id, session.access_token, { status: "blocked" });
+      location.href = "painel.html?expired=1";
+      return;
+    }
 
-  location.href = PANEL_PAGE;
-}
-
-  var loginBusy = false;
-  async function apiWithRetry(path, method, body, token, extraHeaders, retries) {
-    var attempts = typeof retries === "number" ? retries : 3;
-    var lastErr = null;
-    for (var i = 0; i < attempts; i++) {
-      try {
-        return await api(path, method, body, token, extraHeaders);
-      } catch (e) {
-        lastErr = e;
-        var msg = String((e && e.message) || "").toLowerCase();
-        var transient = msg.indexOf("fetch") >= 0 || msg.indexOf("network") >= 0 || msg.indexOf("failed") >= 0;
-        if (!transient || i === attempts - 1) break;
-        await new Promise(function(resolve){ setTimeout(resolve, 500 * (i + 1)); });
+    try {
+      var cloudRow = await cloudFetchRow(user.id, session.access_token);
+      if (cloudRow && cloudRow.payload) {
+        cloudRestoreToLocal(cloudRow.payload);
       }
-    }
-    throw lastErr || new Error("Falha de rede");
-  }
+    } catch(e) {}
 
+    location.href = PANEL_PAGE;
+  }
   async function primaryAction() {
-    if (loginBusy) return;
-    loginBusy = true;
     hideMsg();
     var nome = $("name").value.trim();
     var email = $("email").value.trim();
@@ -399,7 +308,6 @@ function cloudRestoreToLocal(payload, userId) {
     if (!email || !pass) {
       showMsg("Preencha email e senha.", "danger");
       setStatus("faltam dados");
-      loginBusy = false;
       return;
     }
 
@@ -407,12 +315,11 @@ function cloudRestoreToLocal(payload, userId) {
       if (!nome) {
         showMsg("Preencha o nome completo.", "danger");
         setStatus("faltam dados");
-        loginBusy = false;
         return;
       }
       setStatus("criando conta");
       try {
-        const data = await apiWithRetry("/auth/v1/signup?redirect_to=" + encodeURIComponent(REDIRECT_URL), "POST", {
+        const data = await api("/auth/v1/signup?redirect_to=" + encodeURIComponent(REDIRECT_URL), "POST", {
           email: email,
           password: pass,
           data: { nome: nome }
@@ -427,15 +334,13 @@ function cloudRestoreToLocal(payload, userId) {
       } catch(e) {
         showMsg(e.message || "Erro no cadastro.", "danger");
         setStatus("erro");
-      } finally {
-        loginBusy = false;
       }
       return;
     }
 
     setStatus("entrando");
     try {
-      const data = await apiWithRetry("/auth/v1/token?grant_type=password", "POST", {
+      const data = await api("/auth/v1/token?grant_type=password", "POST", {
         email: email,
         password: pass
       }, null);
@@ -449,8 +354,6 @@ function cloudRestoreToLocal(payload, userId) {
     } catch(e) {
       showMsg(e.message || "Erro no login.", "danger");
       setStatus("erro");
-    } finally {
-      loginBusy = false;
     }
   }
   async function forgot() {
@@ -488,34 +391,13 @@ function cloudRestoreToLocal(payload, userId) {
     clearSession();
     setStatus("logout realizado");
   } else if (hasToken()) {
-    (async function(){
-      try {
-        var currentToken = localStorage.getItem("sb_token") || "";
-        if (currentToken) {
-          await validateAndGo({ access_token: currentToken });
-          return;
-        }
-        var refreshed = await refreshSession();
-        if (refreshed && refreshed.access_token) {
-          await validateAndGo(refreshed);
-          return;
-        }
-        setStatus("pronto");
-      } catch(err) {
-        try {
-          var refreshedAgain = await refreshSession();
-          if (refreshedAgain && refreshedAgain.access_token) {
-            await validateAndGo(refreshedAgain);
-            return;
-          }
-        } catch(_e) {}
+    validateAndGo({ access_token: localStorage.getItem("sb_token") || "" })
+      .catch(function() {
         clearSession();
         setStatus("pronto");
-      }
-    })();
+      });
   }
 })();
 </script>
-<div class="version-debug-badge" id="versionDebugBadge">MetaDriver v142 · login</div>
 </body>
 </html>
