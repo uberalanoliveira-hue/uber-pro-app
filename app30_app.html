@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v138</title>
+<title>MetaDriver v140</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -904,27 +904,21 @@ input.negative-value, input.negative-value::placeholder{
 .quick-balance-overlay.show{display:block;}
 .quick-balance-panel{
   position:fixed;
-  top:0;
-  right:0;
-  bottom:0;
-  left:0;
-  width:100vw;
-  height:100dvh;
+  inset:0;
   z-index:1201;
-  background:rgba(15,23,42,1);
+  background:rgba(15,23,42,.995);
   border:none;
   border-radius:0;
   box-shadow:none;
   padding:max(8px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
   display:none;
+  max-width:none;
   margin:0;
+  max-height:none;
   overflow:hidden;
-  box-sizing:border-box;
-  display:none;
-  grid-template-rows:auto 1fr auto;
-  gap:8px;
+  flex-direction:column;
 }
-.quick-balance-panel.show{display:grid;}
+.quick-balance-panel.show{display:flex;}
 .quick-balance-title{
   font-weight:900;
   font-size:20px;
@@ -941,7 +935,7 @@ input.negative-value, input.negative-value::placeholder{
   display:flex;
   align-items:center;
   justify-content:center;
-  height:76px;
+  height:88px;
   border-radius:22px;
   border:2px solid rgba(255,255,255,.38);
   background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
@@ -995,9 +989,10 @@ input.negative-value, input.negative-value::placeholder{
   display:grid;
   grid-template-columns:repeat(3, 1fr);
   gap:10px;
+  flex:1 1 auto;
   min-height:0;
-  height:100%;
-  grid-auto-rows:minmax(52px,1fr);
+  height:auto;
+  grid-auto-rows:minmax(54px,1fr);
   align-content:stretch;
 }
 
@@ -1177,1783 +1172,127 @@ input.negative-value, input.negative-value::placeholder{
 }
 @media (min-width:700px){
   .quick-balance-panel{
-    max-width:520px;
-  }
-  .quick-balance-value{
-    font-size:48px;
-  }
+  position:fixed;
+  inset:0;
+  z-index:1201;
+  background:rgba(15,23,42,.995);
+  border:none;
+  border-radius:0;
+  box-shadow:none;
+  padding:max(8px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+  display:none;
+  max-width:none;
+  margin:0;
+  max-height:none;
+  overflow:hidden;
+  flex-direction:column;
 }
-@media (max-width:420px){
-  .quick-balance-fab{
-    width:56px;
-    height:56px;
-  }
-  .quick-balance-panel{
-    right:8px;
-    left:8px;
-    bottom:18px;
-    padding:14px;
-  }
-  .quick-balance-display{
-    height:40vh;
-  }
-  .quick-balance-value{
-    font-size:40px;
-  }
-  .quick-balance-key{
-    font-size:32px;
-  }
+.quick-balance-panel.show{display:flex;}
+.quick-balance-title{
+  font-weight:900;
+  font-size:20px;
+  margin-bottom:8px;
 }
-@media (max-width:680px){
-  .fuel-grid{grid-template-columns:1fr;}
+.quick-balance-sub{
+  font-size:12px;
+  opacity:.9;
+  line-height:1.35;
+  margin-bottom:10px;
 }
 
-/* ===== Manutenção ===== */
-.table-head, .table-row{ display:grid; grid-template-columns:72px 1fr 74px 92px 44px; gap:10px; align-items:center; }
-.table-head{ font-size:12px; opacity:0.78; padding:8px 10px; border:1px solid rgba(255,255,255,0.10); border-radius:12px; margin-bottom:8px; }
-.table-row{ padding:10px 10px; border:1px solid rgba(255,255,255,0.10); border-radius:14px; margin-bottom:8px; background:rgba(255,255,255,0.03); }
-.type-badge{ display:inline-flex; justify-content:center; align-items:center; width:32px; height:26px; border-radius:10px; font-weight:900; border:1px solid rgba(255,255,255,0.12); }
-.type-P{ background:rgba(34,197,94,0.18); border-color:rgba(34,197,94,0.30); }
-.type-C{ background:rgba(239,68,68,0.18); border-color:rgba(239,68,68,0.30); }
-.type-D{ background:rgba(245,158,11,0.18); border-color:rgba(245,158,11,0.30); }
-.checkline{ display:flex; gap:10px; align-items:center; margin:10px 0 0; opacity:0.9; font-size:13px; }
-.row{ display:flex; gap:10px; }
-.row > *{ flex:1; }
-
-
-.table-row > div:nth-child(2){min-width:0;}
-.table-row > div:nth-child(2) div{word-break:break-word;}
-
-/* ===== Ajuste largura do Pop-up ===== */
-.modal,
-.popup,
-#modalManutencao,
-.modal-content {
-  box-sizing: border-box;
+.quick-balance-display{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:88px;
+  border-radius:22px;
+  border:2px solid rgba(255,255,255,.38);
+  background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+  box-shadow:0 0 0 1px rgba(255,255,255,.12), inset 0 0 0 1px rgba(255,255,255,.06);
+  margin-bottom:10px;
+  overflow:hidden;
+}
+.quick-balance-display-inner{
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  border-radius:20px;
+  overflow:hidden;
+  border:2px solid rgba(255,255,255,.24);
+  background:rgba(255,255,255,.03);
+}
+.quick-balance-display-top{
+  padding:12px 14px;
+  border-top:2px solid rgba(255,255,255,.34);
+  border-bottom:2px solid rgba(255,255,255,.20);
+  background:rgba(255,255,255,.12);
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.3px;
+  opacity:.98;
+  text-align:center;
+  border-top-left-radius:18px;
+  border-top-right-radius:18px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18);
+}
+.quick-balance-display-bottom{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px 12px;
 }
 
-.modal-content,
-.popup-content,
-#modalManutencao .modal-content {
-  width: 100%;
-  max-width: 520px;
-  margin: 0 auto;
-}
 
-@media (max-width: 600px) {
-  .modal-content,
-  .popup-content,
-  #modalManutencao .modal-content {
-    max-}
-}
-
-
-/* ===== Fix layout Manutenções (mobile) v57.2.9 ===== */
-.checkline{
-  display:flex !important;
-  align-items:center !important;
-  justify-content:flex-start !important;
-  gap:12px !important;
-}
-.checkline input[type="checkbox"]{
-  flex:0 0 auto;
-  width:22px;
-  height:22px;
-}
-
-/* Tabela de manutenções: evita sobreposição e texto vertical */
-.table-row > div{ min-width:0; }
-.table-row > div:nth-child(2){
-  white-space:normal;
+.quick-balance-value{
+  font-size:64px;
+  line-height:1;
+  font-weight:900;
+  letter-spacing:-1px;
+  text-align:center;
   word-break:break-word;
 }
 
-@media (max-width: 560px){
-  .table-head{ display:none !important; }
-
-  .table-row{
-    display:flex !important;
-    flex-direction:column !important;
-    align-items:stretch !important;
-    gap:6px !important;
-  }
-  /* KM */
-  .table-row > div:nth-child(1){
-    font-weight:900;
-    font-size:16px;
-  }
-  /* Descrição */
-  .table-row > div:nth-child(2){
-    font-weight:800;
-    line-height:1.2;
-    font-size:15px;
-  }
-  /* DATA + TIPO + VALOR em uma linha */
-  .table-row > div:nth-child(3),
-  .table-row > div:nth-child(4),
-  .table-row > div:nth-child(4){
-    display:inline-flex !important;
-    align-items:center !important;
-    gap:8px !important;
-    font-size:13px;
-    opacity:0.92;
-  }
-  .table-row > div:nth-child(3){ margin-top:2px; }
-  .table-row > div:nth-child(4){ margin-left:0; }
-  .table-row > div:nth-child(4){ margin-left:0; }
-
-  /* menu (≡) sempre no canto */
-  .table-row > div:nth-child(4){
-    align-self:flex-end !important;
-    margin-top:-38px !important;
-  }
-}
-
-
-/* ===== Manutenção: checkbox Concluído na lista ===== */
-.concluido-line{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-}
-.concluido-toggle{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  font-size:12.5px;
-  opacity:0.95;
-  white-space:nowrap;
-}
-.concluido-toggle input[type="checkbox"]{
-  width:18px;
-  height:18px;
-}
-.concluido-tag{
-  padding:2px 8px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,0.12);
-  background:rgba(34,197,94,0.14);
-  font-weight:900;
-  font-size:12px;
-}
-
-
-
-/* ===== Ajuste largura campo Descrição (Manutenção) ===== */
-#tabCarro textarea,
-#tabCarro input[type="text"],
-#tabCarro input[type="number"]{
-  box-sizing:border-box;
-  
-  max-
-}
-
-#tabCarro .row,
-#tabCarro .form-row{
-  display:flex;
-  flex-wrap:wrap;
-  gap:12px;
-}
-
-#tabCarro .row > *,
-#tabCarro .form-row > *{
-  flex:1 1 100%;
-}
-
-
-/* Manutenção: badge P/C/D junto do KM (sem alterar cores) */
-#tabCarro #listaManut .table-row > div:first-child{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  flex-wrap:wrap;
-}
-
-
-/* ===== Alerta visual aba Manutenção ===== */
-.tab-btn.alerta-manutencao{
-  background: rgba(239,68,68,0.85) !important;
-  border-color: rgba(239,68,68,1) !important;
-  color: #fff !important;
-}
-
-
-
-/* ===== Manutenção: checkbox e menu lado a lado ===== */
-#tabCarro #listaManut .manut-actions{
-  position: static !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-  gap: 10px !important;
-  white-space: nowrap !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-#tabCarro #listaManut .manut-actions .concluido-toggle{
-  margin: 0 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-}
-#tabCarro #listaManut .manut-actions .kebab-btn{
-  margin: 0 !important;
-}
-#tabCarro #listaManut .table-row{
-  padding-right: 12px !important;
-}
-@media (max-width: 520px){
-  #tabCarro #listaManut .manut-actions{
-    align-self: flex-end !important;
-  }
-}
-
-
-/* ===== Fix: não sobrepor Valor/Menu ao marcar Concluído (mobile) ===== */
-#tabCarro #listaManut .action-menu{
-  margin-top: 0 !important;
-  align-self: center !important;
-  justify-self: end !important;
-}
-@media (max-width: 520px){
-  /* remove qualquer ajuste agressivo que jogue o menu por cima das linhas */
-  #tabCarro #listaManut .table-row > div{ margin-top:0 !important; }
-  #tabCarro #listaManut .action-menu{ margin-top:0 !important; }
-}
-
-
-/* ===== Manutenção: VALOR à esquerda; direita só checkbox + menu ===== */
-#tabCarro #listaManut .table-row{
-  grid-template-columns: 84px 1fr 86px 110px 44px !important; /* KM | Desc | Data | Valor | Controles */
-}
-#tabCarro #listaManut .table-row > div:nth-child(4){
-  text-align:left !important;
-  justify-self:start !important;
-  white-space:nowrap;
-}
-/* Coluna de controles fixa no canto direito: menu em cima, checkbox abaixo */
-#tabCarro #listaManut .action-menu{
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:flex-end !important;
-  justify-content:flex-start !important;
-  gap:10px !important;
-  white-space:nowrap !important;
-}
-#tabCarro #listaManut .kebab-btn{ margin:0 !important; }
-#tabCarro #listaManut .concluido-toggle{ margin:0 !important; }
-
-@media (max-width: 520px){
-  /* Mantém valor junto das infos, sem empurrar pra direita */
-  #tabCarro #listaManut .table-row{
-    grid-template-columns: 76px 1fr 80px 104px 44px !important;
-  }
-  #tabCarro #listaManut .table-row > div:nth-child(4){
-    text-align:left !important;
-    justify-self:start !important;
-  }
-}
-
-
-/* ===== Manutenção: layout como no print (valor esquerda, menu topo direita, checkbox direita) ===== */
-#tabCarro #listaManut .table-row{
-  position:relative !important;
-  padding-right:76px !important; /* espaço para checkbox/menu */
-}
-/* menu (≡) sempre no canto superior direito */
-#tabCarro #listaManut .action-menu{
-  position:absolute !important;
-  top:12px !important;
-  right:12px !important;
-  margin:0 !important;
-  padding:0 !important;
-  display:block !important;
-}
-#tabCarro #listaManut .action-menu .kebab-btn{
-  margin:0 !important;
-}
-/* checkbox sempre à direita, no meio do card */
-#tabCarro #listaManut .concluido-toggle{
-  position:absolute !important;
-  right:14px !important;
-  top:50% !important;
-  transform:translateY(-50%) !important;
-  margin:0 !important;
-  padding:0 !important;
-  display:flex !important;
-  align-items:center !important;
-  gap:6px !important;
-  white-space:nowrap !important;
-}
-/* Mantém o "Concluído" sem empurrar nada */
-#tabCarro #listaManut .concluido-tag{ margin:0 !important; }
-
-/* valor sempre alinhado à esquerda */
-#tabCarro #listaManut .table-row > div:nth-child(4){
-  text-align:left !important;
-  justify-self:start !important;
-}
-
-/* Não deixa o texto ficar embaixo dos controles */
-#tabCarro #listaManut .table-row > div:nth-child(2){
-  padding-right:10px !important;
-}
-
-
-/* ===== Ajuste final: valor no canto inferior esquerdo ===== */
-#tabCarro #listaManut .table-row{
-  padding-bottom:44px !important; /* reserva espaço pro valor embaixo */
-}
-#tabCarro #listaManut .table-row > div:nth-child(4){
-  position:absolute !important;
-  left:16px !important;
-  bottom:14px !important;
-  text-align:left !important;
-  justify-self:start !important;
-  white-space:nowrap !important;
-}
-
-
-/* ===== Ajuste fino: valor perfeitamente alinhado à esquerda ===== */
-#tabCarro #listaManut .table-row > div:nth-child(4){
-  left:20px !important;  /* alinhamento exato com KM e descrição */
-  margin-left:0 !important;
-}
-
-
-/* ===== Ajuste: valor alinhado ao padding padrão da linha (10px) ===== */
-#tabCarro #listaManut .table-row > div:nth-child(4){
-  left:10px !important;
-}
-
-
-/* ===== Padronização visual das manutenções ===== */
-
-/* Espaçamento interno uniforme entre linhas */
-#tabCarro #listaManut .table-row{
-  gap:6px !important;
-  line-height:1.2 !important;
-}
-
-/* Apenas KM em negrito */
-#tabCarro #listaManut .table-row > div:first-child{
-  font-weight:800 !important;
-}
-
-/* Descrição, data e valor com peso normal */
-#tabCarro #listaManut .table-row > div:not(:first-child){
-  font-weight:400 !important;
-}
-
-
-/* ===== Manutenção: tipografia/compactação (fix real) ===== */
-
-/* Espaçamento mais compacto e consistente */
-#tabCarro #listaManut .table-row{
-  row-gap:6px !important;
-  column-gap:8px !important;
-  line-height:1.15 !important;
-}
-
-/* KM em negrito (somente o número na 1ª coluna) */
-#tabCarro #listaManut .table-row > div:first-child{
-  font-weight:800 !important;
-}
-#tabCarro #listaManut .type-badge{
-  font-weight:700 !important; /* mantém legível, sem ficar "tudo bold" */
-}
-
-/* Remove o negrito da descrição (tinha inline style) */
-#tabCarro #listaManut .concluido-line > div:first-child{
-  font-weight:400 !important;
-}
-
-/* Data e valor normais */
-#tabCarro #listaManut .table-row > div:nth-child(3),
-#tabCarro #listaManut .table-row > div:nth-child(4){
-  font-weight:400 !important;
-}
-
-/* Controles à direita sem alterar layout ao marcar */
-#tabCarro #listaManut .concluido-toggle,
-#tabCarro #listaManut .action-menu{
-  line-height:1 !important;
-}
-
-
-/* ===== Manutenção: modo compacto (sem bagunçar layout) ===== */
-#tabCarro #listaManut .table-row{
-  padding-top:8px !important;
-  padding-bottom:8px !important;
-  row-gap:2px !important;
-  line-height:1.1 !important;
-}
-/* reduz espaço reservado para o valor no rodapé */
-#tabCarro #listaManut .table-row{
-  padding-bottom:36px !important; /* era 44px */
-}
-#tabCarro #listaManut .table-row > div:nth-child(4){
-  bottom:10px !important; /* aproxima do conteúdo */
-}
-/* aproxima checkbox/menu do card */
-#tabCarro #listaManut .action-menu{
-  top:10px !important;
-  right:10px !important;
-}
-#tabCarro #listaManut .concluido-toggle{
-  right:12px !important;
-}
-
-
-/* ===== Compactar ainda mais o espaço acima do valor ===== */
-#tabCarro #listaManut .table-row{
-  padding-bottom:30px !important; /* diminui o "vazio" reservado pro valor */
-}
-#tabCarro #listaManut .table-row > div:nth-child(4){
-  bottom:8px !important;
-}
-
-
-/* ===== FORÇAR: reduzir espaço acima do valor (agressivo) ===== */
-#tabCarro #listaManut .table-row{
-  padding-bottom:18px !important;
-  min-height:auto !important;
-}
-#tabCarro #listaManut .table-row > div:nth-child(4){
-  bottom:6px !important;
-}
-
-
-/* ===== Espaço acima do valor igual às linhas acima ===== */
-#tabCarro #listaManut .table-row{
-  padding-bottom:26px !important; /* meio termo */
-}
-#tabCarro #listaManut .table-row > div:nth-child(4){
-  bottom:8px !important;
-}
-
-
-/* ===== Menu pop: prioridade visual ===== */
-.menu-pop{ z-index: 99999 !important; }
-
-
-/* ===== Menu pop (portal): sempre por cima ===== */
-.menu-pop{
-  z-index: 999999 !important;
-}
-
-
-/* ===== Descrição quebra só perto da caixa (ajuste sutil) ===== */
-
-/* Reserva espaço apenas para checkbox/menu */
-#tabCarro #listaManut .table-row{
-  padding-right:88px !important;
-}
-
-/* Descrição ocupa quase todo card e quebra naturalmente */
-#tabCarro #listaManut .concluido-line > div:first-child{
-  white-space:normal !important;
-  word-break:normal !important;
-  overflow-wrap:break-word !important;
-}
-
-/* Remove limites agressivos anteriores */
-#tabCarro #listaManut .concluido-line{
-  max-width:none !important;
-}
-
-
-/* ===== Manutenção vencida: card vermelho ===== */
-#tabCarro #listaManut .table-row.overdue{
-  border:1px solid rgba(220, 60, 60, .65) !important;
-  background: rgba(220, 60, 60, .10) !important;
-}
-#tabCarro #listaManut .table-row.overdue:hover{
-  background: rgba(220, 60, 60, .14) !important;
-}
-
-
-/* ===== Tela cheia (sem instalar) ===== */
-.fullscreen-bar{
-  position:fixed;
-  left:12px; right:12px;
-  bottom:12px;
-  z-index:200;
-  background:rgba(30,41,59,0.98);
-  border:1px solid rgba(255,255,255,0.14);
-  border-radius:16px;
-  padding:10px 12px;
-  box-shadow:0 16px 40px rgba(0,0,0,0.45);
-  display:none;
-}
-.fullscreen-bar.show{ display:flex; align-items:center; gap:10px; }
-.fullscreen-bar .txt{ flex:1; font-size:12.5px; opacity:0.92; line-height:1.25; }
-.fullscreen-bar button{
-  width:auto;
-  padding:10px 12px;
-  margin:0;
-  border-radius:14px;
-  border:none;
-  background:var(--accent2);
-  color:#0b1220;
-  font-weight:900;
-  font-size:13px;
-  white-space:nowrap;
-}
-
-
-/* ===== Modal editar valor (teclado numérico) ===== */
-
-
-/* v57 - modal editar data/motivo (substitui prompt nativo que falha no Android) */
-.edit-data-overlay{
-  position:fixed; inset:0; z-index:400;
-  background:rgba(0,0,0,0.55);
-  display:none;
-}
-.edit-data-overlay.show{ display:flex; align-items:center; justify-content:center; padding:16px; }
-.edit-data-modal{
-  width:min(380px, 100%);
-  background:rgba(30,41,59,0.98);
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:18px;
-  box-shadow:0 18px 40px rgba(0,0,0,0.45);
-  padding:18px;
-}
-.edit-data-title{ font-weight:900; margin:0 0 12px; font-size:15px; }
-.edit-data-modal input{
-  width:100%;
-  background:var(--input);
-  color:var(--text);
-  border-radius:10px;
-  border:none;
-  padding:10px;
-  font-size:15px;
-  font-family:inherit;
-  margin-bottom:10px;
-}
-.edit-data-actions{ display:flex; gap:10px; margin-top:4px; }
-.edit-data-actions button{ flex:1; height:44px; border-radius:12px; font-size:14px; font-weight:700; border:none; cursor:pointer; font-family:inherit; }
-.edit-data-actions .btn-cancelar{ background:rgba(255,255,255,0.10); color:var(--text); }
-
-/* v57 - modal exportar backup */
-.export-backup-overlay{
-  position:fixed; inset:0; z-index:300;
-  background:rgba(0,0,0,0.55);
-  display:none;
-}
-.export-backup-overlay.show{ display:flex; align-items:center; justify-content:center; padding:16px; }
-.export-backup-modal{
-  width:min(420px, 100%);
-  background:rgba(30,41,59,0.98);
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:18px;
-  box-shadow:0 18px 40px rgba(0,0,0,0.45);
-  padding:18px;
-}
-.export-backup-title{ font-weight:900; margin:0 0 4px; font-size:15px; }
-.export-backup-subtitle{ font-size:12px; opacity:0.6; margin:0 0 14px; }
-.export-backup-field label{ display:block; font-size:12px; opacity:0.7; margin-bottom:4px; }
-.export-backup-field input{
-  width:100%;
-  background:var(--input);
-  color:var(--text);
-  border-radius:10px;
-  border:none;
-  padding:10px;
-  font-size:14px;
-  font-family:inherit;
-}
-.export-backup-warning{
-  margin-top:10px;
-  padding:10px 12px;
-  border-radius:10px;
-  background:rgba(251,113,133,0.10);
-  border:1px solid rgba(251,113,133,0.25);
-  color:#ffb3b3;
-  font-size:12px;
-  line-height:1.45;
-  display:none;
-}
-.export-backup-warning.show{ display:block; }
-.export-backup-actions{ display:flex; gap:10px; margin-top:14px; flex-direction:column; }
-.export-backup-actions button{ height:44px; border-radius:12px; font-size:14px; font-weight:700; border:none; cursor:pointer; font-family:inherit; }
-.export-backup-actions .btn-pasta{ background:var(--accent); color:#0b1220; }
-.export-backup-actions .btn-downloads{ background:rgba(255,255,255,0.10); color:var(--text); border:1px solid rgba(255,255,255,0.12) !important; }
-.export-backup-actions .btn-cancelar{ background:transparent !important; color:var(--text); opacity:0.55; font-weight:500 !important; font-size:13px !important; height:32px !important; }
-.export-backup-actions .btn-cancelar:hover{ opacity:1; }
-
-.editvalor-overlay{
-  position:fixed; inset:0; z-index:300;
-  background:rgba(0,0,0,0.55);
-  display:none;
-}
-.editvalor-overlay.show{ display:flex; align-items:center; justify-content:center; padding:16px; }
-.editvalor-modal{
-  width:min(420px, 100%);
-  background:rgba(30,41,59,0.98);
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:18px;
-  box-shadow:0 18px 40px rgba(0,0,0,0.45);
-  padding:14px;
-}
-.editvalor-title{ font-weight:900; margin:0 0 10px; font-size:15px; }
-.editvalor-modal input{
-  width:100%;
-  margin-top:0;
-  background:var(--input);
-  color:var(--text);
-}
-.editvalor-actions{
-  display:flex; gap:10px; margin-top:10px;
-}
-.editvalor-actions button{
-  flex:1;
-  height:44px;
-}
-.editvalor-actions button.cancel{
-  background:rgba(255,255,255,0.10);
-  color:var(--text);
-  border:1px solid rgba(255,255,255,0.10);
-}
-
-
-/* ===== Ganhos: quebra no meio (entre data e valor) ===== */
-#listaGanhos .list-item{ align-items:flex-start; }
-#listaGanhos .list-left{
-  display:flex;
-  align-items:flex-start;
-  gap:8px;
-  flex:1 1 auto;
-  min-width:0;
-  flex-wrap:nowrap;
-}
-#listaGanhos .li-date{ white-space:nowrap !important; flex:0 0 auto; }
-#listaGanhos .li-app{
-  white-space:normal !important;
-  overflow-wrap:break-word !important;
-  word-break:break-word !important;
-  flex:1 1 auto;
-  min-width:0;
-}
-#listaGanhos .li-value{ white-space:nowrap !important; flex:0 0 auto; margin-left:auto; }
-
-
-/* ===== Mini-abas (Ganhos / Gastos) dentro de Lançamentos ===== */
-.subtabs{
-  display:flex;
-  gap:10px;
-  margin:10px 0 10px 0;
-}
-.subtab-btn{
-  flex:1;
-  height:44px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,0.10);
-  background:rgba(255,255,255,0.06);
-  color:var(--text);
-  font-weight:900;
-  font-size:14px;
-  letter-spacing:0.15px;
-  padding:10px 8px;
-}
-.subtab-btn.active{
-  background:linear-gradient(180deg, rgba(47,240,142,0.92), rgba(36,206,120,0.92));
-  color:#0b1220;
-  border-color:rgba(0,0,0,0.12);
-}
-/* esconde os títulos antigos (mantém estrutura) */
-.section-title.ganhos-title,
-.section-title.gastos-title{ display:none !important; }
-
-/* recolher só a LISTA, mantendo o botão Adicionar visível */
-.subwrap-collapsed{ display:none !important; }
-
-
-/* ===== Mini-abas (Ganhos / Gastos): cores e alternância ===== */
-.subcard-hidden{ display:none !important; }
-
-/* Inativo */
-.subtab-btn{
-  background:rgba(255,255,255,0.06);
-  color:var(--text);
-}
-
-/* Ganhos (verde menos chamativo) */
-#btnSubGanhos.active{
-  background:linear-gradient(180deg, rgba(80, 200, 140, 0.90), rgba(60, 170, 120, 0.90));
-  color:#0b1220;
-}
-
-/* Gastos (vermelho) */
-#btnSubGastos.active{
-  background:linear-gradient(180deg, rgba(255, 120, 120, 0.92), rgba(230, 80, 80, 0.92));
-  color:#0b1220;
-}
-
-/* Combustível (marrom) */
-#btnSubCombustivel.active{
-  background:linear-gradient(180deg, rgba(181, 101, 29, 0.95), rgba(139, 69, 19, 0.95));
-  color:#fff;
-  border-color:rgba(90,45,10,0.55);
-}
-
-
-
-
-
-
-
-
-/* Espaço uniforme real entre todos os cards */
-.card{
-  margin: 0 !important;
-}
-.card + .card{
-  margin-top: 20px !important;
-}
-.card.collapsed + .card,
-.card + .card.collapsed{
-  margin-top: 20px !important;
-}
-.card.collapsed .card-header{
-  margin-bottom:0 !important;
-}
-
-
-/* ===== Padronização de formulários para evitar ultrapassar os cards ===== */
-.card input,
-.card select,
-.card textarea,
-.card button{
-  width:100%;
-  box-sizing:border-box;
-}
-
-.card input,
-.card select,
-.card textarea{
-  margin-bottom:12px;
-}
-
-.card button{
-  height:44px;
-  margin-bottom:12px;
-}
-
-.card{
-  overflow:hidden;
-}
-
-
-/* ===== V22 override: manutenção checkbox + menu lado a lado ===== */
-#tabCarro #listaManut .action-menu.manut-actions{
-  display:flex !important;
-  flex-direction:row !important;
-  align-items:center !important;
-  justify-content:flex-end !important;
-  gap:12px !important;
-  position:relative !important;
-  white-space:nowrap !important;
-  margin:0 !important;
-  padding:0 !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .concluido-toggle{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:6px !important;
-  margin:0 !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .concluido-toggle input[type="checkbox"]{
-  width:22px !important;
-  height:22px !important;
-  margin:0 !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .kebab-btn{
-  margin:0 !important;
-  padding:4px 6px !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .menu-pop{
-  right:0 !important;
-  top:28px !important;
-}
-
-
-/* ===== V23 override: manutenção com menu no topo direito e checkbox abaixo ===== */
-#tabCarro #listaManut .table-row{
-  position:relative !important;
-  padding-right:78px !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions{
-  position:absolute !important;
-  top:12px !important;
-  right:12px !important;
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:center !important;
-  justify-content:flex-start !important;
-  gap:14px !important;
-  margin:0 !important;
-  padding:0 !important;
-  white-space:nowrap !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .kebab-btn{
-  margin:0 !important;
-  padding:4px 6px !important;
-  line-height:1 !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .manut-check-top{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  margin:0 !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .manut-check-top input[type="checkbox"]{
-  width:22px !important;
-  height:22px !important;
-  margin:0 !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .menu-pop{
-  right:0 !important;
-  top:28px !important;
-}
-
-
-/* ===== V24 override: manutenção como antes, só checkbox pendente abaixo do menu ===== */
-#tabCarro #listaManut .table-row{
-  position:relative !important;
-  padding-right:78px !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions{
-  position:absolute !important;
-  top:12px !important;
-  right:12px !important;
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:center !important;
-  justify-content:flex-start !important;
-  gap:18px !important;
-  margin:0 !important;
-  padding:0 !important;
-  white-space:nowrap !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .kebab-btn{
-  margin:0 !important;
-  padding:4px 6px !important;
-  line-height:1 !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .manut-check-top{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  margin:0 !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .manut-check-top input[type="checkbox"]{
-  width:18px !important;
-  height:18px !important;
-  margin:0 !important;
-}
-#tabCarro #listaManut .concluido-toggle input[type="checkbox"]{
-  width:18px !important;
-  height:18px !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .menu-pop{
-  right:0 !important;
-  top:28px !important;
-}
-
-
-/* ===== V25 override: menu topo, checkbox abaixo com espaço maior, tag concluído abaixo ===== */
-#tabCarro #listaManut .table-row{
-  position:relative !important;
-  padding-right:112px !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions{
-  position:absolute !important;
-  top:12px !important;
-  right:12px !important;
-  width:88px !important;
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:center !important;
-  justify-content:flex-start !important;
-  gap:18px !important; /* espaço equivalente à largura da caixa */
-  margin:0 !important;
-  padding:0 !important;
-  white-space:nowrap !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .kebab-btn{
-  margin:0 !important;
-  padding:4px 6px !important;
-  line-height:1 !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .manut-check-top{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  margin:0 !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .manut-check-top input[type="checkbox"]{
-  width:18px !important;
-  height:18px !important;
-  margin:0 !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .manut-tag-top{
-  margin-top:-6px !important;
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .menu-pop{
-  right:0 !important;
-  top:28px !important;
-}
-
-
-/* ===== V26 override: checkbox à esquerda, menu à direita, sem mexer na posição ===== */
-#tabCarro #listaManut .table-row{
-  position:relative !important;
-  padding-right:116px !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions{
-  position:absolute !important;
-  top:12px !important;
-  right:12px !important;
-  width:92px !important;
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:center !important;
-  justify-content:flex-start !important;
-  margin:0 !important;
-  padding:0 !important;
-  white-space:nowrap !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .manut-top-controls{
-  width:92px !important;
-  display:flex !important;
-  flex-direction:row !important;
-  align-items:center !important;
-  justify-content:space-between !important;
-  gap:18px !important; /* espaço extra entre checkbox e menu */
-  margin:0 !important;
-  padding:0 !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .manut-check-top{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  margin:0 !important;
-  width:18px !important;
-  height:18px !important;
-  flex:0 0 18px !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .manut-check-top input[type="checkbox"]{
-  width:18px !important;
-  height:18px !important;
-  margin:0 !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .kebab-btn{
-  margin:0 !important;
-  padding:4px 6px !important;
-  line-height:1 !important;
-  flex:0 0 auto !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .manut-tag-top{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  margin-top:10px !important;
-}
-#tabCarro #listaManut .concluido-toggle input[type="checkbox"]{
-  width:18px !important;
-  height:18px !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .menu-pop{
-  right:0 !important;
-  top:28px !important;
-}
-
-
-/* ===== V27 override: controles fixos; concluído abaixo sem descer checkbox/menu ===== */
-#tabCarro #listaManut .table-row{
-  position:relative !important;
-  padding-right:120px !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions{
-  position:absolute !important;
-  top:12px !important;
-  right:12px !important;
-  width:96px !important;
-  height:66px !important;
-  display:block !important;
-  margin:0 !important;
-  padding:0 !important;
-  white-space:nowrap !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .manut-top-controls{
-  position:absolute !important;
-  top:0 !important;
-  left:0 !important;
-  right:0 !important;
-  display:flex !important;
-  flex-direction:row !important;
-  align-items:center !important;
-  justify-content:space-between !important;
-  gap:18px !important;
-  margin:0 !important;
-  padding:0 !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .manut-check-top{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  width:18px !important;
-  height:18px !important;
-  margin:0 !important;
-  flex:0 0 18px !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .manut-check-top input[type="checkbox"]{
-  width:18px !important;
-  height:18px !important;
-  margin:0 !important;
-}
-#tabCarro #listaManut .concluido-toggle input[type="checkbox"]{
-  width:18px !important;
-  height:18px !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .kebab-btn{
-  margin:0 !important;
-  padding:4px 6px !important;
-  line-height:1 !important;
-  flex:0 0 auto !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .manut-tag-top{
-  position:absolute !important;
-  top:42px !important;
-  left:50% !important;
-  transform:translateX(-50%) !important;
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  margin:0 !important;
-  max-width:96px !important;
-}
-#tabCarro #listaManut .action-menu.manut-actions .menu-pop{
-  right:0 !important;
-  top:28px !important;
-}
-
-
-.gh-actions{display:flex;gap:8px;flex-wrap:nowrap;align-items:center;}
-.gh-actions button{flex:1 1 0;min-width:0;padding:10px 8px;font-size:14px;}
-/* PATCH_V86_TEMPO_META */
-.tempo-meta-stack{display:block;}
-.tempo-meta-stack > div{margin-bottom:0;}
-.tempo-meta-stack label{margin-top:8px;}
-.tempo-meta-stack input{width:100%; margin-top:8px;}
-#cardTempoMeta button[onclick="salvarHoras()"]{width:100%; margin-top:8px;}
-/* remove setas visuais de data/hora */
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="time"]::-webkit-calendar-picker-indicator{opacity:0;display:none;-webkit-appearance:none;}
-input[type="date"],input[type="time"]{-webkit-appearance:none;appearance:none;background-image:none;}
-/* neutraliza ajustes antigos que deixavam campos despadronizados */
-#metaDiariaManual,#ganhoDiarioAtual,
-body[data-tema="meta-escuro"]{
-  --bg:#0f172a;
-  --card:#1e293b;
-  --input:#334155;
-  --accent:#22c55e;
-  --accent2:#60a5fa;
-  --text:#ffffff;
-  --muted:rgba(255,255,255,0.88);
-  --line:rgba(255,255,255,0.10);
-  --warn:#facc15;
-  --danger:#fb7185;
-}
-body[data-tema="meta-claro"]{
-  --bg:#f5f7fb;
-  --card:#ffffff;
-  --input:#e6ebf2;
-  --accent:#1db954;
-  --accent2:#3b82f6;
-  --text:#0f172a;
-  --muted:rgba(15,23,42,0.72);
-  --line:rgba(15,23,42,0.10);
-  --warn:#ca8a04;
-  --danger:#e11d48;
-}
-/* v57 - preto: identidade Uber (preto total + branco puro) */
-body[data-tema="preto-escuro"]{
-  --bg:#000000;
-  --card:#111111;
-  --input:#1a1a1a;
-  --accent:#ffffff;
-  --accent2:#999999;
-  --text:#ffffff;
-  --muted:rgba(255,255,255,0.70);
-  --line:rgba(255,255,255,0.08);
-  --warn:#ffffff;
-  --danger:#ff3b30;
-}
-body[data-tema="preto-claro"]{
-  --bg:#f5f5f5;
-  --card:#ffffff;
-  --input:#ebebeb;
-  --accent:#000000;
-  --accent2:#555555;
-  --text:#000000;
-  --muted:rgba(0,0,0,0.60);
-  --line:rgba(0,0,0,0.08);
-  --warn:#000000;
-  --danger:#ff3b30;
-}
-/* v57 - amarelo: identidade 99 (preto + amarelo vibrante) */
-body[data-tema="amarelo-escuro"]{
-  --bg:#0d0d0d;
-  --card:#1a1a00;
-  --input:#2a2a00;
-  --accent:#ffcc00;
-  --accent2:#ffdd44;
-  --text:#ffffff;
-  --muted:rgba(255,255,255,0.75);
-  --line:rgba(255,204,0,0.15);
-  --warn:#ffcc00;
-  --danger:#ff453a;
-}
-body[data-tema="amarelo-claro"]{
-  --bg:#fffbe6;
-  --card:#ffffff;
-  --input:#fff3b0;
-  --accent:#ffcc00;
-  --accent2:#e6a800;
-  --text:#1a1400;
-  --muted:rgba(26,20,0,0.65);
-  --line:rgba(26,20,0,0.10);
-  --warn:#c68a00;
-  --danger:#dc2626;
-}
-/* v57 - color-scheme por modo */
-body[data-tema="meta-claro"],
-body[data-tema="preto-claro"],
-body[data-tema="amarelo-claro"]{ color-scheme:light; }
-body[data-tema="meta-escuro"],
-body[data-tema="preto-escuro"],
-body[data-tema="amarelo-escuro"]{ color-scheme:dark; }
-
-/* ── TOPBAR por tema ── */
-body[data-tema$="claro"] .topbar{
-  background:linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.84));
-  border-bottom:1px solid var(--line);
-}
-body[data-tema$="claro"] .menu-panel{
-  background:rgba(255,255,255,0.98);
-}
-body[data-tema$="claro"] .menu-item button{ color:var(--text) !important; }
-body[data-tema$="claro"] .menu-item button.primary{ color:var(--accent) !important; }
-body[data-tema$="claro"] .menu-item button.secondary{ color:var(--accent2) !important; }
-body[data-tema$="claro"] .menu-item button.danger{ color:var(--danger) !important; }
-
-/* ── menu-btn por tema claro ── */
-body[data-tema$="claro"] .menu-btn{
-  background:rgba(0,0,0,0.06);
-  color:var(--text);
-  border-color:var(--line);
-}
-
-/* ════════════════════════════════════════════
-   TEMA: META ESCURO (padrão, nenhum override
-   necessário — o CSS base já é otimizado)
-   ════════════════════════════════════════════ */
-
-/* ════════════════════════════════════════════
-   TEMA: META CLARO
-   ════════════════════════════════════════════ */
-body[data-tema="meta-claro"] .card-header{
-  background:linear-gradient(135deg, rgba(59,130,246,0.18), rgba(29,185,84,0.12));
-}
-/* botões globais no claro: texto escuro sobre accent claro */
-body[data-tema="meta-claro"] button{ color:#0f172a; }
-body[data-tema="meta-claro"] button.secondary{ background:var(--accent2); color:#ffffff; }
-/* abas */
-body[data-tema="meta-claro"] .tab-btn{
-  background:rgba(15,23,42,0.06);
-  border-color:rgba(15,23,42,0.14);
-  color:var(--text);
-}
-body[data-tema="meta-claro"] .tab-btn.active{
-  background:rgba(59,130,246,0.18);
-  border-color:rgba(59,130,246,0.40);
-  color:var(--text);
-}
-body[data-tema="meta-claro"] .subtab-btn{
-  background:rgba(15,23,42,0.06);
-  border-color:rgba(15,23,42,0.12);
-  color:var(--text);
-}
-body[data-tema="meta-claro"] .list-item{
-  background:rgba(15,23,42,0.04);
-  border-color:rgba(15,23,42,0.10);
-}
-body[data-tema="meta-claro"] .quick-balance-panel{ background:#ffffff; }
-
-/* ════════════════════════════════════════════
-   TEMA: PRETO ESCURO (identidade Uber)
-   ════════════════════════════════════════════ */
-body[data-tema="preto-escuro"] .card-header{
-  background:rgba(255,255,255,0.05);
-  border-bottom:1px solid rgba(255,255,255,0.07);
-}
-/* botões primários: branco com texto preto */
-body[data-tema="preto-escuro"] button{
-  background:#ffffff;
-  color:#000000;
-}
-body[data-tema="preto-escuro"] button.secondary{
-  background:rgba(255,255,255,0.12);
-  color:#ffffff;
-}
-/* abas principais */
-body[data-tema="preto-escuro"] .tab-btn{
-  background:rgba(255,255,255,0.05);
-  border-color:rgba(255,255,255,0.10);
-  color:#ffffff;
-}
-body[data-tema="preto-escuro"] .tab-btn.active{
-  background:rgba(255,255,255,0.14);
-  border-color:rgba(255,255,255,0.30);
-  color:#ffffff;
-}
-/* sub-abas ganhos/gastos */
-body[data-tema="preto-escuro"] .subtab-btn{
-  background:rgba(255,255,255,0.06);
-  border-color:rgba(255,255,255,0.10);
-  color:#ffffff;
-}
-body[data-tema="preto-escuro"] #btnSubGanhos.active{
-  background:rgba(255,255,255,0.18);
-  color:#ffffff;
-  border-color:rgba(255,255,255,0.30);
-}
-body[data-tema="preto-escuro"] #btnSubGastos.active{
-  background:rgba(255,80,80,0.25);
-  color:#ff8888;
-  border-color:rgba(255,80,80,0.30);
-}
-/* list items */
-body[data-tema="preto-escuro"] .list-item{
-  background:rgba(255,255,255,0.04);
-  border-color:rgba(255,255,255,0.07);
-}
-/* quick balance */
-body[data-tema="preto-escuro"] .quick-balance-panel,
-body[data-tema="preto-escuro"] .quick-balance-display{
-  background-color:#0a0a0a;
-}
-/* inputs */
-body[data-tema="preto-escuro"] input,
-body[data-tema="preto-escuro"] select{
-  background:#1a1a1a;
-  color:#ffffff;
-  border:1px solid rgba(255,255,255,0.10);
-}
-
-/* ════════════════════════════════════════════
-   TEMA: PRETO CLARO (identidade Uber Claro)
-   ════════════════════════════════════════════ */
-body[data-tema="preto-claro"] .card-header{
-  background:rgba(0,0,0,0.06);
-  border-bottom:1px solid rgba(0,0,0,0.08);
-}
-body[data-tema="preto-claro"] button{
-  background:#000000;
-  color:#ffffff;
-}
-body[data-tema="preto-claro"] button.secondary{
-  background:rgba(0,0,0,0.10);
-  color:#000000;
-}
-body[data-tema="preto-claro"] .tab-btn{
-  background:rgba(0,0,0,0.05);
-  border-color:rgba(0,0,0,0.12);
-  color:#000000;
-}
-body[data-tema="preto-claro"] .tab-btn.active{
-  background:rgba(0,0,0,0.14);
-  border-color:rgba(0,0,0,0.30);
-  color:#000000;
-}
-body[data-tema="preto-claro"] .subtab-btn{
-  background:rgba(0,0,0,0.05);
-  border-color:rgba(0,0,0,0.10);
-  color:#000000;
-}
-body[data-tema="preto-claro"] #btnSubGanhos.active{
-  background:rgba(0,0,0,0.16);
-  color:#000000;
-  border-color:rgba(0,0,0,0.28);
-}
-body[data-tema="preto-claro"] #btnSubGastos.active{
-  background:rgba(200,40,40,0.15);
-  color:#c00000;
-  border-color:rgba(200,40,40,0.25);
-}
-body[data-tema="preto-claro"] .list-item{
-  background:rgba(0,0,0,0.03);
-  border-color:rgba(0,0,0,0.08);
-}
-body[data-tema="preto-claro"] .quick-balance-panel{ background:#ffffff; }
-
-/* ════════════════════════════════════════════
-   TEMA: AMARELO ESCURO (identidade 99)
-   ════════════════════════════════════════════ */
-body[data-tema="amarelo-escuro"] .card-header{
-  background:rgba(255,204,0,0.10);
-  border-bottom:1px solid rgba(255,204,0,0.12);
-}
-/* botões primários: amarelo com texto preto */
-body[data-tema="amarelo-escuro"] button{
-  background:#ffcc00;
-  color:#000000;
-}
-body[data-tema="amarelo-escuro"] button.secondary{
-  background:rgba(255,204,0,0.15);
-  color:#ffcc00;
-}
-/* abas */
-body[data-tema="amarelo-escuro"] .tab-btn{
-  background:rgba(255,255,255,0.05);
-  border-color:rgba(255,204,0,0.15);
-  color:#ffffff;
-}
-body[data-tema="amarelo-escuro"] .tab-btn.active{
-  background:rgba(255,204,0,0.18);
-  border-color:rgba(255,204,0,0.40);
-  color:#ffcc00;
-}
-/* sub-abas */
-body[data-tema="amarelo-escuro"] .subtab-btn{
-  background:rgba(255,255,255,0.05);
-  border-color:rgba(255,204,0,0.12);
-  color:#ffffff;
-}
-body[data-tema="amarelo-escuro"] #btnSubGanhos.active{
-  background:rgba(255,204,0,0.22);
-  color:#ffcc00;
-  border-color:rgba(255,204,0,0.35);
-}
-body[data-tema="amarelo-escuro"] #btnSubGastos.active{
-  background:rgba(255,80,80,0.22);
-  color:#ff8888;
-  border-color:rgba(255,80,80,0.30);
-}
-/* list items */
-body[data-tema="amarelo-escuro"] .list-item{
-  background:rgba(255,204,0,0.05);
-  border-color:rgba(255,204,0,0.10);
-}
-/* quick balance */
-body[data-tema="amarelo-escuro"] .quick-balance-panel{
-  background:#0d0d00;
-}
-/* inputs */
-body[data-tema="amarelo-escuro"] input,
-body[data-tema="amarelo-escuro"] select{
-  background:#222200;
-  color:#ffffff;
-  border:1px solid rgba(255,204,0,0.15);
-}
-
-/* ════════════════════════════════════════════
-   TEMA: AMARELO CLARO (identidade 99 Claro)
-   ════════════════════════════════════════════ */
-body[data-tema="amarelo-claro"] .card-header{
-  background:rgba(255,204,0,0.20);
-  border-bottom:1px solid rgba(255,204,0,0.20);
-}
-body[data-tema="amarelo-claro"] button{
-  background:#ffcc00;
-  color:#000000;
-}
-body[data-tema="amarelo-claro"] button.secondary{
-  background:rgba(0,0,0,0.08);
-  color:#1a1400;
-}
-body[data-tema="amarelo-claro"] .tab-btn{
-  background:rgba(0,0,0,0.05);
-  border-color:rgba(0,0,0,0.12);
-  color:#1a1400;
-}
-body[data-tema="amarelo-claro"] .tab-btn.active{
-  background:rgba(255,204,0,0.35);
-  border-color:rgba(200,150,0,0.45);
-  color:#000000;
-}
-body[data-tema="amarelo-claro"] .subtab-btn{
-  background:rgba(0,0,0,0.05);
-  border-color:rgba(0,0,0,0.10);
-  color:#1a1400;
-}
-body[data-tema="amarelo-claro"] #btnSubGanhos.active{
-  background:rgba(255,204,0,0.40);
-  color:#000000;
-  border-color:rgba(180,130,0,0.35);
-}
-body[data-tema="amarelo-claro"] #btnSubGastos.active{
-  background:rgba(200,40,40,0.15);
-  color:#aa0000;
-  border-color:rgba(200,40,40,0.20);
-}
-body[data-tema="amarelo-claro"] .list-item{
-  background:rgba(0,0,0,0.03);
-  border-color:rgba(0,0,0,0.08);
-}
-body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
-
-.temas-overlay{
-  position:fixed; inset:0; z-index:1500;
-  background:rgba(0,0,0,0.62);
-  display:none;
-}
-.temas-overlay.show{ display:block; }
-.temas-panel{
-  position:fixed; left:12px; right:12px; bottom:18px; z-index:1501;
-  max-width:520px; margin:0 auto;
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:22px;
-  box-shadow:0 30px 70px rgba(0,0,0,.50);
-  display:none;
-  overflow:hidden;
-}
-.temas-panel.show{ display:block; }
-.temas-head{
-  padding:16px 16px 10px;
-  background:linear-gradient(135deg, rgba(96,165,250,0.18), rgba(34,197,94,0.12));
-  border-bottom:1px solid var(--line);
-}
-.temas-title{ font-size:18px; font-weight:800; letter-spacing:.2px; }
-.temas-sub{ font-size:12px; opacity:.86; line-height:1.35; margin-top:4px; }
-.temas-body{ padding:14px; display:grid; gap:12px; max-height:68vh; overflow:auto; }
-.tema-card{
-  border:1px solid var(--line);
-  border-radius:16px;
-  background:rgba(255,255,255,.03);
-  padding:12px;
-}
-.tema-card-title{ font-size:14px; font-weight:800; }
-.tema-card-desc{ font-size:12px; opacity:.8; line-height:1.35; margin-top:4px; }
-.tema-options{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
-.tema-option{
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:10px;
-  cursor:pointer;
-  background:rgba(255,255,255,.04);
-}
-.tema-option.active{ outline:2px solid var(--accent2); outline-offset:1px; }
-.tema-preview{
-  height:68px; border-radius:12px; overflow:hidden; position:relative;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.06);
-}
-.tema-preview-top{ height:14px; width:100%; opacity:.94; }
-.tema-preview-card{
-  position:absolute; left:10px; right:10px; bottom:10px; height:24px; border-radius:10px;
-}
-.tema-label{ margin-top:8px; font-size:12px; font-weight:800; text-align:center; }
-.temas-actions{ padding:0 14px 14px; }
-.temas-actions button{ margin-top:0; }
-
-
-/* Dias não trabalhados: formulário centralizado e ação discreta */
-#formNaoTrabalhado{
-  margin: 10px auto 10px !important;
-}
-#formNaoTrabalhado input{
-  width: 100%;
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-#formNaoTrabalhado .dias-link-add{
-  display:block;
-  width:auto !important;
-  margin: 2px auto 0 !important;
-  padding:0 !important;
-  background:transparent !important;
-  border:none !important;
-  color:var(--accent) !important;
-  text-decoration:underline;
-  font-weight:700;
-  font-size:14px;
-  min-height:auto !important;
-  height:auto !important;
-  border-radius:0 !important;
-  box-shadow:none !important;
-}
-#formNaoTrabalhado .dias-link-add:active{
-  transform:none !important;
-}
-#listaNaoTrabalhados .list-item{
-  margin: 8px auto 0 !important;
-  padding: 6px 10px !important;
-  min-height: 0 !important;
-  border-radius: 10px;
-  font-size: 13px;
-  line-height: 1.15;
-  align-items: center;
-}
-#listaNaoTrabalhados .list-left{
-  gap: 6px;
-  align-items: center;
-}
-#listaNaoTrabalhados .li-date,
-#listaNaoTrabalhados .li-desc{
-  line-height: 1.15;
-}
-#listaNaoTrabalhados .small-btn{
-  padding: 4px 7px;
-  font-size: 11px;
-  border-radius: 8px;
-}
-
-
-/* Dias não trabalhados: o + controla tudo */
-#btnMaisNaoTrab{
-  display:block !important;
-  margin:8px auto !important;
-}
-
-
-#listaNaoTrabalhados .list-item{
-  padding: 8px 10px !important;
-  min-height: 0 !important;
-  height: auto !important;
-  border-radius: 10px;
-  font-size: 13px;
-  line-height: 1.2;
-}
-
-
-.version-debug-badge{
-  position:fixed;
-  right:10px;
-  bottom:10px;
-  z-index:2147483647;
-  padding:6px 10px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(15,23,42,.88);
-  color:#fff;
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.2px;
-  opacity:.95;
-}
-
-
-/* PADRONIZAÇÃO inputs Configurar Meta */
-
-
-
-
-
-/* PADRONIZAÇÃO FINA - Configurar Meta */
-.config-meta-label{
-  display:block;
-  margin-top:8px !important;
-  margin-bottom:0 !important;
-}
-.config-meta-input{
-  margin:0 24px 12px 0 !important;
-  display:block !important;
-}
-#fuelPercentFields.config-meta-field{
-  margin-top:0 !important;
-  margin-bottom:0 !important;
-  padding:0 !important;
-}
-
-
-/* PADRÃO VERTICAL — Configurar Meta (sem alterar largura) */
-#cardMeta .card-body label{
-  margin-top:8px !important;
-  margin-bottom:4px !important;
-}
-#cardMeta .card-body input,
-#cardMeta .card-body select{
-  margin-top:4px !important;
-  margin-bottom:12px !important;
-}
-
-/* Fallback caso o id do card seja diferente */
-.card-body .meta-section label{
-  margin-top:8px !important;
-  margin-bottom:4px !important;
-}
-.card-body .meta-section input,
-.card-body .meta-section select{
-  margin-top:4px !important;
-  margin-bottom:12px !important;
-}
-
-
-/* v57 - padroniza distância entre botões do topo e o primeiro card */
-.tabs-wrap{
-  margin-bottom: 16px !important;
-}
-
-
-/* v57 - aumenta altura dos botões do topo */
-.tabs-wrap button{
-  padding-top:14px !important;
-  padding-bottom:14px !important;
-}
-
-
-/* v57 safe patch - botão flutuante sem $ e com valor maior */
-.quick-balance-fab-inner{
-  justify-content:center !important;
-}
-.quick-balance-fab-value{
-  font-size:14px !important;
-  max-width:62px !important;
-  font-weight:900 !important;
-  line-height:1.05 !important;
-}
-
-
-/* v61n - botão flutuante Uber / 99 com transparência maior */
-.quick-balance-split{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
-.quick-balance-split-card{border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:10px 12px;cursor:pointer;user-select:none;transition:opacity .15s ease, box-shadow .15s ease;}
-.quick-balance-split-card.active{box-shadow:0 0 0 2px rgba(255,255,255,.14) inset;opacity:1;}
-.quick-balance-split-label{font-size:12px;font-weight:900;opacity:.9;margin-bottom:6px;letter-spacing:.2px;}
-.quick-balance-split-card.uber{background:rgba(0,0,0,.55);border-color:rgba(255,255,255,.12);}
-.quick-balance-split-card.uber .quick-balance-split-label,.quick-balance-split-card.uber .quick-balance-split-value{color:#fff;}
-.quick-balance-split-card.n99{background:rgba(255,221,0,.55);border-color:rgba(0,0,0,.10);}
-.quick-balance-split-card.n99 .quick-balance-split-label,.quick-balance-split-card.n99 .quick-balance-split-value{color:#111827;}
-.quick-balance-split-card:not(.active){opacity:.72;}
-.quick-balance-split-value{font-size:24px;line-height:1;font-weight:900;min-height:24px;}
-
-
-/* v61n - UX seleção Uber/99 refinada */
-.quick-balance-split-card,
-.quick-balance-split-card *{
-  -webkit-tap-highlight-color: transparent !important;
-  tap-highlight-color: transparent !important;
-}
-.quick-balance-split-card{
-  outline:none !important;
-  box-shadow:none;
-}
-.quick-balance-split-card.active{
-  opacity:1 !important;
-  transform:scale(1.015);
-  box-shadow:
-    0 0 0 2px rgba(255,255,255,.26) inset,
-    0 8px 18px rgba(0,0,0,.18);
-  border-color:rgba(255,255,255,.22) !important;
-}
-.quick-balance-split-card:not(.active){
-  opacity:.62 !important;
-  transform:none;
-}
-.quick-balance-split-card.uber.active{
-  background:rgba(0,0,0,.72) !important;
-}
-.quick-balance-split-card.n99.active{
-  background:rgba(255,221,0,.72) !important;
-}
-
-
-.quick-balance-split-card.uber::after{
-  background:rgba(255,255,255,.9);
-}
-.quick-balance-split-card.n99::after{
-  background:rgba(17,24,39,.9);
-}
-
-
-/* v61n - trava visual do saldo atual quando FAB ativo */
-#saldoAtualFora[readonly]{
-  opacity:.78 !important;
-  cursor:not-allowed !important;
-}
-
-
-.quick-balance-title,
-.quick-balance-sub,
-.quick-balance-display-top,
-.quick-balance-split{
-  display:none !important;
-}
-.quick-balance-display{
-  min-height:88px !important;
-  flex:0 0 auto;
-  margin-bottom:8px !important;
-}
-.quick-balance-display-inner{
-  width:100% !important;
-  border-radius:16px !important;
-}
-.quick-balance-display-bottom{
-  padding:6px 10px !important;
-}
-.quick-balance-value{
-  font-size:min(14vw,56px) !important;
-}
 .quick-balance-keypad{
-  margin-bottom:8px !important;
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:10px;
+  flex:1 1 auto;
+  min-height:0;
+  height:auto;
+  grid-auto-rows:minmax(54px,1fr);
+  align-content:stretch;
 }
+
+
 .quick-balance-key{
-  min-height:0 !important;
-  height:100% !important;
+  border:none;
+  border-radius:18px;
+  font-size:26px;
+  font-weight:900;
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  box-shadow:0 6px 16px rgba(0,0,0,.18);
 }
-.quick-balance-actions{
-  margin-top:0 !important;
+.quick-balance-key:active{
+  transform:scale(.97);
 }
 
-
-.quick-balance-overlay{
-  position:fixed !important;
-  inset:0 !important;
-  width:100vw !important;
-  height:100dvh !important;
-}
-.quick-balance-panel{
-  max-width:none !important;
-  max-height:none !important;
-}
-.quick-balance-title,
-.quick-balance-sub,
-.quick-balance-display-top,
-.quick-balance-split{
-  display:none !important;
-}
-.quick-balance-display{
-  min-height:76px !important;
-  margin:0 !important;
-}
-.quick-balance-display-inner{
-  width:100% !important;
-  height:100% !important;
-}
-.quick-balance-display-bottom{
-  padding:4px 8px !important;
-}
-.quick-balance-value{
-  font-size:min(13vw,52px) !important;
-}
-.quick-balance-keypad{
-  margin:0 !important;
+.quick-balance-key:active{
+  transform:scale(.98);
 }
 .quick-balance-actions{
-  display:grid !important;
-  grid-template-columns:1fr 1fr 1fr !important;
-  gap:10px !important;
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:10px;
+  margin-top:12px;
 }
 .quick-balance-actions button{
-  min-height:50px !important;
+  min-height:52px;
+  font-size:17px;
+  font-weight:900;
+  border-radius:18px;
 }
 
 </style>
@@ -3072,7 +1411,7 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v138</div>
+  <div class="menu-note" style="text-align:center;">v140</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -4120,7 +2459,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v138',
+      app_version: 'MetaDriver v140',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -6108,27 +4447,43 @@ function confirmVirada4hModal(){
     return false;
   }
 
+  const diaAnteriorUber = String((window.__dayTurn4hState && window.__dayTurn4hState.diaAnteriorUber) || dados.ganhoHoraDiaRef || dataUberISO());
+  const diaAtualUber = String((window.__dayTurn4hState && window.__dayTurn4hState.diaAtualUber) || dataUberISO());
+
   dados.saldoAtualFora = valorNormalizado;
   dados.ganhoDiarioAtual = valorNormalizado;
+
+  // Atualiza o campo visual principal antes de fechar a sessão
   try{
     const saldoAtualElVirada = document.getElementById("saldoAtualFora");
     if(saldoAtualElVirada) saldoAtualElVirada.value = String(valorNormalizado);
   }catch(e){}
 
+  // Reflete em Ganhos/lançamentos com o saldo confirmado
   try{
+    syncGanhoDoSaldoRapido(valorNormalizado, 0, 0);
+  }catch(e){}
+
+  try{
+    dados.ganhoHoraDiaRef = diaAnteriorUber;
     finalizarSessaoGanhoHoraInterno({
       silent: true,
       skipSave: true,
       skipUpdate: true,
       naoIniciarProxima: true,
+      saldoAtual: valorNormalizado,
       horaFim: '04:00',
       dataFim: getViradaOperacional(new Date())
     });
-  }catch(e){}
+  }catch(e){
+  }finally{
+    dados.ganhoHoraDiaRef = diaAnteriorUber;
+  }
 
-  try{ salvarResumoDiaGanhoHora(window.__dayTurn4hState.diaAnteriorUber); }catch(e){}
+  try{ salvarResumoDiaGanhoHora(diaAnteriorUber); }catch(e){}
   limparDadosGanhoHora(true);
-  dados.ganhoHoraDiaRef = String(window.__dayTurn4hState.diaAtualUber || dataUberISO());
+
+  dados.ganhoHoraDiaRef = diaAtualUber;
   dados.saldoAtualFora = 0;
   dados.ganhoDiarioAtual = 0;
   dados.saldoAnteriorFora = 0;
@@ -6137,6 +4492,8 @@ function confirmVirada4hModal(){
   dados.ganhoHoraSessaoDiaRef = "";
   dados.horasDecorridasFora = 0;
   dados.ganhoHoraAtualFora = 0;
+
+  // Zera o campo visual do saldo atual
   try{
     const saldoAtualElNovoDia = document.getElementById("saldoAtualFora");
     if(saldoAtualElNovoDia) saldoAtualElNovoDia.value = "";
@@ -6145,12 +4502,31 @@ function confirmVirada4hModal(){
     const horarioElNovoDia = document.getElementById("horarioInicioFora");
     if(horarioElNovoDia) horarioElNovoDia.value = "";
   }catch(e){}
+
+  // Zera o estado real do quick balance
+  try{
+    if(window.__qbState){
+      window.__qbState.uber = "";
+      window.__qbState.n99 = "";
+      window.__qbState.selected = "uber";
+      window.__qbState.initialized = true;
+    }
+    localStorage.removeItem(QUICK_BALANCE_UBER_KEY);
+    localStorage.removeItem(QUICK_BALANCE_99_KEY);
+    localStorage.removeItem(QUICK_BALANCE_SELECTED_KEY);
+    dados.saldoUber = "";
+    dados.saldo99 = "";
+    dados.ultimoGanhoDetalhado = { uber: 0, n99: 0, total: 0 };
+    refreshQuickBalanceDisplay();
+    refreshQuickBalanceFabMiniDisplay();
+  }catch(e){}
+
   try{
     localStorage.setItem("md_last_4am_turn_key_v102", String(window.__dayTurn4hState.turnKey || ""));
   }catch(e){}
   salvar();
   atualizar();
-  try{ toast("✅ Dia finalizado às 4h. Sessão encerrada e saldo zerado para iniciar o novo dia."); }catch(e){}
+  try{ toast("✅ Dia finalizado às 4h. Sessão encerrada, histórico salvo e saldo zerado para iniciar o novo dia."); }catch(e){}
   closeVirada4hModal();
   return true;
 }
@@ -6627,7 +5003,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v138 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v140 · app</div>
 </body>
     </html>  `);
   w.document.close();
