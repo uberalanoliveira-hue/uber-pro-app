@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v153</title>
+<title>MetaDriver v158</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -3166,7 +3166,7 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v153</div>
+  <div class="menu-note" style="text-align:center;">v158</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -4214,7 +4214,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v153',
+      app_version: 'MetaDriver v158',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -6305,7 +6305,7 @@ function ensureGanhoHoraDiaAtual(){
     const hora = agora.getHours();
     const minuto = agora.getMinutes();
 
-    if(!(hora === 4 && minuto === 0)) return false;
+    if(!(hora >= 4)) return false;
 
     const turnKey = (function(){
       const yyyy = agora.getFullYear();
@@ -6779,7 +6779,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v153 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v158 · app</div>
 </body>
     </html>  `);
   w.document.close();
