@@ -172,7 +172,7 @@
   window.addEventListener('pageshow', function(){ restoreBurst(); }, { passive: true });
   window.addEventListener('focus', function(){ restoreBurst(); }, { passive: true });
   window.addEventListener('orientationchange', function(){ restoreBurst(); }, { passive: true });
-  // removed scroll listener for performance
+  window.addEventListener('scroll', scheduleSave, { passive: true });
   window.addEventListener('pagehide', function(){ saveScroll(true); }, { passive: true });
   window.addEventListener('beforeunload', function(){ saveScroll(true); });
   window.addEventListener('blur', function(){ saveScroll(true); }, { passive: true });
@@ -4682,7 +4682,8 @@ window.addEventListener("pagehide", function(){
 window.addEventListener("beforeunload", function(){ try{ cloudPushNow(JSON.parse(JSON.stringify(dados || {}))); }catch(e){} });
 window.addEventListener("online", function(){ try{ if(__cloudDirty || (cloudReadPendingSnapshot() && cloudReadPendingSnapshot().payload)) cloudPushNow(); }catch(e){} });
 // v57 - salva scroll continuamente
-// removed scroll listener for performance }catch(e){}
+window.addEventListener('scroll', function(){
+  try{ if(window.__mdSaveScroll) window.__mdSaveScroll(); }catch(e){}
 }, { passive: true });
 
 document.addEventListener("visibilitychange", function(){
@@ -7199,29 +7200,15 @@ function ensureLancamentoInputVisibleAboveKeypad(){
     const panelRect = panel.getBoundingClientRect();
     const marginTop = 12;
     const marginBottom = 14;
-
     const desiredBottom = panelRect.top - marginBottom;
-    const currentBottom = rect.bottom;
 
-    if(currentBottom > desiredBottom){
-      const delta = currentBottom - desiredBottom + marginTop;
-      window.scrollBy({ top: delta, left: 0, behavior: "instant" });
+    if(rect.bottom > desiredBottom){
+      const delta = rect.bottom - desiredBottom + marginTop;
+      window.scrollBy(0, delta);
     }else if(rect.top < marginTop){
       const deltaUp = rect.top - marginTop;
-      window.scrollBy({ top: deltaUp, left: 0, behavior: "instant" });
+      window.scrollBy(0, deltaUp);
     }
-
-    setTimeout(function(){
-      try{
-        const rect2 = visible.getBoundingClientRect();
-        const panelRect2 = panel.getBoundingClientRect();
-        const desiredBottom2 = panelRect2.top - marginBottom;
-        if(rect2.bottom > desiredBottom2){
-          const delta2 = rect2.bottom - desiredBottom2 + marginTop;
-          window.scrollBy({ top: delta2, left: 0, behavior: "instant" });
-        }
-      }catch(e){}
-    }, 60);
   }catch(e){}
 }
 
@@ -7306,9 +7293,6 @@ window.addEventListener('orientationchange', function(){
     try{ ensureLancamentoInputVisibleAboveKeypad(); }catch(e){}
   }, 50);
 }, { passive:true });
-// removed scroll listener for performance
-}, { passive:true });
-
 function openMetaTotalKeypad(){
   toggleMetaTotalKeypad(true, "metaTotal");
 }
