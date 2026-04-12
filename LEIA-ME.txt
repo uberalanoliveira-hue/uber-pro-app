@@ -1,0 +1,49 @@
+VERSÃO v154 - fix-virada-4h-logica-correta
+
+O QUE FOI PEDIDO:
+- Modal da virada das 4h só abria às 04:00 exato — se o app fosse aberto
+  às 04:03 ou 05:00, o modal não aparecia mais
+- Correção: modal deve abrir sempre que hora >= 4 e a virada do dia ainda
+  não foi confirmada, independente do minuto exato
+
+O QUE FOI FEITO:
+
+1. Condição de disparo alterada:
+   ANTES: if(!(hora === 4 && minuto === 0)) return false
+   DEPOIS: if(hora < 4) return false
+   → Agora elegível das 04:00 em diante, não só no minuto exato
+
+2. turnKey unificado com dataUberISO():
+   ANTES: turnKey era gerado com agora.getDate() (data calendário)
+   DEPOIS: turnKey = dataUberISO() (dia operacional)
+   → Evita inconsistência entre turnKey e ganhoHoraDiaRef às 04:00
+
+3. Detecção de virada já ocorrida:
+   Se dados.ganhoHoraDiaRef já é igual ao diaAtualUber, a virada
+   já aconteceu — não reabre o modal
+   → Proteção extra além da chave md_last_4am_turn_key_v102
+
+4. diaAnteriorUber agora lê diretamente de dados.ganhoHoraDiaRef:
+   É o dia que estava em andamento antes da virada — sempre correto
+
+5. Comportamento mantido:
+   - Modal abre: das 04:00 em diante, com sessão ativa, virada não confirmada
+   - Modal persiste: só fecha ao confirmar ou cancelar (usuário)
+   - Após confirmar: grava md_last_4am_turn_key_v102 = turnKey
+   - Não reabre no mesmo dia
+
+RESULTADO ESPERADO:
+  04:00 → abre
+  04:03 → abre
+  05:20 → abre
+  09:00 → abre
+  (desde que sessão ativa + virada não confirmada)
+  Após confirmar → não abre mais no mesmo dia
+
+ARQUIVOS ALTERADOS:
+- app30_app.html
+- index.html / login.html / admin.html / painel.html / reset.html
+- LEIA-ME.txt
+
+STATUS:
+- Aguardando teste — testar abrindo o app após as 4h sem ter confirmado virada
