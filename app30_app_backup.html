@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v153</title>
+<title>MetaDriver v156</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -2987,69 +2987,6 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
 .quick-balance-actions button{
   min-height:50px;
 }
-
-/* v153 MetaDriver keyboard only */
-.meta-total-panel{
-  left:0 !important;
-  right:0 !important;
-  top:auto !important;
-  bottom:0 !important;
-  width:100vw !important;
-  max-width:100vw !important;
-  margin:0 !important;
-  padding:10px 12px calc(10px + env(safe-area-inset-bottom)) !important;
-  border-radius:18px 18px 0 0 !important;
-  overflow:hidden !important;
-  box-sizing:border-box !important;
-  background:rgba(15,23,42,.995) !important;
-}
-.meta-total-panel.show{
-  display:flex !important;
-  flex-direction:column !important;
-  justify-content:space-between !important;
-}
-.meta-total-panel .quick-balance-display{
-  flex:0 0 auto !important;
-  height:72px !important;
-  min-height:72px !important;
-  margin-bottom:10px !important;
-}
-.meta-total-panel .quick-balance-display-inner{
-  width:100% !important;
-  height:100% !important;
-}
-.meta-total-panel .quick-balance-keypad{
-  flex:1 1 auto !important;
-  display:grid !important;
-  grid-template-columns:repeat(3, 1fr) !important;
-  grid-auto-rows:minmax(48px,1fr) !important;
-  gap:10px !important;
-  min-height:0 !important;
-  height:auto !important;
-  align-content:stretch !important;
-  margin-bottom:10px !important;
-}
-.meta-total-panel .quick-balance-key{
-  min-height:0 !important;
-  height:100% !important;
-  font-size:22px !important;
-  border-radius:12px !important;
-}
-.meta-total-panel .quick-balance-actions{
-  flex:0 0 auto !important;
-  display:flex !important;
-  gap:10px !important;
-  margin-top:0 !important;
-}
-.meta-total-panel .quick-balance-actions button{
-  flex:1 1 0 !important;
-  height:58px !important;
-  min-height:58px !important;
-  max-height:58px !important;
-  font-size:16px !important;
-  border-radius:12px !important;
-}
-
 </style>
 
 <script id="auth-guard">
@@ -3166,7 +3103,7 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v153</div>
+  <div class="menu-note" style="text-align:center;">v156</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -4214,7 +4151,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v153',
+      app_version: 'MetaDriver v156',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -6779,7 +6716,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v153 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v156 · app</div>
 </body>
     </html>  `);
   w.document.close();
@@ -7256,17 +7193,23 @@ function ensureLancamentoInputVisibleAboveKeypad(){
     const visible = getMetaTotalTarget();
     const panel = document.getElementById("metaTotalPanel");
     if(!visible || !panel || !panel.classList.contains("show")) return;
+    const mode = getMetaTotalTargetMode();
+    if(mode !== "lancamentos") return;
 
     const rect = visible.getBoundingClientRect();
     const panelRect = panel.getBoundingClientRect();
     const marginTop = 12;
-    const marginBottom = 12;
-    const desiredBottom = panelRect.top - marginBottom;
+    const marginBottom = 14;
 
-    if(rect.bottom > desiredBottom){
-      window.scrollBy({ top: rect.bottom - desiredBottom + marginTop, left: 0, behavior: "instant" });
+    const desiredBottom = panelRect.top - marginBottom;
+    const currentBottom = rect.bottom;
+
+    if(currentBottom > desiredBottom){
+      const delta = currentBottom - desiredBottom + marginTop;
+      window.scrollBy({ top: delta, left: 0, behavior: "instant" });
     }else if(rect.top < marginTop){
-      window.scrollBy({ top: rect.top - marginTop, left: 0, behavior: "instant" });
+      const deltaUp = rect.top - marginTop;
+      window.scrollBy({ top: deltaUp, left: 0, behavior: "instant" });
     }
 
     setTimeout(function(){
@@ -7275,29 +7218,49 @@ function ensureLancamentoInputVisibleAboveKeypad(){
         const panelRect2 = panel.getBoundingClientRect();
         const desiredBottom2 = panelRect2.top - marginBottom;
         if(rect2.bottom > desiredBottom2){
-          window.scrollBy({ top: rect2.bottom - desiredBottom2 + marginTop, left: 0, behavior: "instant" });
+          const delta2 = rect2.bottom - desiredBottom2 + marginTop;
+          window.scrollBy({ top: delta2, left: 0, behavior: "instant" });
         }
       }catch(e){}
-    }, 80);
+    }, 60);
   }catch(e){}
 }
 
 function positionMetaTotalKeypad(){
   const panel = document.getElementById("metaTotalPanel");
-  if(!panel || !panel.classList.contains("show")) return;
+  const visible = getMetaTotalTarget();
+  if(!panel || !visible || !panel.classList.contains("show")) return;
+  const rect = visible.getBoundingClientRect();
+  const cardBody = visible.closest('.card-body');
+  const cardRect = cardBody ? cardBody.getBoundingClientRect() : rect;
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+  const margin = viewportWidth <= 420 ? 10 : 12;
+  const minPanelWidth = 220;
+  const mode = getMetaTotalTargetMode();
+
+  if(mode === "lancamentos"){
+    panel.style.position = 'fixed';
+    panel.style.left = margin + 'px';
+    panel.style.right = margin + 'px';
+    panel.style.top = 'auto';
+    panel.style.bottom = '12px';
+    panel.style.maxHeight = Math.max(170, Math.min(320, viewportHeight * 0.42)) + 'px';
+    panel.style.overflowY = 'auto';
+    return;
+  }
+
+  const left = Math.max(margin, Math.min(cardRect.left, viewportWidth - margin - minPanelWidth));
+  const right = Math.max(margin, viewportWidth - Math.max(cardRect.right, left + minPanelWidth));
+  const top = Math.max(rect.bottom + 6, margin);
+  const maxHeight = Math.max(170, viewportHeight - top - 8);
   panel.style.position = 'fixed';
-  panel.style.left = '0';
-  panel.style.right = '0';
-  panel.style.bottom = '0';
-  panel.style.top = 'auto';
-  panel.style.width = '100vw';
-  panel.style.maxWidth = '100vw';
-  panel.style.transform = '';
-  panel.style.height = '50dvh';
-  panel.style.minHeight = '50dvh';
-  panel.style.maxHeight = '50dvh';
-  panel.style.overflow = 'hidden';
-  panel.style.overflowY = 'hidden';
+  panel.style.left = left + 'px';
+  panel.style.right = right + 'px';
+  panel.style.top = top + 'px';
+  panel.style.bottom = 'auto';
+  panel.style.maxHeight = maxHeight + 'px';
+  panel.style.overflowY = 'auto';
 }
 
 function toggleMetaTotalKeypad(forceOpen, targetId){
@@ -7316,7 +7279,11 @@ function toggleMetaTotalKeypad(forceOpen, targetId){
     metaTotalReplaceOnNextInput = true;
     refreshMetaTotalDisplay();
     positionMetaTotalKeypad();
-    try{ ensureLancamentoInputVisibleAboveKeypad(); }catch(e){}
+    try{
+      if(metaTotalTargetMode === "lancamentos"){
+        ensureLancamentoInputVisibleAboveKeypad();
+      }
+    }catch(e){}
   }else{
     metaTotalReplaceOnNextInput = false;
     metaTotalTargetMode = "default";
@@ -7324,13 +7291,7 @@ function toggleMetaTotalKeypad(forceOpen, targetId){
     panel.style.bottom = '';
     panel.style.left = '';
     panel.style.right = '';
-    panel.style.transform = '';
-    panel.style.width = '';
-    panel.style.maxWidth = '';
-    panel.style.height = '';
-    panel.style.minHeight = '';
     panel.style.maxHeight = '';
-    panel.style.overflow = '';
     panel.style.overflowY = '';
     panel.style.position = '';
   }
