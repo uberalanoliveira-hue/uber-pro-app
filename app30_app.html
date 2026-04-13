@@ -169,8 +169,8 @@
 
   document.addEventListener('DOMContentLoaded', function(){ restoreBurst(); }, { passive: true });
   window.addEventListener('load', function(){ restoreBurst(); }, { passive: true });
-  }, { passive: true });
-  }, { passive: true });
+  window.addEventListener('pageshow', function(){ restoreBurst(); }, { passive: true });
+  window.addEventListener('focus', function(){ restoreBurst(); }, { passive: true });
   window.addEventListener('orientationchange', function(){ restoreBurst(); }, { passive: true });
   window.addEventListener('scroll', scheduleSave, { passive: true });
   window.addEventListener('pagehide', function(){ saveScroll(true); }, { passive: true });
@@ -212,18 +212,22 @@ function lockSaldoAtualByFab(){
 document.addEventListener("DOMContentLoaded", function(){
   try{ lockSaldoAtualByFab(); }catch(e){}
 });
-}catch(e){}
+window.addEventListener("pageshow", function(){
+  try{ lockSaldoAtualByFab(); }catch(e){}
 });
 setInterval(function(){
   try{ lockSaldoAtualByFab(); }catch(e){}
 }, 500);
 
 
-}catch(e){}
+window.addEventListener("focus", function(){
+  try{ mdResumeRestoreSafely(); }catch(e){}
 });
-}catch(e){}
+window.addEventListener("online", function(){
+  try{ mdResumeRestoreSafely(); }catch(e){}
 });
-}catch(e){}
+window.addEventListener("pageshow", function(){
+  try{ mdResumeRestoreSafely(); }catch(e){}
 });
 
 </script>
@@ -3046,11 +3050,6 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   border-radius:12px !important;
 }
 
-
-/* v02 anti-flicker */
-html.md-initial-lock body{visibility:hidden;}
-html.md-initial-ready body{visibility:visible;}
-
 </style>
 
 <script id="auth-guard">
@@ -3117,6 +3116,12 @@ html.md-initial-ready body{visibility:visible;}
 
 </style>
 
+
+
+<style>
+html.md-init-lock body{visibility:hidden;}
+html.md-init-ready body{visibility:visible;}
+</style>
 
 </head>
 <body class="preload">
@@ -4639,49 +4644,112 @@ function cloudScheduleSave(delayMs){
 }
 
 async function cloudBoot(force){
-  if(window.__mdCloudBootRunning) return;
-  window.__mdCloudBootRunning = true;
+  if(__cloudBootStarted) return;
+  __cloudBootStarted = true;
   try{
     const token = await cloudGetToken();
-    if(!token){
-      window.__mdInitialSyncLock = false;
-      return;
-    }
+    if(!token) return;
     const user = await cloudGetUser(token);
-    if(!user || !user.id){
-      window.__mdInitialSyncLock = false;
-      return;
-    }
+    if(!user || !user.id) return;
+
+    try{
+      mdSetActiveUserScope(user.id);
+      mdMigrateLegacyGlobalStateToUser(user.id);
+      localStorage.setItem("sb_user_id", user.id);
+    }catch(e){}
+
+    // Re-hidratar local correto APÓS ativar o escopo do usuário.
+    try{
+      const scopedLocal = mdChooseBestLocalSnapshotSync();
+      if(scopedLocal && !mdShouldBlockSnapshot(scopedLocal)){
+        dados = JSON.parse(JSON.stringify(scopedLocal));
+        mdEnsureDataMeta(dados);
+      }
+    }catch(e){}
 
     const remoteRow = await cloudFetchRow(token, user.id);
-    const remoteData = remoteRow && remoteRow.payload ? remoteRow.payload : null;
+    const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
+    const remoteData = remoteWrapped && remoteWrapped.snapshot ? remoteWrapped.snapshot : (remoteRow && remoteRow.payload ? remoteRow.payload : null);
     const remoteTs = remoteRow && remoteRow.updated_at ? new Date(remoteRow.updated_at).getTime() : 0;
     const localTs = dados && dados.__cloud_updated_at ? new Date(dados.__cloud_updated_at).getTime() : 0;
 
     if(remoteData && (remoteTs > localTs || !cloudHasUsefulData(dados))){
       cloudApplyRemoteData(remoteData);
-    }else if(cloudHasUsefulData(dados)){
-      await cloudPushNow();
+      try{ toast("☁️ Dados restaurados da nuvem."); }catch(e){}
+      return;
     }
 
-    try{ atualizar(); }catch(e){}
-    try{ initTabs(); }catch(e){}
+    if(cloudHasUsefulData(dados)){
+      cloudPushNow(JSON.parse(JSON.stringify(dados)));
+    }
   }catch(e){
+    console.warn("cloudBoot", e);
   }finally{
-    window.__mdInitialSyncLock = false;
-    window.__mdCloudBootRunning = false;
+    __cloudBootStarted = false;
   }
 }
 
 async function mdInitialHydrateAndRender(){
-  return;
+  try{
+    let token = cloudGetStoredTokenSync();
+    if(!token){
+      try{ token = await cloudGetToken(); }catch(e){}
+    }
+
+    let userId = "";
+    if(token){
+      try{ userId = await mdBootstrapUserScope(token).catch(function(){ return ""; }); }catch(e){}
+      if(!userId){
+        try{ userId = await cloudResolveUserId(token).catch(function(){ return ""; }); }catch(e){}
+      }
+    }
+
+    // Só depois de ativar o escopo é que escolhemos o melhor snapshot local.
+    const localBest = mdPickBestSnapshot([
+      { snapshot: dados },
+      { snapshot: (typeof mdReadOfflineSafeSnapshot === "function" ? mdReadOfflineSafeSnapshot() : null) },
+      { snapshot: (typeof mdChooseBestLocalSnapshotSync === "function" ? mdChooseBestLocalSnapshotSync() : null) }
+    ]) || dados;
+
+    if(localBest && localBest !== dados && !mdShouldBlockSnapshot(localBest)){
+      dados = JSON.parse(JSON.stringify(localBest));
+      mdEnsureDataMeta(dados);
+    }
+
+    const localUseful = cloudHasUsefulData(dados);
+    const localTs = new Date(
+      (dados && (dados.__cloud_updated_at || dados.__updated_at || dados.__last_local_write_at)) || 0
+    ).getTime() || 0;
+
+    let remoteSnapshot = null;
+    let remoteRowUpdatedAt = 0;
+    if(token && userId){
+      const remoteRow = await cloudFetchRow(token, userId).catch(function(){ return null; });
+      const remoteWrapped = mdUnwrapCloudPayload(remoteRow && remoteRow.payload ? remoteRow.payload : null);
+      remoteSnapshot = remoteWrapped && remoteWrapped.snapshot ? remoteWrapped.snapshot : null;
+      remoteRowUpdatedAt = new Date((remoteRow && remoteRow.updated_at) || 0).getTime() || 0;
+    }
+
+    const remoteUseful = !!(remoteSnapshot && cloudHasUsefulData(remoteSnapshot));
+    const remoteTs = Math.max(
+      remoteRowUpdatedAt,
+      new Date((remoteSnapshot && (remoteSnapshot.__cloud_updated_at || remoteSnapshot.__updated_at || remoteSnapshot.__last_local_write_at)) || 0).getTime() || 0
+    );
+
+    if(remoteUseful && (remoteTs >= localTs || !localUseful)){
+      try{ if(userId) mdSetActiveUserScope(userId); }catch(e){}
+      mdApplyExternalSnapshot(remoteSnapshot, "remote-hydrate", false);
+    }
+  }catch(e){}
+  try{ atualizar(); }catch(e){}
+  try{ atualizarCarro(); }catch(e){}
 }
 
 window.addEventListener("pagehide", function(){
   try{ cloudPushNow(); }catch(e){}
 });
 window.addEventListener("beforeunload", function(){ try{ cloudPushNow(JSON.parse(JSON.stringify(dados || {}))); }catch(e){} });
-}catch(e){} });
+window.addEventListener("online", function(){ try{ if(__cloudDirty || (cloudReadPendingSnapshot() && cloudReadPendingSnapshot().payload)) cloudPushNow(); }catch(e){} });
 // v57 - salva scroll continuamente
 window.addEventListener('scroll', function(){
   try{ if(window.__mdSaveScroll) window.__mdSaveScroll(); }catch(e){}
@@ -6659,7 +6727,13 @@ function exportarRelatorioPDF(){
 }
 
 </style>
-    </head>
+    
+<style>
+html.md-init-lock body{visibility:hidden;}
+html.md-init-ready body{visibility:visible;}
+</style>
+
+</head>
     <body>
       <h1>Relatório - MetaDriver</h1>
       <p class="sub">Gerado em ${d}/${m}/${y}</p>
@@ -6715,27 +6789,15 @@ function exportarRelatorioPDF(){
 
 <script>
 (function(){
-  try{
-    document.documentElement.classList.add('md-initial-lock');
-    window.__mdInitialSyncLock = true;
-  }catch(e){}
-  var timer = setInterval(function(){
-    try{
-      if(window.__mdInitialSyncLock === false){
-        document.documentElement.classList.remove('md-initial-lock');
-        document.documentElement.classList.add('md-initial-ready');
-        clearInterval(timer);
-      }
-    }catch(e){}
-  }, 30);
-  setTimeout(function(){
-    try{
-      document.documentElement.classList.remove('md-initial-lock');
-      document.documentElement.classList.add('md-initial-ready');
-      clearInterval(timer);
-      window.__mdInitialSyncLock = false;
-    }catch(e){}
-  }, 2500);
+ try{document.documentElement.classList.add('md-init-lock');}catch(e){}
+ window.addEventListener('load',function(){
+   setTimeout(function(){
+     try{
+       document.documentElement.classList.remove('md-init-lock');
+       document.documentElement.classList.add('md-init-ready');
+     }catch(e){}
+   },300);
+ });
 })();
 </script>
 
@@ -7811,16 +7873,47 @@ function initQuickBalanceFab(){
 
 document.addEventListener("DOMContentLoaded", function(){ initQuickBalanceFab(); try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} });
 try{ syncSaldoAtualLockWithFab(); }catch(e){}
-}catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} });
+window.addEventListener("pageshow", function(){ try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} });
 try{ syncSaldoAtualLockWithFab(); }catch(e){}
 setInterval(function(){ try{ applyQuickBalanceFabStateHard(); }catch(e){} try{ refreshQuickBalanceFabMiniDisplay(); }catch(e){} try{ syncSaldoAtualLockWithFab(); }catch(e){} }, 800);
 
 function bootApp(){
+  // v102 - mantém UI oculta até aplicar colapsos e layout inicial
+  try{ document.body.classList.add("preload"); }catch(e){}
+  // v57 - garante visibilidade
   try{
-    window.__mdInitialSyncLock = true;
-    cloudBoot(true);
+    document.documentElement.style.opacity = '';
+    document.documentElement.style.pointerEvents = '';
+  }catch(e){}
+  try{ ensureFirstInstallCollapsed(); }catch(e){}
+  try{ initSectionCollapse(); }catch(e){}
+  // v57 - calcular altura real da topbar e aplicar nas tabs para sticky preciso
+  try{
+    const topbar = document.querySelector('.topbar');
+    const tabsWrap = document.querySelector('.tabs-wrap');
+    if(topbar && tabsWrap){
+      const h = topbar.getBoundingClientRect().height;
+      tabsWrap.style.top = h + 'px';
+    }
+  }catch(e){}
+  try{ ensureGanhoHoraDiaAtual(); }catch(e){}
+  try{ setInterval(function(){ try{ ensureGanhoHoraDiaAtual(); }catch(e){} }, 15000); }catch(e){}
+  try{ updateUberClock(); setInterval(updateUberClock, 1000); }catch(e){}
+  // v57 - fix logout: se havia sessão em andamento, retoma o timer automaticamente
+  try{
+    if(String(dados.horarioInicioFora || "").trim()){
+      iniciarTimerGanhoHoraTempoReal();
+    }
+  }catch(e){}
+  setTimeout(function(){ try{ cloudBoot(true); }catch(e){} }, cloudHasUsefulData(dados) ? 120 : 30);
+  try{
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        document.body.classList.remove("preload");
+      });
+    });
   }catch(e){
-    try{ window.__mdInitialSyncLock = false; }catch(err){}
+    try{ document.body.classList.remove("preload"); }catch(_e){}
   }
 }
 if(document.readyState === "loading"){
@@ -7830,7 +7923,8 @@ if(document.readyState === "loading"){
   try{ bindSectionHeaders(); }catch(e){}
 }
 // Em alguns celulares, ao voltar para o app (bfcache), reaplica o estado
-}catch(e){}
+window.addEventListener("pageshow", ()=>{
+  try{ document.body.classList.add("preload"); }catch(e){}
   try{ initSectionCollapse(); }catch(e){}
   try{ applyQuickBalanceFabStateHard(); }catch(e){}
   // v57 - reforça restauração ao reabrir do cache do navegador
@@ -7865,6 +7959,8 @@ function bindSectionHeaders(){
 
 
 try{ ensureGanhoHoraDiaAtual(); }catch(e){}
+mdInitialHydrateAndRender();
+
 (function(){
   const metaIds = ["metaTotal", "dataLimite"];
   metaIds.forEach(function(id){
@@ -8904,10 +9000,23 @@ document.addEventListener("pointerdown", function(e){
 /* ===== Restore do IndexedDB (se localStorage não persistir) ===== */
 function restoreFromIDBIfNeeded(){
   try{
-    return;
+    const direct = mdReadLS(STORAGE_KEY);
+    if(direct) return; // se tiver algo, mantém
+    idbGet(mdCurrentDataKey(IDB_KEY)).then((payload)=>{
+      if(!payload) return;
+      try{
+        const parsed = JSON.parse(payload);
+        if(parsed && typeof parsed === "object"){
+          dados = parsed;
+          try{ mdWriteLS(STORAGE_KEY, payload); }catch(e){}
+          atualizar();
+          try{ atualizarCarro(); }catch(e){}
+        }
+      }catch(e){}
+    });
   }catch(e){}
 }
-window.addEventListener("load", ()=>{ });
+window.addEventListener("load", ()=>{ restoreFromIDBIfNeeded(); });
 
 
 
@@ -9021,9 +9130,11 @@ function mdResumeRestoreSafely(){
 window.addEventListener("load", function(){
   try{ resumeGanhoHoraTempoRealSafely(); }catch(e){}
 });
-}catch(e){}
+window.addEventListener("pageshow", function(){
+  try{ resumeGanhoHoraTempoRealSafely(); }catch(e){}
 });
-}catch(e){}
+window.addEventListener("focus", function(){
+  try{ resumeGanhoHoraTempoRealSafely(); }catch(e){}
 });
 document.addEventListener("visibilitychange", function(){
   try{
@@ -9155,6 +9266,21 @@ document.addEventListener("visibilitychange", function(){
     <button type="button" class="secondary" onclick="fecharSaldoAtualButtonMenu()">Fechar</button>
   </div>
 </div>
+
+
+<script>
+(function(){
+ try{document.documentElement.classList.add('md-init-lock');}catch(e){}
+ window.addEventListener('load',function(){
+   setTimeout(function(){
+     try{
+       document.documentElement.classList.remove('md-init-lock');
+       document.documentElement.classList.add('md-init-ready');
+     }catch(e){}
+   },300);
+ });
+})();
+</script>
 
 </body>
 </html>
