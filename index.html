@@ -51,12 +51,6 @@ body.boot-ready #bootWrap{visibility:visible}
   }
 })();
 </script>
-
-<style>
-html.md-init-lock body{visibility:hidden;}
-html.md-init-ready body{visibility:visible;}
-</style>
-
 </head>
 <body class="boot-lock">
 <div class="wrap splash" id="bootWrap">
@@ -161,20 +155,5 @@ html.md-init-ready body{visibility:visible;}
   showInstall();
 })();
 </script>
-
-<script>
-(function(){
- try{document.documentElement.classList.add('md-init-lock');}catch(e){}
- window.addEventListener('load',function(){
-   setTimeout(function(){
-     try{
-       document.documentElement.classList.remove('md-init-lock');
-       document.documentElement.classList.add('md-init-ready');
-     }catch(e){}
-   },300);
- });
-})();
-</script>
-
 </body>
 </html>

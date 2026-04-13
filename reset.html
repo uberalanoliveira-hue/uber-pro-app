@@ -96,12 +96,6 @@ button {
 }
 
 </style>
-
-<style>
-html.md-init-lock body{visibility:hidden;}
-html.md-init-ready body{visibility:visible;}
-</style>
-
 </head>
 <body>
 <div id="badge">RESET 45</div>
@@ -286,20 +280,5 @@ html.md-init-ready body{visibility:visible;}
 })();
 </script>
 <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v02 · reset</div>
-
-<script>
-(function(){
- try{document.documentElement.classList.add('md-init-lock');}catch(e){}
- window.addEventListener('load',function(){
-   setTimeout(function(){
-     try{
-       document.documentElement.classList.remove('md-init-lock');
-       document.documentElement.classList.add('md-init-ready');
-     }catch(e){}
-   },300);
- });
-})();
-</script>
-
 </body>
 </html>
