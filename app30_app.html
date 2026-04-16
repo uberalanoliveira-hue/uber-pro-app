@@ -18,7 +18,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<title>MetaDriver v04</title>
+<title>MetaDriver v05</title>
 <script>
 // v57 - correção de duplicação ao minimizar/restaurar + proteção de rolagem
 (function(){
@@ -3166,7 +3166,7 @@ body[data-tema="amarelo-claro"] .quick-balance-panel{ background:#fff9d0; }
   <div class="menu-item"><button class="secondary" onclick="abrirSaldoAtualButtonMenu(); closeMenu();">Botão de saldo atual</button></div>
   <div class="menu-item"><button class="secondary" onclick="abrirTemas(); closeMenu();">Temas</button></div>
   <div class="menu-item"><button class="danger" onclick="forceLogout(); return false;">Sair</button></div>
-  <div class="menu-note" style="text-align:center;">v04</div>
+  <div class="menu-note" style="text-align:center;">v05</div>
 </div>
 
 <div id="temasOverlay" class="temas-overlay" onclick="fecharTemas()"></div>
@@ -4214,7 +4214,7 @@ function mdBuildDiagnosticsObject(){
     const durableObj = mdSafeJsonParse(durableRaw);
     const diag = {
       generated_at: mdNowIso(),
-      app_version: 'MetaDriver v04',
+      app_version: 'MetaDriver v05',
       cloud_table: CLOUD_TABLE,
       device_id: mdEnsureDeviceId(),
       visibility_state: document.visibilityState,
@@ -6308,40 +6308,69 @@ function ensureGanhoHoraDiaAtual(){
 
     const agora = new Date();
     const hora = agora.getHours();
-
-    // v154: elegível a partir das 04:00, não apenas no minuto exato
     if(hora < 4) return false;
 
-    // turnKey baseado no dia operacional (dataUberISO) para consistência
-    // às 04:10 do dia 12, diaAtual = "2025-04-12" (hora >= 4, não subtrai)
-    // turnKey representa o dia que acabou de virar
-    const diaAtualUber = dataUberISO(); // dia operacional atual (>= 4h)
-    const turnKey = diaAtualUber;       // a virada pertence ao dia que começou
+    const turnKey = (function(){
+      const yyyy = agora.getFullYear();
+      const mm = String(agora.getMonth()+1).padStart(2,'0');
+      const dd = String(agora.getDate()).padStart(2,'0');
+      return yyyy + "-" + mm + "-" + dd;
+    })();
 
-    // Já confirmada a virada deste dia? Não reabre
     try{
       const ultimaVirada = localStorage.getItem("md_last_4am_turn_key_v102") || "";
-      if(ultimaVirada === turnKey) return false;
+      if(ultimaVirada === turnKey){
+        return false;
+      }
     }catch(e){}
 
-    // Dia anterior operacional: é o ganhoHoraDiaRef que ainda está salvo nos dados
-    // (antes da virada, dados.ganhoHoraDiaRef aponta para o dia de ontem)
-    const diaAnteriorUber = String(dados.ganhoHoraDiaRef || "");
-
-    // Se o dia já foi atualizado nos dados, a virada já ocorreu — não reabre
-    if(diaAnteriorUber === diaAtualUber) return false;
+    const diaAtualUber = dataUberISO();
+    const diaAnteriorUber = (function(){
+      const d = new Date(agora.getTime());
+      d.setDate(d.getDate() - 1);
+      const base = new Date(d.getTime());
+      if(base.getHours() < 4){
+        base.setDate(base.getDate() - 1);
+      }
+      const yyyy = base.getFullYear();
+      const mm = String(base.getMonth()+1).padStart(2,'0');
+      const dd = String(base.getDate()).padStart(2,'0');
+      return yyyy + "-" + mm + "-" + dd;
+    })();
 
     const temSessaoEmAndamento = !!dados.ganhoHoraSessaoAtiva && !!String(dados.horarioInicioFora || '').trim();
 
     if(temSessaoEmAndamento){
-      // Modal já está aberto? Mantém aberto, não reabre
       if(window.__dayTurn4hState && window.__dayTurn4hState.open) return false;
-      // Abre o modal — permanece até o usuário confirmar ou cancelar
       openVirada4hModal(Number(dados.saldoAtualFora || 0), diaAtualUber, diaAnteriorUber, turnKey);
+      try{ toast("⚠️ Virou 4h. Atualize o saldo final para encerrar a sessão."); }catch(e){}
       return false;
     }
 
-    // Sem sessão ativa: vira o dia silenciosamente
+    try{
+      if(!Array.isArray(dados.ganhos)) dados.ganhos = [];
+      const valorSilencioso = Number(dados.saldoAtualFora || 0);
+      let idx = dados.ganhos.findIndex(function(g){
+        return g &&
+          String(g.data || "").slice(0,10) === diaAnteriorUber &&
+          String(g.app || "").trim() === "Saldo atual (botão)";
+      });
+      if(idx < 0){
+        idx = dados.ganhos.findIndex(function(g){
+          return g && String(g.data || "").slice(0,10) === diaAnteriorUber;
+        });
+      }
+      if(idx >= 0){
+        const prev = dados.ganhos[idx] || {};
+        dados.ganhos[idx] = Object.assign({}, prev, {
+          data: diaAnteriorUber,
+          hora: "04:00",
+          app: String(prev.app || "Saldo atual (botão)"),
+          valor: valorSilencioso
+        });
+      }
+    }catch(e){}
+
     limparDadosGanhoHora(true);
     dados.ganhoHoraDiaRef = diaAtualUber;
     dados.saldoAtualFora = 0;
@@ -6778,7 +6807,7 @@ function exportarRelatorioPDF(){
       <script>
         setTimeout(()=>window.print(), 250);
       <\/script>
-    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v04 · app</div>
+    <div class="version-debug-badge" id="versionDebugBadge">MetaDriver v05 · app</div>
 </body>
     </html>  `);
   w.document.close();
